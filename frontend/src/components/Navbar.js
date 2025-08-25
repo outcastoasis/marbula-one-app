@@ -14,14 +14,21 @@ export default function Navbar() {
   return (
     <nav>
       <Link to="/">Home</Link> | <Link to="/teams">Teams</Link> |{" "}
-      {user ? (
-        <>
-          <span>👤 {user.username}</span> |{" "}
-          <button onClick={handleLogout}>Logout</button>
-        </>
-      ) : (
+      {!user && (
         <>
           <Link to="/login">Login</Link> | <Link to="/register">Register</Link>
+        </>
+      )}
+      {user && (
+        <>
+          Hallo, {user.username} |{" "}
+          {user.role === "admin" && (
+            <>
+              <Link to="/admin/teams">Admin: Teams</Link>|{" "}
+              <Link to="/admin/seasons">Admin: Seasons</Link>
+            </>
+          )}
+          <button onClick={handleLogout}>Logout</button>
         </>
       )}
     </nav>

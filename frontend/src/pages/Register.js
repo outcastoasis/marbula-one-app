@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { AuthContext } from "../context/AuthContext";
 import API from "../api";
 import { useNavigate } from "react-router-dom";
 
@@ -6,6 +7,7 @@ export default function Register() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -17,9 +19,13 @@ export default function Register() {
         password,
       });
       localStorage.setItem("token", res.data.token);
+      login(res.data.user);
       navigate("/");
     } catch (err) {
-      alert("Registrierung fehlgeschlagen");
+      alert(
+        "Registrierung fehlgeschlagen: " + err.response?.data?.message ||
+          err.message
+      );
     }
   };
 

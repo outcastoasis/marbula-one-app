@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { AuthContext } from "../context/AuthContext";
 import API from "../api";
 import { useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -12,9 +14,12 @@ export default function Login() {
     try {
       const res = await API.post("/auth/login", { email, password });
       localStorage.setItem("token", res.data.token);
+      login(res.data.user);
       navigate("/");
     } catch (err) {
-      alert("Login fehlgeschlagen");
+      alert(
+        "Login fehlgeschlagen: " + err.response?.data?.message || err.message
+      );
     }
   };
 
