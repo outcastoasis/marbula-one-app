@@ -1,0 +1,8 @@
+# Node modules
+**/node_modules/
+
+# .env-Dateien
+**/.env
+
+# Build-Dateien
+frontend/build
