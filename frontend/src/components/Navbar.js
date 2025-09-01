@@ -22,10 +22,18 @@ export default function Navbar() {
       {user && (
         <>
           Hallo, {user.username} |{" "}
+          {/* Nur zeigen, wenn der Benutzer noch kein Team gewählt hat */}
+          {!user.selectedTeam && (
+            <>
+              <Link to="/choose-team">Team wählen</Link> |{" "}
+            </>
+          )}
+          {/* Adminlinks */}
           {user.role === "admin" && (
             <>
-              <Link to="/admin/teams">Admin: Teams</Link>|{" "}
+              <Link to="/admin/teams">Admin: Teams</Link> |{" "}
               <Link to="/admin/seasons">Admin: Seasons</Link>
+              <Link to="/admin/users">Admin: Benutzer</Link>
             </>
           )}
           <button onClick={handleLogout}>Logout</button>

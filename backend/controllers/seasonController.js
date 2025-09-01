@@ -6,8 +6,14 @@ export const getAllSeasons = async (req, res) => {
 };
 
 export const createSeason = async (req, res) => {
-  const { year, eventDate } = req.body;
-  const season = await Season.create({ year, eventDate });
+  const { name, eventDate, participants } = req.body;
+
+  const season = await Season.create({
+    name,
+    eventDate,
+    participants,
+  });
+
   res.status(201).json(season);
 };
 

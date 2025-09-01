@@ -9,6 +9,9 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { useContext } from "react";
 import { AuthContext } from "./context/AuthContext";
 import AdminSeasons from "./pages/admin/AdminSeasons";
+import AdminSeasonRaces from "./pages/admin/AdminSeasonRaces";
+import ChooseTeam from "./pages/ChooseTeam";
+import AdminUsers from "./pages/admin/AdminUsers";
 
 function App() {
   const { loading } = useContext(AuthContext);
@@ -20,6 +23,14 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/teams" element={<Teams />} />
+        <Route
+          path="/choose-team"
+          element={
+            <ProtectedRoute>
+              <ChooseTeam />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route
@@ -35,6 +46,22 @@ function App() {
           element={
             <ProtectedRoute adminOnly={true}>
               <AdminSeasons />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/seasons/:seasonId/races"
+          element={
+            <ProtectedRoute adminOnly={true}>
+              <AdminSeasonRaces />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute adminOnly={true}>
+              <AdminUsers />
             </ProtectedRoute>
           }
         />
