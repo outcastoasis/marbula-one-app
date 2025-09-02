@@ -51,7 +51,7 @@ export default function AdminSeasonRaces() {
       <ul>
         {races.map((r) => (
           <li key={r._id}>
-            {r.name}
+            {r.name} <a href={`/admin/races/${r._id}/results`}>→ Ergebnisse</a>{" "}
             <button
               onClick={() => {
                 if (window.confirm(`Rennen "${r.name}" wirklich löschen?`)) {

@@ -12,7 +12,6 @@ export default function ChooseTeam() {
       const teamRes = await API.get("/teams");
       setTeams(teamRes.data);
 
-      const userRes = await API.get("/auth/me");
       const allUsers = await API.get("/users"); // optional: musst du noch bauen, wenn du alle brauchst
       const taken = allUsers.data
         .map((u) => u.selectedTeam?._id)

@@ -7,6 +7,12 @@ const raceSchema = new mongoose.Schema({
     ref: "Season",
     required: true,
   },
+  results: [
+    {
+      user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      pointsEarned: { type: Number, default: 0 },
+    },
+  ],
 });
 
 export default mongoose.model("Race", raceSchema);
