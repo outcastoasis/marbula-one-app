@@ -17,7 +17,7 @@ const app = express();
 // 🔐 CORS Setup
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "https://marbula-one-app.vercel.app", // z. B. https://marbula.vercel.app
+    origin: process.env.FRONTEND_URL || "https://marbula-one-app.vercel.app",
     credentials: true,
   })
 );
