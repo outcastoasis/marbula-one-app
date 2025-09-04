@@ -28,6 +28,11 @@ export default function AdminSeasons() {
     fetchSeasons();
   };
 
+  const setCurrentSeason = async (id) => {
+    await API.put(`/seasons/${id}/set-current`);
+    fetchSeasons();
+  };
+
   useEffect(() => {
     fetchSeasons();
     API.get("/users").then((res) => setUsers(res.data));
@@ -57,21 +62,52 @@ export default function AdminSeasons() {
           />
         </div>
         <div>
-          <label className="block text-sm mb-1">Teilnehmende Benutzer:</label>
-          <select
-            multiple
-            value={participants}
-            onChange={(e) =>
-              setParticipants(Array.from(e.target.selectedOptions, (o) => o.value))
-            }
-            className="w-full h-32 bg-brand-dark border border-brand-border text-brand-text rounded p-2 focus:outline-none focus:ring-2 focus:ring-brand"
+          <label className="block text-sm mb-1 mb-2">
+            Teilnehmende Benutzer:
+          </label>
+          <button
+            type="button"
+            onClick={() => {
+              if (participants.length === users.length) {
+                setParticipants([]);
+              } else {
+                setParticipants(users.map((u) => u._id));
+              }
+            }}
+            className="text-sm text-brand hover:underline mb-2"
           >
-            {users.map((u) => (
-              <option key={u._id} value={u._id}>
-                {u.username} ({u.email})
-              </option>
-            ))}
-          </select>
+            {participants.length === users.length
+              ? "Alle abwählen"
+              : "Alle auswählen"}
+          </button>
+
+          <div className="space-y-3 max-h-64 overflow-y-auto bg-brand-dark p-4 rounded border border-brand-border">
+            {users.map((u) => {
+              const isSelected = participants.includes(u._id);
+              return (
+                <label
+                  key={u._id}
+                  className="flex items-center gap-3 cursor-pointer text-base text-brand-text"
+                >
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setParticipants([...participants, u._id]);
+                      } else {
+                        setParticipants(
+                          participants.filter((id) => id !== u._id)
+                        );
+                      }
+                    }}
+                    className="w-5 h-5 rounded border-gray-400 text-brand focus:ring-2 focus:ring-brand"
+                  />
+                  <span>{u.username}</span>
+                </label>
+              );
+            })}
+          </div>
         </div>
         <button
           onClick={addSeason}
@@ -85,15 +121,25 @@ export default function AdminSeasons() {
         {seasons.map((s) => (
           <div
             key={s._id}
-            className="bg-brand-light p-4 rounded-lg shadow flex justify-between items-center"
+            className={`bg-brand-light p-4 rounded-lg shadow flex justify-between items-center border-l-4 ${s.isCurrent ? "border-green-500" : "border-transparent"}`}
           >
             <div>
-              <h3 className="font-semibold">{s.name}</h3>
+              <h3 className="font-semibold">
+                {s.name} {s.isCurrent && <span className="text-green-500 text-sm ml-2">(Aktuell)</span>}
+              </h3>
               <p className="text-sm text-gray-400">
                 {new Date(s.eventDate).toLocaleDateString()}
               </p>
             </div>
             <div className="flex gap-4 items-center">
+              {!s.isCurrent && (
+                <button
+                  onClick={() => setCurrentSeason(s._id)}
+                  className="text-sm text-green-400 hover:text-green-600"
+                >
+                  Als aktuell setzen
+                </button>
+              )}
               <Link
                 to={`/admin/seasons/${s._id}/races`}
                 className="text-brand hover:underline"

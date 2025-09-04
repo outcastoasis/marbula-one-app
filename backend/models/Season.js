@@ -9,6 +9,7 @@ const seasonSchema = new mongoose.Schema({
       ref: "User",
     },
   ],
+  isCurrent: { type: Boolean, default: false }, // ← hinzugefügt
 });
 
 export default mongoose.model("Season", seasonSchema);

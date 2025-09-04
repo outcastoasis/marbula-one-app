@@ -11,15 +11,22 @@ export default function Teams() {
   }, []);
 
   return (
-    <div>
-      <h2>Teams</h2>
-      <ul>
+    <div className="max-w-2xl mx-auto">
+      <h2 className="text-2xl font-bold mb-6">Alle Teams</h2>
+
+      <div className="space-y-4">
         {teams.map((team) => (
-          <li key={team._id}>
-            {team.name} {team.color && `(${team.color})`}
-          </li>
+          <div
+            key={team._id}
+            className="bg-brand-light p-4 rounded shadow flex justify-between items-center"
+          >
+            <span className="text-brand-text font-medium">{team.name}</span>
+            {team.color && (
+              <span className="text-sm text-gray-400">{team.color}</span>
+            )}
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }

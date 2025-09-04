@@ -47,3 +47,8 @@ export const updateUserTeam = async (req, res) => {
 
   res.json(user);
 };
+
+export const getCurrentUser = async (req, res) => {
+  const user = await User.findById(req.user._id).populate("selectedTeam");
+  res.json(user);
+};

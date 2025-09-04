@@ -18,8 +18,10 @@ export default function AdminTeams() {
   };
 
   const deleteTeam = async (id) => {
-    await API.delete(`/teams/${id}`);
-    fetchTeams();
+    if (window.confirm("Team wirklich löschen?")) {
+      await API.delete(`/teams/${id}`);
+      fetchTeams();
+    }
   };
 
   useEffect(() => {
@@ -27,23 +29,43 @@ export default function AdminTeams() {
   }, []);
 
   return (
-    <div>
-      <h2>Teamverwaltung</h2>
+    <div className="max-w-3xl mx-auto">
+      <h2 className="text-2xl font-bold mb-6">Teams verwalten</h2>
 
-      <input
-        placeholder="Teamname"
-        value={newName}
-        onChange={(e) => setNewName(e.target.value)}
-      />
-      <button onClick={addTeam}>Hinzufügen</button>
+      <div className="bg-brand-light p-6 rounded-lg shadow space-y-4 mb-10">
+        <div>
+          <label className="block text-sm mb-1">Teamname</label>
+          <input
+            placeholder="z. B. Raspberry Racers"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            className="w-full px-4 py-2 bg-brand-dark border border-brand-border text-brand-text rounded focus:outline-none focus:ring-2 focus:ring-brand"
+          />
+        </div>
+        <button
+          onClick={addTeam}
+          className="bg-brand text-white font-semibold py-2 px-4 rounded hover:bg-red-600 transition"
+        >
+          Team hinzufügen
+        </button>
+      </div>
 
-      <ul>
+      <div className="space-y-4">
         {teams.map((team) => (
-          <li key={team._id}>
-            {team.name} <button onClick={() => deleteTeam(team._id)}>🗑️</button>
-          </li>
+          <div
+            key={team._id}
+            className="bg-brand-light p-4 rounded-lg shadow flex justify-between items-center"
+          >
+            <span className="font-medium text-brand-text">{team.name}</span>
+            <button
+              onClick={() => deleteTeam(team._id)}
+              className="text-red-500 hover:text-red-700"
+            >
+              🗑️
+            </button>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }
