@@ -123,37 +123,40 @@ export default function Home() {
 
       <section className="bg-brand-light p-6 rounded shadow">
         <h3 className="text-xl font-semibold mb-4">Aktuelle Rangliste</h3>
+
         {participants.length > 0 && cumulativeData.length > 0 ? (
-          <table className="w-full table-auto text-left">
-            <thead>
-              <tr className="text-sm text-gray-400">
-                <th className="py-2">#</th>
-                <th className="py-2">Name</th>
-                <th className="py-2">Team</th>
-                <th className="py-2">Punkte</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[...participants]
-                .map((p) => ({
-                  _id: p._id,
-                  username: p.username,
-                  team: p.selectedTeam?.name || "–",
-                  points:
-                    cumulativeData[cumulativeData.length - 1]?.[p.username] ||
-                    0,
-                }))
-                .sort((a, b) => b.points - a.points)
-                .map((p, index) => (
-                  <tr key={p._id} className="border-t border-brand-border">
-                    <td className="py-2">{index + 1}</td>
-                    <td className="py-2">{p.username}</td>
-                    <td className="py-2">{p.team}</td>
-                    <td className="py-2">{p.points}</td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
+          <div className="overflow-x-auto">
+            <table className="min-w-[480px] w-full table-auto text-left">
+              <thead>
+                <tr className="text-sm text-gray-400">
+                  <th className="py-2">#</th>
+                  <th className="py-2">Name</th>
+                  <th className="py-2">Team</th>
+                  <th className="py-2">Punkte</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...participants]
+                  .map((p) => ({
+                    _id: p._id,
+                    username: p.username,
+                    team: p.selectedTeam?.name || "–",
+                    points:
+                      cumulativeData[cumulativeData.length - 1]?.[p.username] ||
+                      0,
+                  }))
+                  .sort((a, b) => b.points - a.points)
+                  .map((p, index) => (
+                    <tr key={p._id} className="border-t border-brand-border">
+                      <td className="py-2">{index + 1}</td>
+                      <td className="py-2">{p.username}</td>
+                      <td className="py-2">{p.team}</td>
+                      <td className="py-2">{p.points}</td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
         ) : (
           <p className="text-gray-400">Keine Rangliste verfügbar</p>
         )}
