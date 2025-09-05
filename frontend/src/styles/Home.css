@@ -1,19 +1,20 @@
-/* === Home.css — Formel 1 Stil, optimiert für Mobile === */
+/* === Home.css — Formel 1 Stil, perfekt für Mobile & Desktop === */
 
 .home-container {
   width: 100%;
   padding: 1rem;
   margin: 0 auto;
   background-color: #0e0e0e;
+  box-sizing: border-box;
 }
 
 /* Hauptüberschrift */
 h1 {
   color: #ff1e1e;
-  font-size: 2rem;
+  font-size: 1.8rem;
   margin-bottom: 2rem;
-  padding-left: 1rem;
-  padding-right: 1rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
   text-align: center;
   word-break: break-word;
 }
@@ -22,13 +23,14 @@ h1 {
 .home-container section {
   background-color: #1a1a1a;
   border-radius: 16px;
-  padding: 1rem 1rem;
+  padding: 1rem;
   margin: 1rem auto 2rem auto;
   box-shadow: 0 0 10px rgba(255, 30, 30, 0.1);
-  width: 100%;
-  max-width: 100%;
+  width: 95%;
+  box-sizing: border-box;
 }
 
+/* Größere Breakpoints */
 @media (min-width: 600px) {
   .home-container section {
     padding: 1.5rem 2rem;

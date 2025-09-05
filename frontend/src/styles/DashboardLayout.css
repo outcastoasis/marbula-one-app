@@ -107,7 +107,7 @@ body {
   left: 0;
   right: 0;
   height: 60px;
-  background-color: var(--brand-dark);
+  background-color: #1a1a1a;
   color: var(--brand-red);
   display: flex;
   align-items: center;
