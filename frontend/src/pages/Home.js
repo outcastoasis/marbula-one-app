@@ -21,51 +21,55 @@ export default function Home() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const userRes = await API.get("/users/me");
+      try {
+        const userRes = await API.get("/users/me");
 
-      // Nur aktualisieren, wenn sich etwas geändert hat
-      const userChanged =
-        !user ||
-        user._id !== userRes.data._id ||
-        (user.selectedTeam?._id || "") !==
-          (userRes.data.selectedTeam?._id || "");
+        const userChanged =
+          !user ||
+          user._id !== userRes.data._id ||
+          (user.selectedTeam?._id || "") !==
+            (userRes.data.selectedTeam?._id || "");
 
-      if (userChanged) {
-        login(userRes.data);
+        if (userChanged) {
+          login(userRes.data);
+        }
+
+        const res = await API.get("/seasons/current");
+        const currentSeason = res.data;
+
+        setSeason(currentSeason);
+
+        const usersRes = await API.get("/users");
+        const users = usersRes.data.filter((u) =>
+          currentSeason.participants.includes(u._id)
+        );
+        setParticipants(users);
+
+        const racesRes = await API.get(`/races/season/${currentSeason._id}`);
+        const races = racesRes.data;
+
+        const cumulativePoints = {};
+        users.forEach((u) => (cumulativePoints[u._id] = 0));
+
+        const chartData = races.map((race) => {
+          const entry = { name: race.name };
+          race.results.forEach((r) => {
+            const userId = typeof r.user === "object" ? r.user._id : r.user;
+            if (userId && userId in cumulativePoints) {
+              cumulativePoints[userId] += r.pointsEarned || 0;
+            }
+          });
+          users.forEach((u) => {
+            entry[u.username] = cumulativePoints[u._id];
+          });
+          return entry;
+        });
+
+        setCumulativeData(chartData);
+      } catch (error) {
+        console.error("Fehler beim Laden der Daten in Home.js:", error);
+        // Optional: Fehleranzeige im UI setzen
       }
-
-      const res = await API.get("/seasons/current");
-      const currentSeason = res.data;
-
-      setSeason(currentSeason);
-
-      const usersRes = await API.get("/users");
-      const users = usersRes.data.filter((u) =>
-        currentSeason.participants.includes(u._id)
-      );
-      setParticipants(users);
-
-      const racesRes = await API.get(`/races/season/${currentSeason._id}`);
-      const races = racesRes.data;
-
-      const cumulativePoints = {};
-      users.forEach((u) => (cumulativePoints[u._id] = 0));
-
-      const chartData = races.map((race) => {
-        const entry = { name: race.name };
-        race.results.forEach((r) => {
-          const userId = typeof r.user === "object" ? r.user._id : r.user;
-          if (userId && userId in cumulativePoints) {
-            cumulativePoints[userId] += r.pointsEarned || 0;
-          }
-        });
-        users.forEach((u) => {
-          entry[u.username] = cumulativePoints[u._id];
-        });
-        return entry;
-      });
-
-      setCumulativeData(chartData);
     };
 
     fetchData();
