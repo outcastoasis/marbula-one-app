@@ -1,143 +1,209 @@
-// === DashboardLayout.js ===
-
-import { Link, useNavigate, useLocation } from "react-router-dom";
+// src/pages/Home.js
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
-import { Menu, X, ChevronDown, ChevronUp } from "lucide-react";
 import API from "../api";
+import { Link } from "react-router-dom";
+import DashboardLayout from "../components/DashboardLayout";
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+} from "recharts";
+import "./Home.css";
 
-export default function DashboardLayout({ children }) {
-  const { user, logout } = useContext(AuthContext);
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [seasons, setSeasons] = useState([]);
-  const [expandedSeason, setExpandedSeason] = useState(null);
+export default function Home() {
+  const { user, login } = useContext(AuthContext);
+  const [season, setSeason] = useState(null);
+  const [participants, setParticipants] = useState([]);
+  const [cumulativeData, setCumulativeData] = useState([]);
 
   useEffect(() => {
-    const fetchSeasons = async () => {
+    const fetchData = async () => {
       try {
-        const res = await API.get("/seasons");
-        const allSeasons = res.data;
+        const userRes = await API.get("/users/me");
+        if (!user || user._id !== userRes.data._id) {
+          login(userRes.data);
+        }
 
-        const seasonsWithRaces = await Promise.all(
-          allSeasons.map(async (season) => {
-            const racesRes = await API.get(`/races/season/${season._id}`);
-            return { ...season, races: racesRes.data };
-          })
+        const seasonRes = await API.get("/seasons/current");
+        setSeason(seasonRes.data);
+
+        const usersRes = await API.get("/users");
+        const filtered = usersRes.data.filter((u) =>
+          seasonRes.data.participants.some((p) =>
+            typeof p === "object" ? p._id === u._id : p === u._id
+          )
         );
+        setParticipants(filtered);
 
-        setSeasons(seasonsWithRaces);
+        const racesRes = await API.get(`/races/season/${seasonRes.data._id}`);
+        const races = racesRes.data;
+
+        const cumulative = {};
+        filtered.forEach((u) => (cumulative[u._id] = 0));
+
+        const chartData = races.map((race) => {
+          const entry = { name: race.name };
+          race.results.forEach((res) => {
+            const userId =
+              typeof res.user === "object" ? res.user._id : res.user;
+            if (userId && userId in cumulative) {
+              cumulative[userId] += res.pointsEarned || 0;
+            }
+          });
+          filtered.forEach((u) => {
+            entry[u.username] = cumulative[u._id];
+          });
+          return entry;
+        });
+
+        setCumulativeData(chartData);
       } catch (error) {
-        console.error("Fehler beim Laden der Seasons:", error);
+        console.error("Fehler beim Laden:", error);
       }
     };
 
-    fetchSeasons();
-  }, []);
+    fetchData();
+  }, [user]);
 
-  const isActive = (path) => location.pathname === path;
+  const generateColor = (index, total) =>
+    `hsl(${(index * 360) / total}, 70%, 50%)`;
+
+  const renderTable = (rows, columns) => (
+    <div className="scroll-wrapper">
+      <table className="data-table">
+        <thead>
+          <tr>
+            {columns.map((c, idx) => (
+              <th key={idx}>{c}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>{rows}</tbody>
+      </table>
+    </div>
+  );
+
+  const rankingRows = [...participants]
+    .map((p) => ({
+      ...p,
+      points: cumulativeData.at(-1)?.[p.username] || 0,
+    }))
+    .sort((a, b) => b.points - a.points)
+    .map((p, i) => (
+      <tr key={p._id}>
+        <td>{i + 1}</td>
+        <td>{p.username}</td>
+        <td>{p.selectedTeam?.name || "-"}</td>
+        <td>{p.points}</td>
+      </tr>
+    ));
+
+  const resultRows = participants.map((p) => {
+    let last = 0;
+    const racePoints = cumulativeData.map((r) => {
+      const val = r[p.username] ?? 0;
+      const diff = val - last;
+      last = val;
+      return diff;
+    });
+    return (
+      <tr key={p._id}>
+        <td>{p.username}</td>
+        <td>{p.selectedTeam?.name || "-"}</td>
+        {racePoints.map((pts, idx) => (
+          <td key={idx}>{pts}</td>
+        ))}
+        <td>
+          <strong>{last}</strong>
+        </td>
+      </tr>
+    );
+  });
 
   return (
-    <div>
-      <header>
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          aria-label="Toggle Sidebar"
-        >
-          {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-        <h2>Marbula One</h2>
-      </header>
+    <DashboardLayout>
+      <div className="home-container">
+        <h1>Willkommen zur Marbula One Saison</h1>
 
-      <aside style={{ display: sidebarOpen ? "block" : "none" }}>
-        <div>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            aria-label="Close Sidebar"
-          >
-            <X size={24} />
-          </button>
-          <h2>Marbula One</h2>
+        <section>
+          <h2>Dein Team</h2>
+          {user?.selectedTeam ? (
+            <p>{user.selectedTeam.name}</p>
+          ) : (
+            <Link to="/choose-team">Team wählen</Link>
+          )}
+        </section>
 
-          <nav>
-            <Link to="/" onClick={() => setSidebarOpen(false)}>
-              Home
-            </Link>
-            <Link to="/teams" onClick={() => setSidebarOpen(false)}>
-              Teams
-            </Link>
-            {user && !user.selectedTeam && (
-              <Link to="/choose-team" onClick={() => setSidebarOpen(false)}>
-                Team wählen
-              </Link>
-            )}
+        <section>
+          <h2>Aktuelle Saison</h2>
+          {season ? (
+            <>
+              <p>{season.name}</p>
+              <p>
+                Event-Datum: {new Date(season.eventDate).toLocaleDateString()}
+              </p>
+            </>
+          ) : (
+            <p>Keine Saison gefunden</p>
+          )}
+        </section>
 
-            {user?.role === "admin" && (
-              <>
-                <hr />
-                <p>Admin</p>
-                <Link to="/admin/teams" onClick={() => setSidebarOpen(false)}>
-                  Teams verwalten
-                </Link>
-                <Link to="/admin/users" onClick={() => setSidebarOpen(false)}>
-                  Benutzer
-                </Link>
-                <Link to="/admin/seasons" onClick={() => setSidebarOpen(false)}>
-                  Seasons
-                </Link>
-                {seasons.map((season) => (
-                  <div key={season._id}>
-                    <button
-                      onClick={() =>
-                        setExpandedSeason((prev) =>
-                          prev === season._id ? null : season._id
-                        )
-                      }
-                    >
-                      <span>{season.name}</span>
-                      {expandedSeason === season._id ? (
-                        <ChevronUp size={16} />
-                      ) : (
-                        <ChevronDown size={16} />
-                      )}
-                    </button>
-                    {expandedSeason === season._id && (
-                      <div>
-                        {season.races.map((race) => (
-                          <Link
-                            key={race._id}
-                            to={`/admin/races/${race._id}/results`}
-                            onClick={() => setSidebarOpen(false)}
-                          >
-                            {race.name}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </>
-            )}
-          </nav>
-        </div>
+        <section>
+          <h2>Rangliste</h2>
+          {rankingRows.length > 0 ? (
+            renderTable(rankingRows, ["#", "Name", "Team", "Punkte"])
+          ) : (
+            <p>Keine Rangliste verfügbar</p>
+          )}
+        </section>
 
-        {user && (
-          <div>
-            <p>Hallo, {user.username}</p>
-            <button
-              onClick={() => {
-                logout();
-                navigate("/login");
-              }}
-            >
-              Logout
-            </button>
+        <section>
+          <h2>Ergebnis-Tabelle</h2>
+          {resultRows.length > 0 ? (
+            renderTable(resultRows, [
+              "Name",
+              "Team",
+              ...cumulativeData.map((r) => r.name),
+              "Total",
+            ])
+          ) : (
+            <p>Keine Resultate verfügbar</p>
+          )}
+        </section>
+
+        <section>
+          <h2>Punkteverlauf</h2>
+          <div className="scroll-wrapper">
+            <div className="chart-inner">
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={cumulativeData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Legend />
+                  {participants.map((p, i) => (
+                    <Line
+                      key={p._id}
+                      type="monotone"
+                      dataKey={p.username}
+                      stroke={generateColor(i, participants.length)}
+                      strokeWidth={2}
+                      dot={{ r: 3 }}
+                    />
+                  ))}
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-        )}
-      </aside>
-
-      <main>{children}</main>
-    </div>
+        </section>
+      </div>
+    </DashboardLayout>
   );
 }

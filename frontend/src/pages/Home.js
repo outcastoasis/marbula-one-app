@@ -1,9 +1,11 @@
-// === Home.js ===
-
+// src/pages/Home.js
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import API from "../api";
+import { Link } from "react-router-dom";
+import DashboardLayout from "../components/DashboardLayout";
 import {
+  ResponsiveContainer,
   LineChart,
   Line,
   XAxis,
@@ -11,10 +13,8 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer,
 } from "recharts";
-import { Link } from "react-router-dom";
-import "../index.css";
+import "./Home.css";
 
 export default function Home() {
   const { user, login } = useContext(AuthContext);
@@ -26,65 +26,111 @@ export default function Home() {
     const fetchData = async () => {
       try {
         const userRes = await API.get("/users/me");
-        const userChanged =
-          !user ||
-          user._id !== userRes.data._id ||
-          (user.selectedTeam?._id || "") !==
-            (userRes.data.selectedTeam?._id || "");
+        if (!user || user._id !== userRes.data._id) {
+          login(userRes.data);
+        }
 
-        if (userChanged) login(userRes.data);
-
-        const res = await API.get("/seasons/current");
-        const currentSeason = res.data;
-        setSeason(currentSeason);
+        const seasonRes = await API.get("/seasons/current");
+        setSeason(seasonRes.data);
 
         const usersRes = await API.get("/users");
-        const users = usersRes.data.filter((u) =>
-          currentSeason.participants.some((p) => {
-            const pid = typeof p === "object" ? p._id : p;
-            return pid === u._id;
-          })
+        const filtered = usersRes.data.filter((u) =>
+          seasonRes.data.participants.some((p) =>
+            typeof p === "object" ? p._id === u._id : p === u._id
+          )
         );
-        setParticipants(users);
+        setParticipants(filtered);
 
-        const racesRes = await API.get(`/races/season/${currentSeason._id}`);
+        const racesRes = await API.get(`/races/season/${seasonRes.data._id}`);
         const races = racesRes.data;
 
-        const cumulativePoints = {};
-        users.forEach((u) => (cumulativePoints[u._id] = 0));
+        const cumulative = {};
+        filtered.forEach((u) => (cumulative[u._id] = 0));
 
         const chartData = races.map((race) => {
           const entry = { name: race.name };
-          race.results.forEach((r) => {
-            const userId = typeof r.user === "object" ? r.user._id : r.user;
-            if (userId && userId in cumulativePoints) {
-              cumulativePoints[userId] += r.pointsEarned || 0;
+          race.results.forEach((res) => {
+            const userId =
+              typeof res.user === "object" ? res.user._id : res.user;
+            if (userId && userId in cumulative) {
+              cumulative[userId] += res.pointsEarned || 0;
             }
           });
-          users.forEach((u) => {
-            entry[u.username] = cumulativePoints[u._id];
+          filtered.forEach((u) => {
+            entry[u.username] = cumulative[u._id];
           });
           return entry;
         });
 
         setCumulativeData(chartData);
       } catch (error) {
-        console.error("Fehler beim Laden der Daten in Home.js:", error);
+        console.error("Fehler beim Laden:", error);
       }
     };
+
     fetchData();
   }, [user]);
 
-  const generateColor = (index, total) => {
-    const hue = (index * (360 / total)) % 360;
-    return `hsl(${hue}, 70%, 50%)`;
-  };
+  const generateColor = (index, total) =>
+    `hsl(${(index * 360) / total}, 70%, 50%)`;
+
+  const renderTable = (rows, columns) => (
+    <div className="scroll-wrapper">
+      <table className="data-table">
+        <thead>
+          <tr>
+            {columns.map((c, idx) => (
+              <th key={idx}>{c}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>{rows}</tbody>
+      </table>
+    </div>
+  );
+
+  const rankingRows = [...participants]
+    .map((p) => ({
+      ...p,
+      points: cumulativeData.at(-1)?.[p.username] || 0,
+    }))
+    .sort((a, b) => b.points - a.points)
+    .map((p, i) => (
+      <tr key={p._id}>
+        <td>{i + 1}</td>
+        <td>{p.username}</td>
+        <td>{p.selectedTeam?.name || "-"}</td>
+        <td>{p.points}</td>
+      </tr>
+    ));
+
+  const resultRows = participants.map((p) => {
+    let last = 0;
+    const racePoints = cumulativeData.map((r) => {
+      const val = r[p.username] ?? 0;
+      const diff = val - last;
+      last = val;
+      return diff;
+    });
+    return (
+      <tr key={p._id}>
+        <td>{p.username}</td>
+        <td>{p.selectedTeam?.name || "-"}</td>
+        {racePoints.map((pts, idx) => (
+          <td key={idx}>{pts}</td>
+        ))}
+        <td>
+          <strong>{last}</strong>
+        </td>
+      </tr>
+    );
+  });
 
   return (
-    <div>
-      <h1>Willkommen zur Marbula One Saison</h1>
+    <DashboardLayout>
+      <div className="home-container">
+        <h1>Willkommen zur Marbula One Saison</h1>
 
-      <div>
         <section>
           <h2>Dein Team</h2>
           {user?.selectedTeam ? (
@@ -107,99 +153,35 @@ export default function Home() {
             <p>Keine Saison gefunden</p>
           )}
         </section>
-      </div>
 
-      <section>
-        <h2>Rangliste</h2>
-        {participants.length > 0 && cumulativeData.length > 0 ? (
-          <div>
-            <table>
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Name</th>
-                  <th>Team</th>
-                  <th>Punkte</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[...participants]
-                  .map((p) => ({
-                    _id: p._id,
-                    username: p.username,
-                    team: p.selectedTeam?.name || "–",
-                    points:
-                      cumulativeData[cumulativeData.length - 1]?.[p.username] ||
-                      0,
-                  }))
-                  .sort((a, b) => b.points - a.points)
-                  .map((p, index) => (
-                    <tr key={p._id}>
-                      <td>{index + 1}</td>
-                      <td>{p.username}</td>
-                      <td>{p.team}</td>
-                      <td>{p.points}</td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <p>Keine Rangliste verfügbar</p>
-        )}
-      </section>
+        <section>
+          <h2>Rangliste</h2>
+          {rankingRows.length > 0 ? (
+            renderTable(rankingRows, ["#", "Name", "Team", "Punkte"])
+          ) : (
+            <p>Keine Rangliste verfügbar</p>
+          )}
+        </section>
 
-      <section>
-        <h2>Ergebnis-Tabelle</h2>
-        {season && participants.length > 0 && cumulativeData.length > 0 ? (
-          <div>
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Team</th>
-                  {cumulativeData.map((race, idx) => (
-                    <th key={idx}>{race.name}</th>
-                  ))}
-                  <th>Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {participants.map((p) => {
-                  let last = 0;
-                  const racePoints = cumulativeData.map((race) => {
-                    const current = race[p.username] ?? 0;
-                    const earned = current - last;
-                    last = current;
-                    return earned;
-                  });
-                  return (
-                    <tr key={p._id}>
-                      <td>{p.username}</td>
-                      <td>{p.selectedTeam?.name || "-"}</td>
-                      {racePoints.map((pts, idx) => (
-                        <td key={idx}>{pts}</td>
-                      ))}
-                      <td>
-                        <strong>{last}</strong>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <p>Keine Resultate verfügbar</p>
-        )}
-      </section>
+        <section>
+          <h2>Ergebnis-Tabelle</h2>
+          {resultRows.length > 0 ? (
+            renderTable(resultRows, [
+              "Name",
+              "Team",
+              ...cumulativeData.map((r) => r.name),
+              "Total",
+            ])
+          ) : (
+            <p>Keine Resultate verfügbar</p>
+          )}
+        </section>
 
-      <section>
-        <h2>Punkteverlauf</h2>
-        <div className="chart-scroll">
-          {cumulativeData.length > 0 ? (
+        <section>
+          <h2>Punkteverlauf</h2>
+          <div className="scroll-wrapper">
             <div className="chart-inner">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={cumulativeData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
@@ -219,11 +201,9 @@ export default function Home() {
                 </LineChart>
               </ResponsiveContainer>
             </div>
-          ) : (
-            <p>Keine Daten verfügbar</p>
-          )}
-        </div>
-      </section>
-    </div>
+          </div>
+        </section>
+      </div>
+    </DashboardLayout>
   );
 }
