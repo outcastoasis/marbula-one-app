@@ -1,8 +1,11 @@
+// === DashboardLayout.js ===
+
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { Menu, X, ChevronDown, ChevronUp } from "lucide-react";
 import API from "../api";
+import "../index.css";
 
 export default function DashboardLayout({ children }) {
   const { user, logout } = useContext(AuthContext);
@@ -37,51 +40,44 @@ export default function DashboardLayout({ children }) {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <div className="flex min-h-screen bg-brand-dark font-sans text-brand-text">
+    <div className="layout">
       {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-brand-light flex items-center px-4 py-3 shadow">
+      <header className="mobile-header">
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
           aria-label="Toggle Sidebar"
-          className="text-brand-text"
+          className="icon-button"
         >
           {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
-        <h2 className="ml-auto text-lg font-bold text-brand-text">
-          Marbula One
-        </h2>
-      </div>
+        <h2 className="mobile-title">Marbula One</h2>
+      </header>
 
-      {/* Sidebar (Mobile + Desktop) */}
-      <aside
-        className={`fixed z-50 md:static top-0 left-0 h-full md:min-h-screen w-64 bg-brand-light shadow-md p-4 transform transition-transform duration-300 ease-in-out flex flex-col justify-between
-        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
-      >
+      {/* Sidebar */}
+      <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
         <div>
-          {/* Schliessen Button auf Mobile */}
-          <div className="md:hidden flex justify-end mb-4">
+          <div className="sidebar-header">
             <button
               onClick={() => setSidebarOpen(false)}
               aria-label="Close Sidebar"
+              className="icon-button close-button"
             >
               <X size={24} />
             </button>
+            <h2 className="sidebar-title">Marbula One</h2>
           </div>
 
-          <h2 className="text-xl font-bold mb-6 text-brand-text hidden md:block">
-            Marbula One
-          </h2>
-          <nav className="space-y-2">
+          <nav className="nav">
             <Link
               to="/"
-              className={`block hover:text-brand ${isActive("/") ? "text-brand font-semibold" : ""}`}
+              className={isActive("/") ? "nav-link active" : "nav-link"}
               onClick={() => setSidebarOpen(false)}
             >
               Home
             </Link>
             <Link
               to="/teams"
-              className={`block hover:text-brand ${isActive("/teams") ? "text-brand font-semibold" : ""}`}
+              className={isActive("/teams") ? "nav-link active" : "nav-link"}
               onClick={() => setSidebarOpen(false)}
             >
               Teams
@@ -89,7 +85,9 @@ export default function DashboardLayout({ children }) {
             {user && !user.selectedTeam && (
               <Link
                 to="/choose-team"
-                className={`block hover:text-brand ${isActive("/choose-team") ? "text-brand font-semibold" : ""}`}
+                className={
+                  isActive("/choose-team") ? "nav-link active" : "nav-link"
+                }
                 onClick={() => setSidebarOpen(false)}
               >
                 Team wählen
@@ -98,40 +96,46 @@ export default function DashboardLayout({ children }) {
 
             {user?.role === "admin" && (
               <>
-                <hr className="my-4 border-brand" />
-                <p className="text-xs text-gray-400 uppercase">Admin</p>
+                <hr className="nav-divider" />
+                <p className="nav-section-label">Admin</p>
                 <Link
                   to="/admin/teams"
-                  className={`block hover:text-brand ${isActive("/admin/teams") ? "text-brand font-semibold" : ""}`}
+                  className={
+                    isActive("/admin/teams") ? "nav-link active" : "nav-link"
+                  }
                   onClick={() => setSidebarOpen(false)}
                 >
                   Teams verwalten
                 </Link>
                 <Link
                   to="/admin/users"
-                  className={`block hover:text-brand ${isActive("/admin/users") ? "text-brand font-semibold" : ""}`}
+                  className={
+                    isActive("/admin/users") ? "nav-link active" : "nav-link"
+                  }
                   onClick={() => setSidebarOpen(false)}
                 >
                   Benutzer
                 </Link>
                 <Link
                   to="/admin/seasons"
-                  className={`block hover:text-brand ${isActive("/admin/seasons") ? "text-brand font-semibold" : ""}`}
+                  className={
+                    isActive("/admin/seasons") ? "nav-link active" : "nav-link"
+                  }
                   onClick={() => setSidebarOpen(false)}
                 >
                   Seasons
                 </Link>
                 {seasons.map((season) => (
-                  <div key={season._id} className="ml-2">
+                  <div key={season._id} className="nested-nav">
                     <button
-                      className="flex items-center justify-between w-full text-left hover:text-brand text-sm"
+                      className="nested-toggle"
                       onClick={() =>
                         setExpandedSeason((prev) =>
                           prev === season._id ? null : season._id
                         )
                       }
                     >
-                      <span className="truncate">{season.name}</span>
+                      <span>{season.name}</span>
                       {expandedSeason === season._id ? (
                         <ChevronUp size={16} />
                       ) : (
@@ -139,14 +143,16 @@ export default function DashboardLayout({ children }) {
                       )}
                     </button>
                     {expandedSeason === season._id && (
-                      <div className="ml-4 mt-1 space-y-1">
+                      <div className="nested-links">
                         {season.races.map((race) => (
                           <Link
                             key={race._id}
                             to={`/admin/races/${race._id}/results`}
-                            className={`block text-sm pl-2 border-l border-brand hover:text-brand ${
-                              isActive(`/admin/races/${race._id}/results`) ? "text-brand font-semibold" : ""
-                            }`}
+                            className={
+                              isActive(`/admin/races/${race._id}/results`)
+                                ? "nav-sublink active"
+                                : "nav-sublink"
+                            }
                             onClick={() => setSidebarOpen(false)}
                           >
                             {race.name}
@@ -161,16 +167,16 @@ export default function DashboardLayout({ children }) {
           </nav>
         </div>
 
-        {/* Footer mit Logout */}
+        {/* Footer */}
         {user && (
-          <div className="mt-10">
-            <p className="text-sm text-gray-400 mb-2">Hallo, {user.username}</p>
+          <div className="sidebar-footer">
+            <p className="sidebar-user">Hallo, {user.username}</p>
             <button
               onClick={() => {
                 logout();
                 navigate("/login");
               }}
-              className="w-full text-left text-red-400 hover:text-red-600 text-sm"
+              className="logout-button"
             >
               Logout
             </button>
@@ -178,8 +184,8 @@ export default function DashboardLayout({ children }) {
         )}
       </aside>
 
-      {/* Hauptinhalt */}
-      <main className="flex-1 p-6 mt-14 md:mt-0">{children}</main>
+      {/* Main Content */}
+      <main className="main-content">{children}</main>
     </div>
   );
 }
