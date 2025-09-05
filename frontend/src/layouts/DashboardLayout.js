@@ -5,7 +5,7 @@ import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { Menu, X, ChevronDown, ChevronUp } from "lucide-react";
 import API from "../api";
-import "../index.css";
+import "../styles.css";
 
 export default function DashboardLayout({ children }) {
   const { user, logout } = useContext(AuthContext);
