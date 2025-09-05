@@ -69,12 +69,19 @@ body {
 
 /* Header */
 .dashboard-header {
-  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background-color: var(--brand-dark);
+  color: var(--brand-red);
+  display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: #1a1a1a;
-  padding: 1rem;
-  border-bottom: 1px solid #2a2a2a;
+  padding: 0 1rem;
+  z-index: 1000;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .dashboard-header h2 {
@@ -85,9 +92,10 @@ body {
 /* Main Content */
 .dashboard-main {
   flex-grow: 1;
-  padding: 2rem 1.5rem;
+  padding: 1rem;
   background-color: #0e0e0e;
   overflow-x: hidden;
+  margin-top: 60px;
 }
 
 /* Responsive Sidebar */
