@@ -114,3 +114,18 @@ body {
     flex-direction: column;
   }
 }
+
+/* Hamburger Icon Styling */
+.dashboard-header button {
+  background-color: #1a1a1a;
+  border: 1px solid #333;
+  color: #ff1e1e;
+  padding: 0.5rem;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.dashboard-header button:hover {
+  background-color: #2a2a2a;
+}

@@ -27,6 +27,17 @@ section {
   box-shadow: 0 0 10px rgba(255, 30, 30, 0.1);
 }
 
+section p {
+  margin: 0.25rem 0;
+  font-size: 0.95rem;
+  color: #ddd;
+}
+
+section strong {
+  color: #fff;
+  font-weight: 600;
+}
+
 a {
   color: #ff1e1e;
   font-weight: 500;
