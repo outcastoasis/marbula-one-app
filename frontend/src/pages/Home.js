@@ -132,28 +132,30 @@ export default function Home() {
     <div className="home-container">
       <h1>Willkommen zur Marbula One Saison</h1>
 
-      <section>
-        <h2>Dein Team</h2>
-        {localUser?.selectedTeam ? (
-          <p>{localUser.selectedTeam.name}</p>
-        ) : (
-          <Link to="/choose-team">Team wählen</Link>
-        )}
-      </section>
+      <div className="sections-grid">
+        <section>
+          <h2>Dein Team</h2>
+          {localUser?.selectedTeam ? (
+            <p>{localUser.selectedTeam.name}</p>
+          ) : (
+            <Link to="/choose-team">Team wählen</Link>
+          )}
+        </section>
 
-      <section>
-        <h2>Aktuelle Saison</h2>
-        {season ? (
-          <>
-            <p>{season.name}</p>
-            <p>
-              Event-Datum: {new Date(season.eventDate).toLocaleDateString()}
-            </p>
-          </>
-        ) : (
-          <p>Keine Saison gefunden</p>
-        )}
-      </section>
+        <section>
+          <h2>Aktuelle Saison</h2>
+          {season ? (
+            <>
+              <p>{season.name}</p>
+              <p>
+                Event-Datum: {new Date(season.eventDate).toLocaleDateString()}
+              </p>
+            </>
+          ) : (
+            <p>Keine Saison gefunden</p>
+          )}
+        </section>
+      </div>
 
       <section>
         <h2>Rangliste</h2>
