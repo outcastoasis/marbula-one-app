@@ -36,7 +36,6 @@ export default function Home() {
 
         const res = await API.get("/seasons/current");
         const currentSeason = res.data;
-
         setSeason(currentSeason);
 
         const usersRes = await API.get("/users");
@@ -48,15 +47,9 @@ export default function Home() {
         );
 
         setParticipants(users);
-        console.log("Teilnehmer:", users);
 
         const racesRes = await API.get(`/races/season/${currentSeason._id}`);
         const races = racesRes.data;
-
-        console.log("Lade Rennen mit Resultaten:", races);
-        console.log("🎯 Aktuelle Season:", currentSeason);
-        console.log("👥 Teilnehmer (participants):", users);
-        console.log("🏁 Rennen mit Resultaten:", races);
 
         const cumulativePoints = {};
         users.forEach((u) => (cumulativePoints[u._id] = 0));
@@ -78,7 +71,6 @@ export default function Home() {
         setCumulativeData(chartData);
       } catch (error) {
         console.error("Fehler beim Laden der Daten in Home.js:", error);
-        // Optional: Fehleranzeige im UI setzen
       }
     };
     fetchData();
@@ -90,43 +82,46 @@ export default function Home() {
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 space-y-10 overflow-hidden">
-      <h2 className="text-2xl font-bold mb-2">Willkommen zurück</h2>
+    <main className="w-full px-4 space-y-8 max-w-screen-lg mx-auto">
+      <header className="pt-4">
+        <h2 className="text-2xl font-bold">Willkommen zurück</h2>
+      </header>
 
-      <section className="w-full max-w-full bg-brand-light p-6 rounded shadow overflow-hidden">
-        <h3 className="text-xl font-semibold mb-2">Dein Team</h3>
-        {user?.selectedTeam ? (
-          <p className="text-brand-text">{user.selectedTeam.name}</p>
-        ) : (
-          <Link
-            to="/choose-team"
-            className="inline-block mt-2 bg-brand text-white font-semibold py-2 px-4 rounded hover:bg-red-600 transition"
-          >
-            Team wählen
-          </Link>
-        )}
-      </section>
+      <div className="grid gap-6 sm:grid-cols-2">
+        <section className="bg-brand-light p-4 rounded shadow overflow-hidden">
+          <h3 className="text-lg font-semibold mb-2">Dein Team</h3>
+          {user?.selectedTeam ? (
+            <p className="text-brand-text">{user.selectedTeam.name}</p>
+          ) : (
+            <Link
+              to="/choose-team"
+              className="inline-block mt-2 bg-brand text-white font-semibold py-2 px-4 rounded hover:bg-red-600 transition"
+            >
+              Team wählen
+            </Link>
+          )}
+        </section>
 
-      <section className="w-full max-w-full bg-brand-light p-6 rounded shadow overflow-hidden">
-        <h3 className="text-xl font-semibold mb-2">Aktuelle Saison</h3>
-        {season ? (
-          <>
-            <p className="mb-1 text-brand-text font-medium">{season.name}</p>
-            <p className="text-sm text-gray-400">
-              Event-Datum: {new Date(season.eventDate).toLocaleDateString()}
-            </p>
-          </>
-        ) : (
-          <p className="text-gray-400">Keine Saison gefunden</p>
-        )}
-      </section>
+        <section className="bg-brand-light p-4 rounded shadow overflow-hidden">
+          <h3 className="text-lg font-semibold mb-2">Aktuelle Saison</h3>
+          {season ? (
+            <>
+              <p className="mb-1 text-brand-text font-medium">{season.name}</p>
+              <p className="text-sm text-gray-400">
+                Event-Datum: {new Date(season.eventDate).toLocaleDateString()}
+              </p>
+            </>
+          ) : (
+            <p className="text-gray-400">Keine Saison gefunden</p>
+          )}
+        </section>
+      </div>
 
-      <section className="bg-brand-light p-6 rounded shadow">
-        <h3 className="text-xl font-semibold mb-4">Aktuelle Rangliste</h3>
-
+      <section className="bg-brand-light p-4 rounded shadow">
+        <h3 className="text-lg font-semibold mb-3">Aktuelle Rangliste</h3>
         {participants.length > 0 && cumulativeData.length > 0 ? (
           <div className="overflow-x-auto">
-            <table className="min-w-[480px] w-full table-auto text-left">
+            <table className="min-w-[480px] table-auto text-left w-full">
               <thead>
                 <tr className="text-sm text-gray-400">
                   <th className="py-2">#</th>
@@ -162,14 +157,13 @@ export default function Home() {
         )}
       </section>
 
-      <section className="bg-brand-light p-6 rounded shadow">
-        <h3 className="text-xl font-semibold mb-4">Ergebnis-Tabelle</h3>
-
+      <section className="bg-brand-light p-4 rounded shadow">
+        <h3 className="text-lg font-semibold mb-3">Ergebnis-Tabelle</h3>
         {season && participants.length > 0 && cumulativeData.length > 0 ? (
           <div className="overflow-x-auto">
-            <table className="min-w-[640px] w-full table-auto border-collapse text-sm">
+            <table className="min-w-[640px] table-auto border-collapse text-sm w-full">
               <thead>
-                <tr className="w-full text-left">
+                <tr>
                   <th className="p-2 text-left">Name</th>
                   <th className="p-2 text-left">Team</th>
                   {cumulativeData.map((race, idx) => (
@@ -219,9 +213,8 @@ export default function Home() {
         )}
       </section>
 
-      <section className="bg-brand-light p-6 rounded shadow">
-        <h3 className="text-xl font-semibold mb-4">Punkteverlauf</h3>
-
+      <section className="bg-brand-light p-4 rounded shadow">
+        <h3 className="text-lg font-semibold mb-3">Punkteverlauf</h3>
         {cumulativeData.length > 0 ? (
           <div className="overflow-x-auto">
             <div className="min-w-[640px] h-96">
@@ -250,8 +243,6 @@ export default function Home() {
           <p className="text-gray-400">Keine Daten verfügbar</p>
         )}
       </section>
-
-      {/* TODO: Weitere Sektionen wie Rangliste, Renntabellen etc. */}
-    </div>
+    </main>
   );
 }
