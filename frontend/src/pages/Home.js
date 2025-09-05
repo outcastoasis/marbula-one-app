@@ -13,8 +13,7 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import "../index.css";
-//test
+import "../styles/Home.css";
 
 export default function Home() {
   const { user, login } = useContext(AuthContext);

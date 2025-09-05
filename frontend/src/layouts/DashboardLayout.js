@@ -5,6 +5,7 @@ import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { Menu, X, ChevronDown, ChevronUp } from "lucide-react";
 import API from "../api";
+import "../styles/DashboardLayout.css";
 
 export default function DashboardLayout({ children }) {
   const { user, logout } = useContext(AuthContext);
@@ -40,7 +41,7 @@ export default function DashboardLayout({ children }) {
 
   return (
     <div>
-      <header>
+      <header className="dashboard-header">
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
           aria-label="Toggle Sidebar"
@@ -50,14 +51,20 @@ export default function DashboardLayout({ children }) {
         <h2>Marbula One</h2>
       </header>
 
-      <aside style={{ display: sidebarOpen ? "block" : "none" }}>
-        <div>
+      {/* Sidebar-Overlay, links ausfahrbar */}
+      <aside
+        className={`sidebar-overlay ${
+          sidebarOpen ? "sidebar-visible" : "sidebar-hidden"
+        }`}
+      >
+        <div className="sidebar">
           <button
             onClick={() => setSidebarOpen(false)}
             aria-label="Close Sidebar"
           >
             <X size={24} />
           </button>
+
           <h2>Marbula One</h2>
 
           <nav>
@@ -120,21 +127,21 @@ export default function DashboardLayout({ children }) {
               </>
             )}
           </nav>
-        </div>
 
-        {user && (
-          <div>
-            <p>Hallo, {user.username}</p>
-            <button
-              onClick={() => {
-                logout();
-                navigate("/login");
-              }}
-            >
-              Logout
-            </button>
-          </div>
-        )}
+          {user && (
+            <div style={{ marginTop: "1rem" }}>
+              <p>Hallo, {user.username}</p>
+              <button
+                onClick={() => {
+                  logout();
+                  navigate("/login");
+                }}
+              >
+                Logout
+              </button>
+            </div>
+          )}
+        </div>
       </aside>
 
       <main>{children}</main>
