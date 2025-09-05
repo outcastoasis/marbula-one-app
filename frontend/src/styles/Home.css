@@ -26,7 +26,8 @@ h1 {
   padding: 1rem;
   margin: 1rem auto 2rem auto;
   box-shadow: 0 0 10px rgba(255, 30, 30, 0.1);
-  width: 95%;
+  width: 100%;
+  max-width: 640px; /* <- macht's auf Mobile schmaler */
   box-sizing: border-box;
 }
 
