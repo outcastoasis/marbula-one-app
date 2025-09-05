@@ -111,10 +111,11 @@ body {
   color: var(--brand-red);
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: center; /* zentriert den inneren Container */
   padding: 0 1rem;
   z-index: 1000;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-sizing: border-box;
 }
 
 .dashboard-header > * {
@@ -128,6 +129,14 @@ body {
 .dashboard-header h2 {
   color: var(--brand-red);
   margin: 0;
+}
+
+.dashboard-header-inner {
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 /* === Main Content === */

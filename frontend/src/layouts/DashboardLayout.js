@@ -130,10 +130,12 @@ export default function DashboardLayout({ children }) {
       </aside>
 
       <header className="dashboard-header">
-        <button onClick={() => setSidebarOpen(!sidebarOpen)}>
-          {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-        <h2>Marbula One</h2>
+        <div className="dashboard-header-inner">
+          <button onClick={() => setSidebarOpen(!sidebarOpen)}>
+            {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+          <h2>Marbula One</h2>
+        </div>
       </header>
 
       <main className="dashboard-main">{children}</main>
