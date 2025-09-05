@@ -159,56 +159,58 @@ export default function Home() {
         )}
       </section>
 
-      <section className="bg-brand-light p-6 rounded shadow overflow-x-auto">
+      <section className="bg-brand-light p-6 rounded shadow">
         <h3 className="text-xl font-semibold mb-4">Ergebnis-Tabelle</h3>
 
         {season && participants.length > 0 && cumulativeData.length > 0 ? (
-          <table className="min-w-[640px] w-full table-auto border-collapse text-sm">
-            <thead>
-              <tr className="w-full table-auto text-left">
-                <th className="p-2 text-left">Name</th>
-                <th className="p-2 text-left">Team</th>
-                {cumulativeData.map((race, idx) => (
-                  <th key={idx} className="p-2 text-center">
-                    {race.name}
-                  </th>
-                ))}
-                <th className="p-2 text-center">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {participants.map((p) => {
-                let last = 0;
-                const racePoints = cumulativeData.map((race) => {
-                  const current = race[p.username] ?? 0;
-                  const earned = current - last;
-                  last = current;
-                  return earned;
-                });
-                return (
-                  <tr key={p._id} className="hover:bg-brand-dark">
-                    <td className="p-2 border-t border-brand-border">
-                      {p.username}
-                    </td>
-                    <td className="p-2 border-t border-brand-border">
-                      {p.selectedTeam?.name || "-"}
-                    </td>
-                    {racePoints.map((pts, idx) => (
-                      <td
-                        key={idx}
-                        className="p-2 border-t border-brand-border text-center"
-                      >
-                        {pts}
+          <div className="overflow-x-auto">
+            <table className="min-w-[640px] w-full table-auto border-collapse text-sm">
+              <thead>
+                <tr className="w-full text-left">
+                  <th className="p-2 text-left">Name</th>
+                  <th className="p-2 text-left">Team</th>
+                  {cumulativeData.map((race, idx) => (
+                    <th key={idx} className="p-2 text-center">
+                      {race.name}
+                    </th>
+                  ))}
+                  <th className="p-2 text-center">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {participants.map((p) => {
+                  let last = 0;
+                  const racePoints = cumulativeData.map((race) => {
+                    const current = race[p.username] ?? 0;
+                    const earned = current - last;
+                    last = current;
+                    return earned;
+                  });
+                  return (
+                    <tr key={p._id} className="hover:bg-brand-dark">
+                      <td className="p-2 border-t border-brand-border">
+                        {p.username}
                       </td>
-                    ))}
-                    <td className="p-2 border-t border-brand-border font-bold text-center">
-                      {last}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      <td className="p-2 border-t border-brand-border">
+                        {p.selectedTeam?.name || "-"}
+                      </td>
+                      {racePoints.map((pts, idx) => (
+                        <td
+                          key={idx}
+                          className="p-2 border-t border-brand-border text-center"
+                        >
+                          {pts}
+                        </td>
+                      ))}
+                      <td className="p-2 border-t border-brand-border font-bold text-center">
+                        {last}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         ) : (
           <p className="text-gray-400">Keine Resultate verfügbar</p>
         )}
@@ -216,27 +218,30 @@ export default function Home() {
 
       <section className="bg-brand-light p-6 rounded shadow">
         <h3 className="text-xl font-semibold mb-4">Punkteverlauf</h3>
+
         {cumulativeData.length > 0 ? (
-          <div className="w-full h-96">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={cumulativeData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis allowDecimals={false} />
-                <Tooltip />
-                <Legend />
-                {participants.map((p, i) => (
-                  <Line
-                    key={p._id}
-                    type="monotone"
-                    dataKey={p.username}
-                    stroke={generateColor(i, participants.length)}
-                    strokeWidth={2}
-                    dot={{ r: 3 }}
-                  />
-                ))}
-              </LineChart>
-            </ResponsiveContainer>
+          <div className="overflow-x-auto">
+            <div className="min-w-[640px] h-96">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={cumulativeData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Legend />
+                  {participants.map((p, i) => (
+                    <Line
+                      key={p._id}
+                      type="monotone"
+                      dataKey={p.username}
+                      stroke={generateColor(i, participants.length)}
+                      strokeWidth={2}
+                      dot={{ r: 3 }}
+                    />
+                  ))}
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         ) : (
           <p className="text-gray-400">Keine Daten verfügbar</p>
