@@ -17,6 +17,7 @@ import "../styles/Home.css";
 
 export default function Home() {
   const { user, login } = useContext(AuthContext);
+  const [localUser, setLocalUser] = useState(null);
   const [season, setSeason] = useState(null);
   const [participants, setParticipants] = useState([]);
   const [cumulativeData, setCumulativeData] = useState([]);
@@ -25,9 +26,11 @@ export default function Home() {
     const fetchData = async () => {
       try {
         const userRes = await API.get("/users/me");
+
         if (!user || user._id !== userRes.data._id) {
           login(userRes.data);
         }
+        setLocalUser(userRes.data);
 
         const seasonRes = await API.get("/seasons/current");
         setSeason(seasonRes.data);
@@ -131,8 +134,8 @@ export default function Home() {
 
       <section>
         <h2>Dein Team</h2>
-        {user?.selectedTeam ? (
-          <p>{user.selectedTeam.name}</p>
+        {localUser?.selectedTeam ? (
+          <p>{localUser.selectedTeam.name}</p>
         ) : (
           <Link to="/choose-team">Team wählen</Link>
         )}
