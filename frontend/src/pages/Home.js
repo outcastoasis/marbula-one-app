@@ -23,16 +23,13 @@ export default function Home() {
     const fetchData = async () => {
       try {
         const userRes = await API.get("/users/me");
-
         const userChanged =
           !user ||
           user._id !== userRes.data._id ||
           (user.selectedTeam?._id || "") !==
             (userRes.data.selectedTeam?._id || "");
 
-        if (userChanged) {
-          login(userRes.data);
-        }
+        if (userChanged) login(userRes.data);
 
         const res = await API.get("/seasons/current");
         const currentSeason = res.data;
@@ -45,7 +42,6 @@ export default function Home() {
             return pid === u._id;
           })
         );
-
         setParticipants(users);
 
         const racesRes = await API.get(`/races/season/${currentSeason._id}`);
@@ -82,13 +78,11 @@ export default function Home() {
   };
 
   return (
-    <main className="w-full px-4 space-y-8 max-w-screen-lg mx-auto">
-      <header className="pt-4">
-        <h2 className="text-2xl font-bold">Willkommen zurück</h2>
-      </header>
+    <main className="max-w-6xl mx-auto px-4 py-8 space-y-8 overflow-hidden">
+      <h2 className="text-2xl font-bold mb-4">Willkommen zurück</h2>
 
-      <div className="grid gap-6 sm:grid-cols-2">
-        <section className="bg-brand-light p-4 rounded shadow overflow-hidden">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <section className="bg-brand-light p-4 rounded shadow">
           <h3 className="text-lg font-semibold mb-2">Dein Team</h3>
           {user?.selectedTeam ? (
             <p className="text-brand-text">{user.selectedTeam.name}</p>
@@ -102,7 +96,7 @@ export default function Home() {
           )}
         </section>
 
-        <section className="bg-brand-light p-4 rounded shadow overflow-hidden">
+        <section className="bg-brand-light p-4 rounded shadow">
           <h3 className="text-lg font-semibold mb-2">Aktuelle Saison</h3>
           {season ? (
             <>
@@ -117,13 +111,13 @@ export default function Home() {
         </section>
       </div>
 
-      <section className="bg-brand-light p-4 rounded shadow">
-        <h3 className="text-lg font-semibold mb-3">Aktuelle Rangliste</h3>
+      <section className="bg-brand-light p-6 rounded shadow">
+        <h3 className="text-xl font-semibold mb-4">Aktuelle Rangliste</h3>
         {participants.length > 0 && cumulativeData.length > 0 ? (
           <div className="overflow-x-auto">
-            <table className="min-w-[480px] table-auto text-left w-full">
-              <thead>
-                <tr className="text-sm text-gray-400">
+            <table className="min-w-[480px] w-full text-sm">
+              <thead className="sticky top-0 bg-brand-light z-10">
+                <tr className="text-gray-400">
                   <th className="py-2">#</th>
                   <th className="py-2">Name</th>
                   <th className="py-2">Team</th>
@@ -157,12 +151,12 @@ export default function Home() {
         )}
       </section>
 
-      <section className="bg-brand-light p-4 rounded shadow">
-        <h3 className="text-lg font-semibold mb-3">Ergebnis-Tabelle</h3>
+      <section className="bg-brand-light p-6 rounded shadow">
+        <h3 className="text-xl font-semibold mb-4">Ergebnis-Tabelle</h3>
         {season && participants.length > 0 && cumulativeData.length > 0 ? (
           <div className="overflow-x-auto">
-            <table className="min-w-[640px] table-auto border-collapse text-sm w-full">
-              <thead>
+            <table className="min-w-[640px] w-full border-collapse text-sm">
+              <thead className="sticky top-0 bg-brand-light z-10">
                 <tr>
                   <th className="p-2 text-left">Name</th>
                   <th className="p-2 text-left">Team</th>
@@ -213,18 +207,21 @@ export default function Home() {
         )}
       </section>
 
-      <section className="bg-brand-light p-4 rounded shadow">
-        <h3 className="text-lg font-semibold mb-3">Punkteverlauf</h3>
+      <section className="bg-brand-light p-6 rounded shadow">
+        <h3 className="text-xl font-semibold mb-4">Punkteverlauf</h3>
         {cumulativeData.length > 0 ? (
           <div className="overflow-x-auto">
             <div className="min-w-[640px] h-96">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={cumulativeData}>
+                <LineChart
+                  data={cumulativeData}
+                  margin={{ top: 10, right: 20, left: 0, bottom: 5 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis allowDecimals={false} />
-                  <Tooltip />
-                  <Legend />
+                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+                  <Tooltip wrapperStyle={{ fontSize: "12px" }} />
+                  <Legend wrapperStyle={{ fontSize: "12px" }} />
                   {participants.map((p, i) => (
                     <Line
                       key={p._id}
