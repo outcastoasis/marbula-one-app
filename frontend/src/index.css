@@ -4,3 +4,10 @@
 body {
   @apply bg-brand-dark text-brand-text overflow-x-hidden;
 }
+html,
+body {
+  overflow-x: hidden;
+}
+* {
+  outline: 1px solid rgba(255, 0, 0, 0.2);
+}

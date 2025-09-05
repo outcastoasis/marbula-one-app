@@ -90,7 +90,7 @@ export default function Home() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-10">
+    <div className="w-full max-w-5xl mx-auto px-4 space-y-10 overflow-hidden">
       <h2 className="text-2xl font-bold mb-2">Willkommen zurück</h2>
 
       <section className="bg-brand-light p-6 rounded shadow">
