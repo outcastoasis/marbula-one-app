@@ -44,9 +44,12 @@ export default function Home() {
           currentSeason.participants.includes(u._id)
         );
         setParticipants(users);
+        console.log("Teilnehmer:", users);
 
         const racesRes = await API.get(`/races/season/${currentSeason._id}`);
         const races = racesRes.data;
+
+        console.log("Lade Rennen mit Resultaten:", races);
 
         const cumulativePoints = {};
         users.forEach((u) => (cumulativePoints[u._id] = 0));
@@ -71,7 +74,9 @@ export default function Home() {
         // Optional: Fehleranzeige im UI setzen
       }
     };
-
+    console.log("🎯 Aktuelle Season:", currentSeason);
+    console.log("👥 Teilnehmer (participants):", users);
+    console.log("🏁 Rennen mit Resultaten:", races);
     fetchData();
   }, [user]);
 
