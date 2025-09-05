@@ -3,7 +3,6 @@ import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import API from "../api";
 import { Link } from "react-router-dom";
-import DashboardLayout from "../components/DashboardLayout";
 import {
   ResponsiveContainer,
   LineChart,
@@ -14,7 +13,7 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import "./Home.css";
+import "../index.css";
 
 export default function Home() {
   const { user, login } = useContext(AuthContext);
@@ -127,83 +126,81 @@ export default function Home() {
   });
 
   return (
-    <DashboardLayout>
-      <div className="home-container">
-        <h1>Willkommen zur Marbula One Saison</h1>
+    <div className="home-container">
+      <h1>Willkommen zur Marbula One Saison</h1>
 
-        <section>
-          <h2>Dein Team</h2>
-          {user?.selectedTeam ? (
-            <p>{user.selectedTeam.name}</p>
-          ) : (
-            <Link to="/choose-team">Team wählen</Link>
-          )}
-        </section>
+      <section>
+        <h2>Dein Team</h2>
+        {user?.selectedTeam ? (
+          <p>{user.selectedTeam.name}</p>
+        ) : (
+          <Link to="/choose-team">Team wählen</Link>
+        )}
+      </section>
 
-        <section>
-          <h2>Aktuelle Saison</h2>
-          {season ? (
-            <>
-              <p>{season.name}</p>
-              <p>
-                Event-Datum: {new Date(season.eventDate).toLocaleDateString()}
-              </p>
-            </>
-          ) : (
-            <p>Keine Saison gefunden</p>
-          )}
-        </section>
+      <section>
+        <h2>Aktuelle Saison</h2>
+        {season ? (
+          <>
+            <p>{season.name}</p>
+            <p>
+              Event-Datum: {new Date(season.eventDate).toLocaleDateString()}
+            </p>
+          </>
+        ) : (
+          <p>Keine Saison gefunden</p>
+        )}
+      </section>
 
-        <section>
-          <h2>Rangliste</h2>
-          {rankingRows.length > 0 ? (
-            renderTable(rankingRows, ["#", "Name", "Team", "Punkte"])
-          ) : (
-            <p>Keine Rangliste verfügbar</p>
-          )}
-        </section>
+      <section>
+        <h2>Rangliste</h2>
+        {rankingRows.length > 0 ? (
+          renderTable(rankingRows, ["#", "Name", "Team", "Punkte"])
+        ) : (
+          <p>Keine Rangliste verfügbar</p>
+        )}
+      </section>
 
-        <section>
-          <h2>Ergebnis-Tabelle</h2>
-          {resultRows.length > 0 ? (
-            renderTable(resultRows, [
-              "Name",
-              "Team",
-              ...cumulativeData.map((r) => r.name),
-              "Total",
-            ])
-          ) : (
-            <p>Keine Resultate verfügbar</p>
-          )}
-        </section>
+      <section>
+        <h2>Ergebnis-Tabelle</h2>
+        {resultRows.length > 0 ? (
+          renderTable(resultRows, [
+            "Name",
+            "Team",
+            ...cumulativeData.map((r) => r.name),
+            "Total",
+          ])
+        ) : (
+          <p>Keine Resultate verfügbar</p>
+        )}
+      </section>
 
-        <section>
-          <h2>Punkteverlauf</h2>
-          <div className="scroll-wrapper">
-            <div className="chart-inner">
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={cumulativeData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis allowDecimals={false} />
-                  <Tooltip />
-                  <Legend />
-                  {participants.map((p, i) => (
-                    <Line
-                      key={p._id}
-                      type="monotone"
-                      dataKey={p.username}
-                      stroke={generateColor(i, participants.length)}
-                      strokeWidth={2}
-                      dot={{ r: 3 }}
-                    />
-                  ))}
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+      <section>
+        <h2>Punkteverlauf</h2>
+        <div className="scroll-wrapper">
+          <div className="chart-inner">
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={cumulativeData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis allowDecimals={false} />
+                <Tooltip />
+                <Legend />
+                {participants.map((p, i) => (
+                  <Line
+                    key={p._id}
+                    type="monotone"
+                    dataKey={p.username}
+                    stroke={generateColor(i, participants.length)}
+                    strokeWidth={2}
+                    dot={{ r: 3 }}
+                  />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
           </div>
-        </section>
-      </div>
-    </DashboardLayout>
+        </div>
+      </section>
+    </div>
   );
 }
