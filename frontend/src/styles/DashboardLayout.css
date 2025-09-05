@@ -111,10 +111,18 @@ body {
   color: var(--brand-red);
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   padding: 0 1rem;
   z-index: 1000;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dashboard-header > * {
+  max-width: 640px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .dashboard-header h2 {
@@ -130,6 +138,10 @@ body {
   overflow-x: hidden;
   margin-top: 60px;
   width: 100%;
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
 }
 
 /* === Hamburger Icon Styling === */
@@ -162,9 +174,5 @@ body {
 
   .sidebar.open {
     transform: translateX(0);
-  }
-
-  .dashboard-header {
-    display: flex;
   }
 }
