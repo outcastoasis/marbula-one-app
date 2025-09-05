@@ -52,13 +52,13 @@ export default function Home() {
       const chartData = races.map((race) => {
         const entry = { name: race.name };
         race.results.forEach((r) => {
-          cumulativePoints[r.user._id] += r.pointsEarned;
-        });
-        race.results.forEach((r) => {
-          const userId = r.user?._id || r.user; // funktioniert mit oder ohne .populate()
-          if (userId in cumulativePoints) {
+          const userId = typeof r.user === "object" ? r.user._id : r.user;
+          if (userId && userId in cumulativePoints) {
             cumulativePoints[userId] += r.pointsEarned || 0;
           }
+        });
+        users.forEach((u) => {
+          entry[u.username] = cumulativePoints[u._id];
         });
         return entry;
       });
