@@ -129,3 +129,14 @@ body {
 .dashboard-header button:hover {
   background-color: #2a2a2a;
 }
+
+.sidebar-close {
+  background: none;
+  border: none;
+  color: #fff;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  cursor: pointer;
+  z-index: 999;
+}

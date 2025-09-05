@@ -42,6 +42,15 @@ export default function DashboardLayout({ children }) {
   return (
     <div className="dashboard-layout">
       <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
+        {sidebarOpen && (
+          <button
+            className="sidebar-close"
+            onClick={closeSidebar}
+            aria-label="Sidebar schliessen"
+          >
+            <X size={24} />
+          </button>
+        )}
         <h2>Marbula One</h2>
 
         <nav>
