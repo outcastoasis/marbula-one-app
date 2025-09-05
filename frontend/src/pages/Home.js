@@ -93,7 +93,7 @@ export default function Home() {
     <div className="w-full max-w-5xl mx-auto px-4 space-y-10 overflow-hidden">
       <h2 className="text-2xl font-bold mb-2">Willkommen zurück</h2>
 
-      <section className="bg-brand-light p-6 rounded shadow">
+      <section className="w-full max-w-full bg-brand-light p-6 rounded shadow overflow-hidden">
         <h3 className="text-xl font-semibold mb-2">Dein Team</h3>
         {user?.selectedTeam ? (
           <p className="text-brand-text">{user.selectedTeam.name}</p>
@@ -107,7 +107,7 @@ export default function Home() {
         )}
       </section>
 
-      <section className="bg-brand-light p-6 rounded shadow">
+      <section className="w-full max-w-full bg-brand-light p-6 rounded shadow overflow-hidden">
         <h3 className="text-xl font-semibold mb-2">Aktuelle Saison</h3>
         {season ? (
           <>
