@@ -174,7 +174,7 @@ body {
 
 @media (min-width: 769px) {
   .dashboard-main {
-    margin-left: 260px;
+    margin-left: 10px;
     width: calc(100% - 260px);
   }
 }
