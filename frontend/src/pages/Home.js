@@ -54,8 +54,11 @@ export default function Home() {
         race.results.forEach((r) => {
           cumulativePoints[r.user._id] += r.pointsEarned;
         });
-        users.forEach((u) => {
-          entry[u.username] = cumulativePoints[u._id];
+        race.results.forEach((r) => {
+          const userId = r.user?._id || r.user; // fallback: plain ID
+          if (userId && cumulativePoints[userId] !== undefined) {
+            cumulativePoints[userId] += r.pointsEarned;
+          }
         });
         return entry;
       });
