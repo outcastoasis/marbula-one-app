@@ -32,8 +32,9 @@ export default function Home() {
         login(userRes.data);
       }
 
-      const res = await API.get("/seasons?current=true");
-      const currentSeason = res.data[0];
+      const res = await API.get("/seasons/current");
+      const currentSeason = res.data;
+
       setSeason(currentSeason);
 
       const usersRes = await API.get("/users");
