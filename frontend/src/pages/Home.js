@@ -41,8 +41,12 @@ export default function Home() {
 
         const usersRes = await API.get("/users");
         const users = usersRes.data.filter((u) =>
-          currentSeason.participants.includes(u._id)
+          currentSeason.participants.some((p) => {
+            const pid = typeof p === "object" ? p._id : p;
+            return pid === u._id;
+          })
         );
+
         setParticipants(users);
         console.log("Teilnehmer:", users);
 
