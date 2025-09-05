@@ -24,11 +24,13 @@ export default function Home() {
       const userRes = await API.get("/users/me");
 
       // Nur aktualisieren, wenn sich etwas geändert hat
-      if (
+      const userChanged =
         !user ||
         user._id !== userRes.data._id ||
-        user.selectedTeam?._id !== userRes.data.selectedTeam?._id
-      ) {
+        (user.selectedTeam?._id || "") !==
+          (userRes.data.selectedTeam?._id || "");
+
+      if (userChanged) {
         login(userRes.data);
       }
 
@@ -67,7 +69,7 @@ export default function Home() {
     };
 
     fetchData();
-  }, [login, user]);
+  }, [user]);
 
   const generateColor = (index, total) => {
     const hue = (index * (360 / total)) % 360;
