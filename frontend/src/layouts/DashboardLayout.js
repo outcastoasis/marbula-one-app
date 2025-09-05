@@ -37,114 +37,97 @@ export default function DashboardLayout({ children }) {
     fetchSeasons();
   }, []);
 
-  const isActive = (path) => location.pathname === path;
+  const closeSidebar = () => setSidebarOpen(false);
 
   return (
-    <div>
+    <div className="dashboard-layout">
+      <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
+        <h2>Marbula One</h2>
+
+        <nav>
+          <Link to="/" onClick={closeSidebar}>
+            Home
+          </Link>
+          <Link to="/teams" onClick={closeSidebar}>
+            Teams
+          </Link>
+          {user && !user.selectedTeam && (
+            <Link to="/choose-team" onClick={closeSidebar}>
+              Team wählen
+            </Link>
+          )}
+
+          {user?.role === "admin" && (
+            <>
+              <hr />
+              <p>Admin</p>
+              <Link to="/admin/teams" onClick={closeSidebar}>
+                Teams verwalten
+              </Link>
+              <Link to="/admin/users" onClick={closeSidebar}>
+                Benutzer
+              </Link>
+              <Link to="/admin/seasons" onClick={closeSidebar}>
+                Seasons
+              </Link>
+              {seasons.map((season) => (
+                <div key={season._id}>
+                  <button
+                    onClick={() =>
+                      setExpandedSeason((prev) =>
+                        prev === season._id ? null : season._id
+                      )
+                    }
+                  >
+                    <span>{season.name}</span>
+                    {expandedSeason === season._id ? (
+                      <ChevronUp size={16} />
+                    ) : (
+                      <ChevronDown size={16} />
+                    )}
+                  </button>
+                  {expandedSeason === season._id && (
+                    <div>
+                      {season.races.map((race) => (
+                        <Link
+                          key={race._id}
+                          to={`/admin/races/${race._id}/results`}
+                          onClick={closeSidebar}
+                        >
+                          {race.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </>
+          )}
+        </nav>
+
+        {user && (
+          <div style={{ marginTop: "1rem" }}>
+            <p>Hallo, {user.username}</p>
+            <button
+              onClick={() => {
+                logout();
+                navigate("/login");
+              }}
+            >
+              Logout
+            </button>
+          </div>
+        )}
+      </aside>
+
       <header className="dashboard-header">
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          aria-label="Toggle Sidebar"
-        >
+        <button onClick={() => setSidebarOpen(!sidebarOpen)}>
           {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
         <h2>Marbula One</h2>
       </header>
 
-      {/* Sidebar-Overlay, links ausfahrbar */}
-      <aside
-        className={`sidebar-overlay ${
-          sidebarOpen ? "sidebar-visible" : "sidebar-hidden"
-        }`}
-      >
-        <div className="sidebar">
-          <button
-            onClick={() => setSidebarOpen(false)}
-            aria-label="Close Sidebar"
-          >
-            <X size={24} />
-          </button>
-
-          <h2>Marbula One</h2>
-
-          <nav>
-            <Link to="/" onClick={() => setSidebarOpen(false)}>
-              Home
-            </Link>
-            <Link to="/teams" onClick={() => setSidebarOpen(false)}>
-              Teams
-            </Link>
-            {user && !user.selectedTeam && (
-              <Link to="/choose-team" onClick={() => setSidebarOpen(false)}>
-                Team wählen
-              </Link>
-            )}
-
-            {user?.role === "admin" && (
-              <>
-                <hr />
-                <p>Admin</p>
-                <Link to="/admin/teams" onClick={() => setSidebarOpen(false)}>
-                  Teams verwalten
-                </Link>
-                <Link to="/admin/users" onClick={() => setSidebarOpen(false)}>
-                  Benutzer
-                </Link>
-                <Link to="/admin/seasons" onClick={() => setSidebarOpen(false)}>
-                  Seasons
-                </Link>
-                {seasons.map((season) => (
-                  <div key={season._id}>
-                    <button
-                      onClick={() =>
-                        setExpandedSeason((prev) =>
-                          prev === season._id ? null : season._id
-                        )
-                      }
-                    >
-                      <span>{season.name}</span>
-                      {expandedSeason === season._id ? (
-                        <ChevronUp size={16} />
-                      ) : (
-                        <ChevronDown size={16} />
-                      )}
-                    </button>
-                    {expandedSeason === season._id && (
-                      <div>
-                        {season.races.map((race) => (
-                          <Link
-                            key={race._id}
-                            to={`/admin/races/${race._id}/results`}
-                            onClick={() => setSidebarOpen(false)}
-                          >
-                            {race.name}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </>
-            )}
-          </nav>
-
-          {user && (
-            <div style={{ marginTop: "1rem" }}>
-              <p>Hallo, {user.username}</p>
-              <button
-                onClick={() => {
-                  logout();
-                  navigate("/login");
-                }}
-              >
-                Logout
-              </button>
-            </div>
-          )}
-        </div>
-      </aside>
-
-      <main>{children}</main>
+      <main className="dashboard-main">{children}</main>
     </div>
   );
 }
