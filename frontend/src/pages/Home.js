@@ -14,7 +14,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Link } from "react-router-dom";
-import "../styles.css";
+import "../index.css";
 
 export default function Home() {
   const { user, login } = useContext(AuthContext);
