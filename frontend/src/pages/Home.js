@@ -14,6 +14,7 @@ import {
   Legend,
 } from "recharts";
 import "../index.css";
+//test
 
 export default function Home() {
   const { user, login } = useContext(AuthContext);
