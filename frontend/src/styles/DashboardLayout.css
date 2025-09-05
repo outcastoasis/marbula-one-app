@@ -1,29 +1,50 @@
-/* === DashboardLayout.css === */
+/* === Farben definieren (Formel 1 Style) === */
+:root {
+  --brand-dark: #0e0e0e;
+  --brand-light: #1a1a1a;
+  --brand-red: #ff1e1e;
+  --brand-border: #2a2a2a;
+  --brand-hover: #2a2a2a;
+  --brand-button-bg: #1a1a1a;
+}
 
+/* === Allgemein === */
 body {
   margin: 0;
   font-family: "Segoe UI", sans-serif;
-  background-color: #0e0e0e;
+  background-color: var(--brand-dark);
   color: #ffffff;
 }
 
-/* Layout-Wrapper */
+/* === Layout-Wrapper === */
 .dashboard-layout {
   display: flex;
   min-height: 100vh;
-  background-color: #0e0e0e;
+  background-color: var(--brand-dark);
+  flex-direction: row;
 }
 
-/* Sidebar */
+/* === Sidebar === */
 .sidebar {
+  position: fixed;
+  top: 60px;
+  left: 0;
   width: 260px;
-  background-color: #1a1a1a;
+  height: calc(100vh - 60px);
+  background-color: var(--brand-light);
   padding: 1.5rem;
-  border-right: 1px solid #2a2a2a;
+  border-right: 1px solid var(--brand-border);
   flex-shrink: 0;
   transition: transform 0.3s ease-in-out;
   border-radius: 0 20px 20px 0;
   box-shadow: 4px 0 12px rgba(0, 0, 0, 0.6);
+  transform: translateX(-100%);
+  z-index: 999;
+  overflow-y: auto;
+}
+
+.sidebar.open {
+  transform: translateX(0);
 }
 
 .sidebar nav a {
@@ -39,25 +60,25 @@ body {
 }
 
 .sidebar nav a:hover {
-  background-color: #ff1e1e;
+  background-color: var(--brand-red);
   color: #fff;
 }
 
 .sidebar hr {
   margin: 1.5rem 0;
-  border: 1px solid #2a2a2a;
+  border: 1px solid var(--brand-border);
 }
 
 .sidebar h2 {
   margin-bottom: 1.5rem;
   font-size: 1.6rem;
-  color: #ff1e1e;
+  color: var(--brand-red);
 }
 
 .sidebar button {
   background: none;
   border: none;
-  color: #ff1e1e;
+  color: var(--brand-red);
   cursor: pointer;
   font-size: 1rem;
   margin: 0.25rem 0;
@@ -67,7 +88,19 @@ body {
   padding: 0.5rem;
 }
 
-/* Header */
+.sidebar-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  color: var(--brand-red);
+  font-size: 1.5rem;
+  cursor: pointer;
+  z-index: 1001;
+}
+
+/* === Header === */
 .dashboard-header {
   position: fixed;
   top: 0;
@@ -85,28 +118,45 @@ body {
 }
 
 .dashboard-header h2 {
-  color: #ff1e1e;
+  color: var(--brand-red);
   margin: 0;
 }
 
-/* Main Content */
+/* === Main Content === */
 .dashboard-main {
   flex-grow: 1;
   padding: 1rem;
-  background-color: #0e0e0e;
+  background-color: var(--brand-dark);
   overflow-x: hidden;
   margin-top: 60px;
+  width: 100%;
 }
 
-/* Responsive Sidebar */
+/* === Hamburger Icon Styling === */
+.dashboard-header button {
+  background-color: var(--brand-button-bg);
+  border: 1px solid var(--brand-border);
+  color: var(--brand-red);
+  padding: 0.5rem;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.dashboard-header button:hover {
+  background-color: var(--brand-hover);
+}
+
+/* === Responsive Anpassungen === */
 @media (max-width: 768px) {
+  .dashboard-layout {
+    flex-direction: column;
+  }
+
   .sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100%;
+    top: 60px;
+    height: calc(100vh - 60px);
     transform: translateX(-100%);
-    z-index: 1000;
     border-radius: 0 20px 20px 0;
   }
 
@@ -117,34 +167,4 @@ body {
   .dashboard-header {
     display: flex;
   }
-
-  .dashboard-layout {
-    flex-direction: column;
-  }
-}
-
-/* Hamburger Icon Styling */
-.dashboard-header button {
-  background-color: #1a1a1a;
-  border: 1px solid #333;
-  color: #ff1e1e;
-  padding: 0.5rem;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.dashboard-header button:hover {
-  background-color: #2a2a2a;
-}
-
-.sidebar-close {
-  background: none;
-  border: none;
-  color: #fff;
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  cursor: pointer;
-  z-index: 999;
 }
