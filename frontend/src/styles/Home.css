@@ -1,57 +1,60 @@
-/* === Home.css — Formel 1 Stil === */
+/* === Home.css — Formel 1 Stil, optimiert für Mobile === */
 
 .home-container {
   width: 100%;
   padding: 1rem;
-  max-width: 1400px;
   margin: 0 auto;
   background-color: #0e0e0e;
 }
 
-.home-container section {
-  border-radius: 16px;
-  padding: 1rem;
-  max-width: 95%;
-  margin-left: auto;
-  margin-right: auto;
+/* Hauptüberschrift */
+h1 {
+  color: #ff1e1e;
+  font-size: 2rem;
   margin-bottom: 2rem;
-  box-shadow: 0 0 10px rgba(255, 0, 0, 0.1);
+  padding-left: 1rem;
+  padding-right: 1rem;
+  text-align: center;
+  word-break: break-word;
+}
+
+/* Sektionen */
+.home-container section {
+  background-color: #1a1a1a;
+  border-radius: 16px;
+  padding: 1rem 1rem;
+  margin: 1rem auto 2rem auto;
+  box-shadow: 0 0 10px rgba(255, 30, 30, 0.1);
+  width: 100%;
+  max-width: 100%;
 }
 
 @media (min-width: 600px) {
   .home-container section {
     padding: 1.5rem 2rem;
-    margin-left: auto;
-    margin-right: auto;
     width: 90%;
+  }
+
+  h1 {
+    font-size: 2.4rem;
   }
 }
 
 @media (min-width: 900px) {
   .home-container section {
-    width: 80%;
+    width: 85%;
   }
-}
 
-h1 {
-  color: #ff1e1e;
-  font-size: 2.2rem;
-  margin-bottom: 2rem;
+  h1 {
+    font-size: 2.8rem;
+  }
 }
 
 h2 {
   color: #ff1e1e;
   margin-top: 1rem;
   margin-bottom: 1rem;
-  font-size: 1.4rem;
-}
-
-section {
-  margin-bottom: 2.5rem;
-  background-color: #1a1a1a;
-  padding: 1rem 1.5rem;
-  border-radius: 16px;
-  box-shadow: 0 0 10px rgba(255, 30, 30, 0.1);
+  font-size: 1.3rem;
 }
 
 section p {
@@ -75,7 +78,7 @@ a:hover {
   text-decoration: underline;
 }
 
-/* Scrollbare Tabelle / Chart */
+/* Scrollbare Tabellen & Diagramme */
 .scroll-wrapper {
   overflow-x: auto;
   width: 100%;
@@ -108,7 +111,7 @@ a:hover {
   color: #fff;
 }
 
-/* Chart-Grunddesign */
+/* Chart Design */
 .chart-inner {
   min-width: 600px;
   height: 300px;
