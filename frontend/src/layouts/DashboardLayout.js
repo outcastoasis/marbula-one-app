@@ -5,7 +5,6 @@ import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { Menu, X, ChevronDown, ChevronUp } from "lucide-react";
 import API from "../api";
-import "../index.css";
 
 export default function DashboardLayout({ children }) {
   const { user, logout } = useContext(AuthContext);
@@ -40,95 +39,56 @@ export default function DashboardLayout({ children }) {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <div className="layout">
-      {/* Mobile Header */}
-      <header className="mobile-header">
+    <div>
+      <header>
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
           aria-label="Toggle Sidebar"
-          className="icon-button"
         >
           {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
-        <h2 className="mobile-title">Marbula One</h2>
+        <h2>Marbula One</h2>
       </header>
 
-      {/* Sidebar */}
-      <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
+      <aside style={{ display: sidebarOpen ? "block" : "none" }}>
         <div>
-          <div className="sidebar-header">
-            <button
-              onClick={() => setSidebarOpen(false)}
-              aria-label="Close Sidebar"
-              className="icon-button close-button"
-            >
-              <X size={24} />
-            </button>
-            <h2 className="sidebar-title">Marbula One</h2>
-          </div>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Close Sidebar"
+          >
+            <X size={24} />
+          </button>
+          <h2>Marbula One</h2>
 
-          <nav className="nav">
-            <Link
-              to="/"
-              className={isActive("/") ? "nav-link active" : "nav-link"}
-              onClick={() => setSidebarOpen(false)}
-            >
+          <nav>
+            <Link to="/" onClick={() => setSidebarOpen(false)}>
               Home
             </Link>
-            <Link
-              to="/teams"
-              className={isActive("/teams") ? "nav-link active" : "nav-link"}
-              onClick={() => setSidebarOpen(false)}
-            >
+            <Link to="/teams" onClick={() => setSidebarOpen(false)}>
               Teams
             </Link>
             {user && !user.selectedTeam && (
-              <Link
-                to="/choose-team"
-                className={
-                  isActive("/choose-team") ? "nav-link active" : "nav-link"
-                }
-                onClick={() => setSidebarOpen(false)}
-              >
+              <Link to="/choose-team" onClick={() => setSidebarOpen(false)}>
                 Team wählen
               </Link>
             )}
 
             {user?.role === "admin" && (
               <>
-                <hr className="nav-divider" />
-                <p className="nav-section-label">Admin</p>
-                <Link
-                  to="/admin/teams"
-                  className={
-                    isActive("/admin/teams") ? "nav-link active" : "nav-link"
-                  }
-                  onClick={() => setSidebarOpen(false)}
-                >
+                <hr />
+                <p>Admin</p>
+                <Link to="/admin/teams" onClick={() => setSidebarOpen(false)}>
                   Teams verwalten
                 </Link>
-                <Link
-                  to="/admin/users"
-                  className={
-                    isActive("/admin/users") ? "nav-link active" : "nav-link"
-                  }
-                  onClick={() => setSidebarOpen(false)}
-                >
+                <Link to="/admin/users" onClick={() => setSidebarOpen(false)}>
                   Benutzer
                 </Link>
-                <Link
-                  to="/admin/seasons"
-                  className={
-                    isActive("/admin/seasons") ? "nav-link active" : "nav-link"
-                  }
-                  onClick={() => setSidebarOpen(false)}
-                >
+                <Link to="/admin/seasons" onClick={() => setSidebarOpen(false)}>
                   Seasons
                 </Link>
                 {seasons.map((season) => (
-                  <div key={season._id} className="nested-nav">
+                  <div key={season._id}>
                     <button
-                      className="nested-toggle"
                       onClick={() =>
                         setExpandedSeason((prev) =>
                           prev === season._id ? null : season._id
@@ -143,16 +103,11 @@ export default function DashboardLayout({ children }) {
                       )}
                     </button>
                     {expandedSeason === season._id && (
-                      <div className="nested-links">
+                      <div>
                         {season.races.map((race) => (
                           <Link
                             key={race._id}
                             to={`/admin/races/${race._id}/results`}
-                            className={
-                              isActive(`/admin/races/${race._id}/results`)
-                                ? "nav-sublink active"
-                                : "nav-sublink"
-                            }
                             onClick={() => setSidebarOpen(false)}
                           >
                             {race.name}
@@ -167,16 +122,14 @@ export default function DashboardLayout({ children }) {
           </nav>
         </div>
 
-        {/* Footer */}
         {user && (
-          <div className="sidebar-footer">
-            <p className="sidebar-user">Hallo, {user.username}</p>
+          <div>
+            <p>Hallo, {user.username}</p>
             <button
               onClick={() => {
                 logout();
                 navigate("/login");
               }}
-              className="logout-button"
             >
               Logout
             </button>
@@ -184,8 +137,7 @@ export default function DashboardLayout({ children }) {
         )}
       </aside>
 
-      {/* Main Content */}
-      <main className="main-content">{children}</main>
+      <main>{children}</main>
     </div>
   );
 }

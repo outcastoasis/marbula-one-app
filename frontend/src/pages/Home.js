@@ -81,18 +81,16 @@ export default function Home() {
   };
 
   return (
-    <div className="container">
+    <div>
       <h1>Willkommen zur Marbula One Saison</h1>
 
-      <div className="section-group">
+      <div>
         <section>
           <h2>Dein Team</h2>
           {user?.selectedTeam ? (
             <p>{user.selectedTeam.name}</p>
           ) : (
-            <Link to="/choose-team" className="button-link">
-              Team wählen
-            </Link>
+            <Link to="/choose-team">Team wählen</Link>
           )}
         </section>
 
@@ -100,13 +98,13 @@ export default function Home() {
           <h2>Aktuelle Saison</h2>
           {season ? (
             <>
-              <p className="highlight-text">{season.name}</p>
-              <p className="subtext">
+              <p>{season.name}</p>
+              <p>
                 Event-Datum: {new Date(season.eventDate).toLocaleDateString()}
               </p>
             </>
           ) : (
-            <p className="subtext">Keine Saison gefunden</p>
+            <p>Keine Saison gefunden</p>
           )}
         </section>
       </div>
@@ -114,124 +112,117 @@ export default function Home() {
       <section>
         <h2>Rangliste</h2>
         {participants.length > 0 && cumulativeData.length > 0 ? (
-          <div className="table-wrapper">
-            <div className="table-scroll">
-              <table className="result-table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Name</th>
-                    <th>Team</th>
-                    <th>Punkte</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[...participants]
-                    .map((p) => ({
-                      _id: p._id,
-                      username: p.username,
-                      team: p.selectedTeam?.name || "–",
-                      points:
-                        cumulativeData[cumulativeData.length - 1]?.[
-                          p.username
-                        ] || 0,
-                    }))
-                    .sort((a, b) => b.points - a.points)
-                    .map((p, index) => (
-                      <tr key={p._id}>
-                        <td>{index + 1}</td>
-                        <td>{p.username}</td>
-                        <td>{p.team}</td>
-                        <td>{p.points}</td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </div>
+          <div>
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Name</th>
+                  <th>Team</th>
+                  <th>Punkte</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...participants]
+                  .map((p) => ({
+                    _id: p._id,
+                    username: p.username,
+                    team: p.selectedTeam?.name || "–",
+                    points:
+                      cumulativeData[cumulativeData.length - 1]?.[p.username] ||
+                      0,
+                  }))
+                  .sort((a, b) => b.points - a.points)
+                  .map((p, index) => (
+                    <tr key={p._id}>
+                      <td>{index + 1}</td>
+                      <td>{p.username}</td>
+                      <td>{p.team}</td>
+                      <td>{p.points}</td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
           </div>
         ) : (
-          <p className="subtext">Keine Rangliste verfügbar</p>
+          <p>Keine Rangliste verfügbar</p>
         )}
       </section>
 
       <section>
         <h2>Ergebnis-Tabelle</h2>
         {season && participants.length > 0 && cumulativeData.length > 0 ? (
-          <div className="table-wrapper">
-            <div className="table-scroll">
-              <table className="result-table">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Team</th>
-                    {cumulativeData.map((race, idx) => (
-                      <th key={idx}>{race.name}</th>
-                    ))}
-                    <th>Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {participants.map((p) => {
-                    let last = 0;
-                    const racePoints = cumulativeData.map((race) => {
-                      const current = race[p.username] ?? 0;
-                      const earned = current - last;
-                      last = current;
-                      return earned;
-                    });
-                    return (
-                      <tr key={p._id}>
-                        <td>{p.username}</td>
-                        <td>{p.selectedTeam?.name || "-"}</td>
-                        {racePoints.map((pts, idx) => (
-                          <td key={idx}>{pts}</td>
-                        ))}
-                        <td>
-                          <strong>{last}</strong>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+          <div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Team</th>
+                  {cumulativeData.map((race, idx) => (
+                    <th key={idx}>{race.name}</th>
+                  ))}
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {participants.map((p) => {
+                  let last = 0;
+                  const racePoints = cumulativeData.map((race) => {
+                    const current = race[p.username] ?? 0;
+                    const earned = current - last;
+                    last = current;
+                    return earned;
+                  });
+                  return (
+                    <tr key={p._id}>
+                      <td>{p.username}</td>
+                      <td>{p.selectedTeam?.name || "-"}</td>
+                      {racePoints.map((pts, idx) => (
+                        <td key={idx}>{pts}</td>
+                      ))}
+                      <td>
+                        <strong>{last}</strong>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         ) : (
-          <p className="subtext">Keine Resultate verfügbar</p>
+          <p>Keine Resultate verfügbar</p>
         )}
       </section>
 
       <section>
         <h2>Punkteverlauf</h2>
-        {cumulativeData.length > 0 ? (
-          <div className="table-wrapper">
-            <div className="chart-scroll">
-              <div className="chart-inner">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={cumulativeData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis allowDecimals={false} />
-                    <Tooltip />
-                    <Legend />
-                    {participants.map((p, i) => (
-                      <Line
-                        key={p._id}
-                        type="monotone"
-                        dataKey={p.username}
-                        stroke={generateColor(i, participants.length)}
-                        strokeWidth={2}
-                        dot={{ r: 3 }}
-                      />
-                    ))}
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+        <div className="chart-scroll">
+          {cumulativeData.length > 0 ? (
+            <div className="chart-inner">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={cumulativeData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Legend />
+                  {participants.map((p, i) => (
+                    <Line
+                      key={p._id}
+                      type="monotone"
+                      dataKey={p.username}
+                      stroke={generateColor(i, participants.length)}
+                      strokeWidth={2}
+                      dot={{ r: 3 }}
+                    />
+                  ))}
+                </LineChart>
+              </ResponsiveContainer>
             </div>
-          </div>
-        ) : (
-          <p className="subtext">Keine Daten verfügbar</p>
-        )}
+          ) : (
+            <p>Keine Daten verfügbar</p>
+          )}
+        </div>
       </section>
     </div>
   );
