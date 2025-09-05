@@ -26,6 +26,7 @@ h1 {
   gap: 1rem;
 }
 
+/* Desktop-Ansicht */
 @media (min-width: 900px) {
   .sections-grid {
     flex-direction: row;
@@ -34,9 +35,13 @@ h1 {
   }
 
   .sections-grid > section {
+    background-color: #1a1a1a;
+    border-radius: 16px;
+    padding: 1rem;
+    box-shadow: 0 0 10px rgba(255, 30, 30, 0.1);
     flex: 1 1 300px;
     max-width: 400px;
-    margin: 0.5rem;
+    box-sizing: border-box;
   }
 }
 
