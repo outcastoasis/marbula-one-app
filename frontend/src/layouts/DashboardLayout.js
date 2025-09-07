@@ -6,6 +6,7 @@ import { AuthContext } from "../context/AuthContext";
 import { Menu, X, ChevronDown, ChevronUp } from "lucide-react";
 import API from "../api";
 import "../styles/DashboardLayout.css";
+import navbarLogo from "../assets/navbar_2.png";
 
 export default function DashboardLayout({ children }) {
   const { user, logout } = useContext(AuthContext);
@@ -134,7 +135,7 @@ export default function DashboardLayout({ children }) {
           <button onClick={() => setSidebarOpen(!sidebarOpen)}>
             {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
-          <h2>Marbula One</h2>
+          <img src={navbarLogo} alt="Marbula One" className="header-logo" />
         </div>
       </header>
 

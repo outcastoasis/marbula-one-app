@@ -211,3 +211,9 @@ body {
   flex-shrink: 0;
   margin-right: 0.5rem;
 }
+
+.header-logo {
+  height: 36px;
+  max-height: 36px;
+  object-fit: contain;
+}
