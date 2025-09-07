@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import API from "../api";
 import { AuthContext } from "../context/AuthContext";
+import "../styles/ChooseTeam.css";
 
 export default function ChooseTeam() {
   const { user, login } = useContext(AuthContext);
@@ -34,29 +35,27 @@ export default function ChooseTeam() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold mb-4">Team auswählen</h2>
+    <div className="choose-container">
+      <h2>Team auswählen</h2>
 
       {selectedTeam ? (
-        <div className="bg-brand-light p-4 rounded shadow">
-          <p className="text-brand-text">
-            Du hast bereits ein Team gewählt: <strong>{selectedTeam.name}</strong>
+        <div className="selected-team-box">
+          <p>
+            Du hast bereits ein Team gewählt:{" "}
+            <strong>{selectedTeam.name}</strong>
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="team-grid">
           {teams.map((team) => (
-            <div
-              key={team._id}
-              className="bg-brand-light p-4 rounded shadow flex justify-between items-center"
-            >
-              <span className="text-brand-text font-medium">{team.name}</span>
+            <div key={team._id} className="team-card">
+              <span className="team-name">{team.name}</span>
               {takenTeams.includes(team._id) ? (
-                <span className="text-gray-400 text-sm">vergeben</span>
+                <span className="team-status">vergeben</span>
               ) : (
                 <button
                   onClick={() => selectTeam(team._id)}
-                  className="bg-brand text-white text-sm font-semibold py-1 px-3 rounded hover:bg-red-600 transition"
+                  className="team-select-btn"
                 >
                   Wählen
                 </button>

@@ -1,13 +1,14 @@
-import { useEffect, useState } from 'react';
-import API from '../../api';
+import { useEffect, useState } from "react";
+import API from "../../api";
+import "../../styles/AdminUsers.css";
 
 export default function AdminUsers() {
   const [users, setUsers] = useState([]);
   const [teams, setTeams] = useState([]);
 
   const fetchData = async () => {
-    const usersRes = await API.get('/users');
-    const teamsRes = await API.get('/teams');
+    const usersRes = await API.get("/users");
+    const teamsRes = await API.get("/teams");
     setUsers(usersRes.data);
     setTeams(teamsRes.data);
   };
@@ -21,7 +22,7 @@ export default function AdminUsers() {
       await API.put(`/users/${userId}/team`, { teamId });
       fetchData();
     } catch (err) {
-      alert(err.response?.data?.message || 'Fehler beim Zuweisen');
+      alert(err.response?.data?.message || "Fehler beim Zuweisen");
     }
   };
 
@@ -31,34 +32,31 @@ export default function AdminUsers() {
   };
 
   return (
-    <div className="w-full px-4 md:max-w-4xl md:mx-auto">
-      <h2 className="text-2xl font-bold mb-6">Benutzerverwaltung</h2>
+    <div className="admin-users-container">
+      <h2>Benutzerverwaltung</h2>
 
-      <div className="overflow-x-auto rounded shadow border border-brand-border">
-        <table className="min-w-[640px] table-auto w-full bg-brand-light text-brand-text">
+      <div className="table-wrapper">
+        <table className="admin-users-table">
           <thead>
-            <tr className="bg-brand text-left">
-              <th className="p-3 border-b border-brand-border">Benutzer</th>
-              <th className="p-3 border-b border-brand-border">Email</th>
-              <th className="p-3 border-b border-brand-border">Rolle</th>
-              <th className="p-3 border-b border-brand-border">Team</th>
-              <th className="p-3 border-b border-brand-border">Aktion</th>
+            <tr>
+              <th>Benutzer</th>
+              <th>Email</th>
+              <th>Rolle</th>
+              <th>Team</th>
+              <th>Aktion</th>
             </tr>
           </thead>
           <tbody>
             {users.map((u) => (
-              <tr key={u._id} className="hover:bg-brand-dark">
-                <td className="p-3 border-b border-brand-border">{u.username}</td>
-                <td className="p-3 border-b border-brand-border">{u.email}</td>
-                <td className="p-3 border-b border-brand-border">{u.role}</td>
-                <td className="p-3 border-b border-brand-border">
-                  {u.selectedTeam ? u.selectedTeam.name : <span className="text-gray-400">–</span>}
-                </td>
-                <td className="p-3 border-b border-brand-border space-y-2">
+              <tr key={u._id}>
+                <td>{u.username}</td>
+                <td>{u.email}</td>
+                <td>{u.role}</td>
+                <td>{u.selectedTeam ? u.selectedTeam.name : "–"}</td>
+                <td>
                   <select
-                    value={u.selectedTeam?._id || ''}
+                    value={u.selectedTeam?._id || ""}
                     onChange={(e) => handleTeamChange(u._id, e.target.value)}
-                    className="w-full px-3 py-2 bg-brand-dark border border-brand-border rounded text-brand-text focus:outline-none focus:ring-2 focus:ring-brand"
                   >
                     <option value="">— Team wählen —</option>
                     {teams.map((t) => (
@@ -68,10 +66,7 @@ export default function AdminUsers() {
                     ))}
                   </select>
                   {u.selectedTeam && (
-                    <button
-                      onClick={() => removeTeam(u._id)}
-                      className="w-full text-left text-red-400 hover:text-red-600 text-sm"
-                    >
+                    <button onClick={() => removeTeam(u._id)}>
                       🗑️ Entfernen
                     </button>
                   )}

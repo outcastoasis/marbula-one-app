@@ -1,0 +1,94 @@
+:root {
+  --brand-dark: #0e0e0e;
+  --brand-light: #1a1a1a;
+  --brand-red: #ff1e1e;
+  --brand-border: #2a2a2a;
+  --brand-text: #ffffff;
+}
+
+.admin-teams-container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  color: var(--brand-text);
+  box-sizing: border-box;
+}
+
+.admin-teams-container h2 {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  color: var(--brand-red);
+  text-align: center;
+}
+
+.team-form {
+  background-color: var(--brand-light);
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  box-shadow: 0 0 10px rgba(255, 30, 30, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.team-form label {
+  font-size: 0.95rem;
+}
+
+.team-form input {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--brand-border);
+  background-color: var(--brand-dark);
+  color: var(--brand-text);
+  font-size: 1rem;
+}
+
+.team-form button {
+  background-color: var(--brand-red);
+  color: white;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  width: fit-content;
+}
+
+.team-form button:hover {
+  background-color: #e60000;
+}
+
+.team-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.team-item {
+  background-color: var(--brand-light);
+  padding: 1rem;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 0 10px rgba(255, 30, 30, 0.08);
+}
+
+.team-item span {
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+.team-item button {
+  background: none;
+  border: none;
+  color: var(--brand-red);
+  font-size: 1.25rem;
+  cursor: pointer;
+}
+
+.team-item button:hover {
+  color: #ff4d4d;
+}

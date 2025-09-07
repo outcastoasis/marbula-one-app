@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import API from "../../api";
+import "../../styles/AdminTeams.css";
 
 export default function AdminTeams() {
   const [teams, setTeams] = useState([]);
@@ -29,40 +30,24 @@ export default function AdminTeams() {
   }, []);
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <h2 className="text-2xl font-bold mb-6">Teams verwalten</h2>
+    <div className="admin-teams-container">
+      <h2>Teams verwalten</h2>
 
-      <div className="bg-brand-light p-6 rounded-lg shadow space-y-4 mb-10">
-        <div>
-          <label className="block text-sm mb-1">Teamname</label>
-          <input
-            placeholder="z. B. Raspberry Racers"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            className="w-full px-4 py-2 bg-brand-dark border border-brand-border text-brand-text rounded focus:outline-none focus:ring-2 focus:ring-brand"
-          />
-        </div>
-        <button
-          onClick={addTeam}
-          className="bg-brand text-white font-semibold py-2 px-4 rounded hover:bg-red-600 transition"
-        >
-          Team hinzufügen
-        </button>
+      <div className="team-form">
+        <label>Teamname</label>
+        <input
+          placeholder="z. B. Raspberry Racers"
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+        />
+        <button onClick={addTeam}>Team hinzufügen</button>
       </div>
 
-      <div className="space-y-4">
+      <div className="team-list">
         {teams.map((team) => (
-          <div
-            key={team._id}
-            className="bg-brand-light p-4 rounded-lg shadow flex justify-between items-center"
-          >
-            <span className="font-medium text-brand-text">{team.name}</span>
-            <button
-              onClick={() => deleteTeam(team._id)}
-              className="text-red-500 hover:text-red-700"
-            >
-              🗑️
-            </button>
+          <div key={team._id} className="team-item">
+            <span>{team.name}</span>
+            <button onClick={() => deleteTeam(team._id)}>🗑️</button>
           </div>
         ))}
       </div>

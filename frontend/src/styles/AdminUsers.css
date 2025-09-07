@@ -1,0 +1,80 @@
+:root {
+  --brand-dark: #0e0e0e;
+  --brand-light: #1a1a1a;
+  --brand-red: #ff1e1e;
+  --brand-border: #2a2a2a;
+  --brand-text: #ffffff;
+}
+
+.admin-users-container {
+  max-width: 1100px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  color: var(--brand-text);
+  box-sizing: border-box;
+}
+
+.admin-users-container h2 {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  color: var(--brand-red);
+  text-align: center;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--brand-border);
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(255, 30, 30, 0.05);
+}
+
+.admin-users-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px;
+  background-color: var(--brand-light);
+  color: var(--brand-text);
+}
+
+.admin-users-table th,
+.admin-users-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--brand-border);
+  text-align: left;
+}
+
+.admin-users-table th {
+  background-color: var(--brand-red);
+  color: #fff;
+  font-weight: 600;
+}
+
+.admin-users-table tr:hover {
+  background-color: var(--brand-dark);
+}
+
+.admin-users-table select {
+  width: 100%;
+  padding: 0.4rem;
+  background-color: var(--brand-dark);
+  border: 1px solid var(--brand-border);
+  color: var(--brand-text);
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.admin-users-table button {
+  background: none;
+  border: none;
+  color: #ff4d4d;
+  margin-top: 0.5rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0;
+  display: block;
+  text-align: left;
+}
+
+.admin-users-table button:hover {
+  color: #ff7f7f;
+}

@@ -1,0 +1,80 @@
+:root {
+  --brand-dark: #0e0e0e;
+  --brand-light: #1a1a1a;
+  --brand-red: #ff1e1e;
+  --brand-border: #2a2a2a;
+  --brand-text: #ffffff;
+}
+
+.choose-container {
+  max-width: 720px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  color: var(--brand-text);
+  background-color: var(--brand-dark);
+  box-sizing: border-box;
+}
+
+.choose-container h2 {
+  font-size: 2rem;
+  color: var(--brand-red);
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.selected-team-box {
+  background-color: var(--brand-light);
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(255, 30, 30, 0.05);
+  text-align: center;
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 600px) {
+  .team-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.team-card {
+  background-color: var(--brand-light);
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(255, 30, 30, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.team-name {
+  font-weight: 500;
+  font-size: 1rem;
+  color: var(--brand-text);
+}
+
+.team-status {
+  color: #aaa;
+  font-size: 0.9rem;
+}
+
+.team-select-btn {
+  background-color: var(--brand-red);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.team-select-btn:hover {
+  background-color: #e60000;
+}
