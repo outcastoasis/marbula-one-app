@@ -140,7 +140,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0 1rem;
-  z-index: 1000;
+  z-index: 900;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   box-sizing: border-box;
 }
@@ -192,4 +192,22 @@ body {
 
 .dashboard-header button:hover {
   background-color: var(--brand-hover);
+}
+
+.dashboard-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.dashboard-header-inner h2 {
+  flex-grow: 1;
+  text-align: right;
+  font-size: 1.2rem;
+}
+
+.dashboard-header-inner button {
+  flex-shrink: 0;
+  margin-right: 0.5rem;
 }

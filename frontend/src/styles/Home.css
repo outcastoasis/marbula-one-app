@@ -26,6 +26,16 @@ h1 {
   gap: 1rem;
 }
 
+.sections-grid > section {
+  background-color: #1a1a1a;
+  border-radius: 16px;
+  padding: 1rem;
+  margin: 1rem 0;
+  box-shadow: 0 0 10px rgba(255, 30, 30, 0.1);
+  box-sizing: border-box;
+  width: 100%;
+}
+
 /* Desktop-Ansicht */
 @media (min-width: 900px) {
   .sections-grid {

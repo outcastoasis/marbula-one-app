@@ -130,7 +130,7 @@ export default function Home() {
 
   return (
     <div className="home-container">
-      <h1>Willkommen zur Marbula One Saison</h1>
+      <h1>Willkommen zu<br />Marbula One</h1>
 
       <div className="sections-grid">
         <section>
