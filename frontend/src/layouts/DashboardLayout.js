@@ -1,6 +1,6 @@
 // === DashboardLayout.js ===
 
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { Menu, X, ChevronDown, ChevronUp } from "lucide-react";
@@ -11,7 +11,6 @@ import navbarLogo from "../assets/navbar_2.png";
 export default function DashboardLayout({ children }) {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
-  const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [seasons, setSeasons] = useState([]);
   const [expandedSeason, setExpandedSeason] = useState(null);

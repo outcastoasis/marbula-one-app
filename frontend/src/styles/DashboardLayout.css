@@ -201,10 +201,11 @@ body {
   width: 100%;
 }
 
-.dashboard-header-inner h2 {
-  flex-grow: 1;
-  text-align: right;
-  font-size: 1.2rem;
+.dashboard-header-inner .header-logo {
+  margin-left: auto;
+  height: 36px;
+  object-fit: contain;
+  display: block;
 }
 
 .dashboard-header-inner button {
