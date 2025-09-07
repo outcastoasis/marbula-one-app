@@ -53,28 +53,12 @@
   background-color: var(--brand-dark);
 }
 
-.admin-users-table select {
-  width: 100%;
-  padding: 0.4rem;
-  background-color: var(--brand-dark);
-  border: 1px solid var(--brand-border);
-  color: var(--brand-text);
-  border-radius: 6px;
-  font-size: 0.9rem;
-}
-
-.admin-users-table button {
-  background: none;
-  border: none;
+.admin-users-table a {
   color: #ff4d4d;
-  margin-top: 0.5rem;
-  cursor: pointer;
-  font-size: 0.85rem;
-  padding: 0;
-  display: block;
-  text-align: left;
+  text-decoration: none;
+  font-weight: bold;
 }
 
-.admin-users-table button:hover {
+.admin-users-table a:hover {
   color: #ff7f7f;
 }

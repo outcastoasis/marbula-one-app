@@ -14,6 +14,7 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminRaceResults from "./pages/admin/AdminRaceResults";
 import DashboardLayout from "./layouts/DashboardLayout";
 import { Navigate } from "react-router-dom";
+import AdminUserEdit from "./pages/admin/AdminUserEdit";
 
 function App() {
   const { user, loading } = useContext(AuthContext);
@@ -100,6 +101,14 @@ function App() {
               element={
                 <ProtectedRoute adminOnly>
                   <AdminUsers />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/users/:id"
+              element={
+                <ProtectedRoute adminOnly>
+                  <AdminUserEdit />
                 </ProtectedRoute>
               }
             />

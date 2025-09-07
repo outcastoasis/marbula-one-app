@@ -1,5 +1,5 @@
 import User from "../models/User.js";
-import Team from "../models/Team.js";
+import bcrypt from "bcryptjs";
 
 export const chooseTeam = async (req, res) => {
   const userId = req.user.id;
@@ -51,4 +51,37 @@ export const updateUserTeam = async (req, res) => {
 export const getCurrentUser = async (req, res) => {
   const user = await User.findById(req.user._id).populate("selectedTeam");
   res.json(user);
+};
+
+// GET /users/:id
+export const getSingleUser = async (req, res) => {
+  const user = await User.findById(req.params.id).populate("selectedTeam");
+  if (!user)
+    return res.status(404).json({ message: "Benutzer nicht gefunden" });
+  res.json(user);
+};
+
+// PUT /users/:id/password
+export const updateUserPassword = async (req, res) => {
+  const hashed = await bcrypt.hash(req.body.password, 10);
+  await User.findByIdAndUpdate(req.params.id, { password: hashed });
+  res.json({ message: "Passwort aktualisiert" });
+};
+
+// PUT /users/:id/role
+export const updateUserRole = async (req, res) => {
+  const { role } = req.body;
+  if (!["admin", "user"].includes(role)) {
+    return res.status(400).json({ message: "Ungültige Rolle" });
+  }
+  await User.findByIdAndUpdate(req.params.id, { role });
+  res.json({ message: "Rolle aktualisiert" });
+};
+
+// DELETE /users/:id
+export const deleteUser = async (req, res) => {
+  const user = await User.findByIdAndDelete(req.params.id);
+  if (!user)
+    return res.status(404).json({ message: "Benutzer nicht gefunden" });
+  res.json({ message: "Benutzer gelöscht" });
 };
