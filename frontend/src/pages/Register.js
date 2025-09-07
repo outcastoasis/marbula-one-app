@@ -8,16 +8,16 @@ export default function Register() {
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [realname, setRealname] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const res = await API.post("/auth/register", {
         username,
-        email,
+        realname,
         password,
       });
       localStorage.setItem("token", res.data.token);
@@ -45,15 +45,14 @@ export default function Register() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
-              autoFocus
             />
           </div>
           <div className="form-group">
-            <label>Email</label>
+            <label>Name</label>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              value={realname}
+              onChange={(e) => setRealname(e.target.value)}
               required
             />
           </div>

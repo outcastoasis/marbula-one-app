@@ -3,13 +3,19 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 export const registerUser = async (req, res) => {
-  const { username, email, password } = req.body;
-  const userExists = await User.findOne({ email });
+  const { username, realname, password } = req.body;
+
+  const userExists = await User.findOne({ username });
   if (userExists)
-    return res.status(400).json({ message: "Benutzer existiert bereits" });
+    return res.status(400).json({ message: "Benutzername existiert bereits" });
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  const user = await User.create({ username, email, password: hashedPassword });
+
+  const user = await User.create({
+    username,
+    realname,
+    password: hashedPassword,
+  });
 
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
     expiresIn: "1d",
@@ -18,8 +24,9 @@ export const registerUser = async (req, res) => {
 };
 
 export const loginUser = async (req, res) => {
-  const { email, password } = req.body;
-  const user = await User.findOne({ email });
+  const { username, password } = req.body;
+
+  const user = await User.findOne({ username });
   if (!user || !(await bcrypt.compare(password, user.password)))
     return res.status(400).json({ message: "Ungültige Anmeldedaten" });
 

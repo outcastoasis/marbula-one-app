@@ -43,7 +43,7 @@ export default function AdminUsers() {
               <th>Email</th>
               <th>Rolle</th>
               <th>Team</th>
-              <th>Aktion</th>
+              <th>Team anpassen</th>
             </tr>
           </thead>
           <tbody>
