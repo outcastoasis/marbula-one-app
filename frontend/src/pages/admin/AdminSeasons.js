@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import API from "../../api";
 import { Link } from "react-router-dom";
+import "../../styles/AdminSeasons.css";
 
 export default function AdminSeasons() {
   const [seasons, setSeasons] = useState([]);
@@ -39,32 +40,28 @@ export default function AdminSeasons() {
   }, []);
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <h2 className="text-2xl font-bold mb-6">Seasons verwalten</h2>
+    <div className="admin-seasons-container">
+      <h2>Seasons verwalten</h2>
 
-      <div className="bg-brand-light p-6 rounded-lg shadow space-y-4 mb-10">
+      <div className="season-form">
         <div>
-          <label className="block text-sm mb-1">Season Name</label>
+          <label>Season Name</label>
           <input
             placeholder="z. B. Season 5"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full px-4 py-2 bg-brand-dark border border-brand-border text-brand-text rounded focus:outline-none focus:ring-2 focus:ring-brand"
           />
         </div>
         <div>
-          <label className="block text-sm mb-1">Event-Datum</label>
+          <label>Event-Datum</label>
           <input
             type="date"
             value={eventDate}
             onChange={(e) => setEventDate(e.target.value)}
-            className="w-full px-4 py-2 bg-brand-dark border border-brand-border text-brand-text rounded focus:outline-none focus:ring-2 focus:ring-brand"
           />
         </div>
         <div>
-          <label className="block text-sm mb-1 mb-2">
-            Teilnehmende Benutzer:
-          </label>
+          <label>Teilnehmende Benutzer:</label>
           <button
             type="button"
             onClick={() => {
@@ -74,21 +71,17 @@ export default function AdminSeasons() {
                 setParticipants(users.map((u) => u._id));
               }
             }}
-            className="text-sm text-brand hover:underline mb-2"
+            className="toggle-select"
           >
             {participants.length === users.length
               ? "Alle abwählen"
               : "Alle auswählen"}
           </button>
-
-          <div className="space-y-3 max-h-64 overflow-y-auto bg-brand-dark p-4 rounded border border-brand-border">
+          <div className="checkbox-list">
             {users.map((u) => {
               const isSelected = participants.includes(u._id);
               return (
-                <label
-                  key={u._id}
-                  className="flex items-center gap-3 cursor-pointer text-base text-brand-text"
-                >
+                <label key={u._id}>
                   <input
                     type="checkbox"
                     checked={isSelected}
@@ -101,7 +94,6 @@ export default function AdminSeasons() {
                         );
                       }
                     }}
-                    className="w-5 h-5 rounded border-gray-400 text-brand focus:ring-2 focus:ring-brand"
                   />
                   <span>{u.username}</span>
                 </label>
@@ -109,41 +101,33 @@ export default function AdminSeasons() {
             })}
           </div>
         </div>
-        <button
-          onClick={addSeason}
-          className="bg-brand text-white font-semibold py-2 px-4 rounded hover:bg-red-600 transition"
-        >
+        <button onClick={addSeason} className="add-button">
           Season hinzufügen
         </button>
       </div>
 
-      <div className="space-y-4">
+      <div className="season-list">
         {seasons.map((s) => (
           <div
             key={s._id}
-            className={`bg-brand-light p-4 rounded-lg shadow flex justify-between items-center border-l-4 ${s.isCurrent ? "border-green-500" : "border-transparent"}`}
+            className={`season-item ${s.isCurrent ? "current" : ""}`}
           >
             <div>
-              <h3 className="font-semibold">
-                {s.name} {s.isCurrent && <span className="text-green-500 text-sm ml-2">(Aktuell)</span>}
+              <h3>
+                {s.name}{" "}
+                {s.isCurrent && (
+                  <span className="current-label">(Aktuell)</span>
+                )}
               </h3>
-              <p className="text-sm text-gray-400">
-                {new Date(s.eventDate).toLocaleDateString()}
-              </p>
+              <p>{new Date(s.eventDate).toLocaleDateString()}</p>
             </div>
-            <div className="flex gap-4 items-center">
+            <div className="season-actions">
               {!s.isCurrent && (
-                <button
-                  onClick={() => setCurrentSeason(s._id)}
-                  className="text-sm text-green-400 hover:text-green-600"
-                >
+                <button onClick={() => setCurrentSeason(s._id)}>
                   Als aktuell setzen
                 </button>
               )}
-              <Link
-                to={`/admin/seasons/${s._id}/races`}
-                className="text-brand hover:underline"
-              >
+              <Link to={`/admin/seasons/${s._id}/races`}>
                 → Rennen verwalten
               </Link>
               <button
@@ -152,7 +136,7 @@ export default function AdminSeasons() {
                     deleteSeason(s._id);
                   }
                 }}
-                className="text-red-500 hover:text-red-700"
+                className="delete-btn"
               >
                 🗑️
               </button>

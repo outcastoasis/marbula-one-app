@@ -1,0 +1,80 @@
+:root {
+  --brand-dark: #0e0e0e;
+  --brand-light: #1a1a1a;
+  --brand-red: #ff1e1e;
+  --brand-border: #2a2a2a;
+  --brand-text: #ffffff;
+}
+
+.results-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 1rem;
+  color: var(--brand-text);
+}
+
+.results-title {
+  font-size: 1.8rem;
+  color: var(--brand-red);
+  margin-bottom: 0.5rem;
+}
+
+.results-subtext {
+  font-size: 0.9rem;
+  color: #bbb;
+  margin-bottom: 1.5rem;
+}
+
+.results-list {
+  background-color: var(--brand-light);
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.results-entry {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.results-username {
+  width: 150px;
+  font-weight: 500;
+  color: var(--brand-text);
+}
+
+.results-entry input {
+  width: 100px;
+  padding: 0.5rem;
+  background-color: var(--brand-dark);
+  border: 1px solid var(--brand-border);
+  color: var(--brand-text);
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.save-button {
+  background-color: var(--brand-red);
+  color: white;
+  padding: 0.6rem 1rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.save-button:hover {
+  background-color: #ff4d4d;
+}
+
+.loading-text {
+  color: var(--brand-text);
+  text-align: center;
+  padding: 2rem;
+}

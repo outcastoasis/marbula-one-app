@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import API from "../../api";
+import "../../styles/AdminRaceResults.css";
 
 export default function AdminRaceResults() {
   const { raceId } = useParams();
@@ -48,34 +49,30 @@ export default function AdminRaceResults() {
   };
 
   if (!race || participants.length === 0)
-    return <p className="text-brand-text">⏳ Lade Daten...</p>;
+    return <p className="loading-text">⏳ Lade Daten...</p>;
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <h2 className="text-2xl font-bold mb-2">Punktevergabe – {race.name}</h2>
-      <p className="text-sm text-gray-400 mb-6">
+    <div className="results-container">
+      <h2 className="results-title">Punktevergabe – {race.name}</h2>
+      <p className="results-subtext">
         Resultate erfassen für alle Teilnehmenden
       </p>
 
-      <div className="bg-brand-light p-6 rounded-lg shadow space-y-4 mb-10">
+      <div className="results-list">
         {participants.map((user) => (
-          <div key={user._id} className="flex items-center gap-4">
-            <span className="w-32 text-brand-text">{user.username}</span>
+          <div key={user._id} className="results-entry">
+            <span className="results-username">{user.username}</span>
             <input
               type="number"
               value={points[user._id] || 0}
               onChange={(e) => handleChange(user._id, e.target.value)}
               min="0"
-              className="w-24 px-3 py-2 bg-brand-dark border border-brand-border text-brand-text rounded focus:outline-none focus:ring-2 focus:ring-brand"
             />
           </div>
         ))}
       </div>
 
-      <button
-        onClick={saveResults}
-        className="bg-brand text-white font-semibold py-2 px-4 rounded hover:bg-red-600 transition"
-      >
+      <button onClick={saveResults} className="save-button">
         Ergebnisse speichern
       </button>
     </div>

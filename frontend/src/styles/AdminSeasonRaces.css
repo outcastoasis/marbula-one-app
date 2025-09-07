@@ -1,0 +1,117 @@
+:root {
+  --brand-dark: #0e0e0e;
+  --brand-light: #1a1a1a;
+  --brand-red: #ff1e1e;
+  --brand-border: #2a2a2a;
+  --brand-text: #ffffff;
+}
+
+.admin-races-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 1rem;
+  color: var(--brand-text);
+}
+
+.admin-races-container h2 {
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+  color: var(--brand-red);
+}
+
+.event-date {
+  font-size: 0.9rem;
+  color: #bbb;
+  margin-bottom: 1.5rem;
+}
+
+.race-form {
+  background: var(--brand-light);
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.race-form label {
+  font-size: 0.95rem;
+  margin-bottom: 0.3rem;
+  display: block;
+}
+
+.race-form input {
+  width: 100%;
+  padding: 0.5rem;
+  background-color: var(--brand-dark);
+  border: 1px solid var(--brand-border);
+  color: var(--brand-text);
+  border-radius: 8px;
+}
+
+.race-form button {
+  background-color: var(--brand-red);
+  color: white;
+  padding: 0.6rem 1rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  width: fit-content;
+}
+
+.race-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.race-item {
+  background: var(--brand-light);
+  padding: 1rem;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.race-item span {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.race-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.race-actions a {
+  color: var(--brand-red);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.race-actions a:hover {
+  text-decoration: underline;
+}
+
+.delete-btn {
+  color: #ff4d4d;
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  color: #ff7f7f;
+}
+
+.loading-text {
+  color: var(--brand-text);
+  text-align: center;
+  padding: 2rem;
+}
