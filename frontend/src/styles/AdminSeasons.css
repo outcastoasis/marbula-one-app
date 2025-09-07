@@ -158,3 +158,33 @@
 .delete-btn:hover {
   color: #ff7f7f;
 }
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: var(--brand-text);
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.65rem 1rem;
+  border-radius: 10px;
+  background-color: var(--brand-dark);
+  border: 1px solid var(--brand-border);
+  color: var(--brand-text);
+  font-size: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--brand-red);
+  box-shadow: 0 0 0 2px rgba(255, 30, 30, 0.4);
+}

@@ -44,20 +44,25 @@ export default function AdminSeasons() {
       <h2>Seasons verwalten</h2>
 
       <div className="season-form">
-        <div>
-          <label>Season Name</label>
+        <div className="form-group">
+          <label htmlFor="season-name">Season Name</label>
           <input
+            id="season-name"
             placeholder="z. B. Season 5"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            className="form-input"
           />
         </div>
-        <div>
-          <label>Event-Datum</label>
+
+        <div className="form-group">
+          <label htmlFor="event-date">Event-Datum</label>
           <input
+            id="event-date"
             type="date"
             value={eventDate}
             onChange={(e) => setEventDate(e.target.value)}
+            className="form-input"
           />
         </div>
         <div>
