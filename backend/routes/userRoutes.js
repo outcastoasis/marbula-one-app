@@ -10,7 +10,6 @@ import {
   getCurrentUser,
 } from "../controllers/userController.js";
 import { protect } from "../middleware/authMiddleware.js";
-import { getCurrentUser } from "../controllers/userController.js";
 
 const router = express.Router();
 
