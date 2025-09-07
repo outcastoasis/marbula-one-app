@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import API from "../api";
+import "../styles/Teams.css";
 
 export default function Teams() {
   const [teams, setTeams] = useState([]);
@@ -11,19 +12,14 @@ export default function Teams() {
   }, []);
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold mb-6">Alle Teams</h2>
+    <div className="teams-container">
+      <h2>Alle Teams</h2>
 
-      <div className="space-y-4">
+      <div className="teams-list">
         {teams.map((team) => (
-          <div
-            key={team._id}
-            className="bg-brand-light p-4 rounded shadow flex justify-between items-center"
-          >
-            <span className="text-brand-text font-medium">{team.name}</span>
-            {team.color && (
-              <span className="text-sm text-gray-400">{team.color}</span>
-            )}
+          <div key={team._id} className="team-item">
+            <span className="team-name">{team.name}</span>
+            {team.color && <span className="team-color">{team.color}</span>}
           </div>
         ))}
       </div>
