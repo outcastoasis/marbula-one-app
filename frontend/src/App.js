@@ -13,25 +13,48 @@ import ChooseTeam from "./pages/ChooseTeam";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminRaceResults from "./pages/admin/AdminRaceResults";
 import DashboardLayout from "./layouts/DashboardLayout";
+import { Navigate } from "react-router-dom";
 
 function App() {
-  const { loading } = useContext(AuthContext);
+  const { user, loading } = useContext(AuthContext);
   const location = useLocation();
 
-  if (loading) return <p>⏳ Lade Benutzer...</p>; // verhindert flackern/Logout
+  if (loading) return <p>⏳ Lade Benutzer...</p>;
 
   return (
     <>
       {["/login", "/register"].includes(location.pathname) ? (
         <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route
+            path="/login"
+            element={user ? <Navigate to="/" replace /> : <Login />}
+          />
+          <Route
+            path="/register"
+            element={user ? <Navigate to="/" replace /> : <Register />}
+          />
+          {/* Fallback auf Login wenn keine Route matcht */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       ) : (
         <DashboardLayout>
           <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/teams" element={<Teams />} />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Home />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/teams"
+              element={
+                <ProtectedRoute>
+                  <Teams />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/choose-team"
               element={
@@ -43,7 +66,7 @@ function App() {
             <Route
               path="/admin/teams"
               element={
-                <ProtectedRoute adminOnly={true}>
+                <ProtectedRoute adminOnly>
                   <AdminTeams />
                 </ProtectedRoute>
               }
@@ -51,7 +74,7 @@ function App() {
             <Route
               path="/admin/seasons"
               element={
-                <ProtectedRoute adminOnly={true}>
+                <ProtectedRoute adminOnly>
                   <AdminSeasons />
                 </ProtectedRoute>
               }
@@ -59,7 +82,7 @@ function App() {
             <Route
               path="/admin/seasons/:seasonId/races"
               element={
-                <ProtectedRoute adminOnly={true}>
+                <ProtectedRoute adminOnly>
                   <AdminSeasonRaces />
                 </ProtectedRoute>
               }
@@ -67,7 +90,7 @@ function App() {
             <Route
               path="/admin/races/:raceId/results"
               element={
-                <ProtectedRoute adminOnly={true}>
+                <ProtectedRoute adminOnly>
                   <AdminRaceResults />
                 </ProtectedRoute>
               }
@@ -75,11 +98,13 @@ function App() {
             <Route
               path="/admin/users"
               element={
-                <ProtectedRoute adminOnly={true}>
+                <ProtectedRoute adminOnly>
                   <AdminUsers />
                 </ProtectedRoute>
               }
             />
+            {/* Fallback auf Startseite, falls Route nicht gefunden */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </DashboardLayout>
       )}
