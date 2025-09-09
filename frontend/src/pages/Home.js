@@ -21,6 +21,7 @@ export default function Home() {
   const [season, setSeason] = useState(null);
   const [participants, setParticipants] = useState([]);
   const [cumulativeData, setCumulativeData] = useState([]);
+  const [hoveredLine, setHoveredLine] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -234,6 +235,7 @@ export default function Home() {
                     dot={{ r: 3 }} // Muss gesetzt sein, sonst ist Hover über Punkte nicht möglich
                     activeDot={{
                       onMouseOver: () => setHoveredLine(p.realname),
+                      onMouseOut: () => setHoveredLine(null),
                     }}
                   />
                 ))}
