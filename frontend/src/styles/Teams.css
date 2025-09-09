@@ -30,7 +30,7 @@
 
 .team-card {
   background-color: var(--brand-light);
-  border: 2px solid var(--brand-border);
+  border: 2px solid var(--team-color, var(--brand-border));
   border-radius: 16px;
   text-decoration: none;
   color: inherit;
@@ -39,7 +39,12 @@
   align-items: center;
   padding: 1rem;
   transition: transform 0.2s ease;
-  box-shadow: inset 0 0 20px rgba(255, 0, 0, 0.5);
+  box-shadow: inset 0 0 20px var(--team-color, #44444488);
+  background: radial-gradient(
+    circle at center,
+    var(--team-color, transparent) 0%,
+    var(--brand-light) 80%
+  );
 }
 
 .team-card:hover {

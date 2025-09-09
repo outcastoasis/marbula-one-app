@@ -34,13 +34,7 @@ export default function Teams() {
             to={`/teams/${team._id}`}
             className="team-card"
             style={{
-              borderColor: team.color || "#444",
-              background: team.color
-                ? `radial-gradient(circle at center, ${team.color}22 0%, var(--brand-light) 80%)`
-                : undefined,
-              boxShadow: team.color
-                ? `inset 0 0 20px ${team.color}88`
-                : "inset 0 0 20px #444",
+              "--team-color": team.color || "#444",
             }}
           >
             {team.logoUrl && (
