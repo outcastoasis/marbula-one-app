@@ -27,6 +27,17 @@
   box-sizing: border-box;
 }
 
+.app-title {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  color: var(--brand-red);
+}
+
+.register-header {
+  margin-bottom: 1rem;
+}
+
 .register-box h2 {
   text-align: center;
   color: var(--brand-red);

@@ -32,6 +32,13 @@ export default function Register() {
 
   return (
     <div className="register-container">
+      <div className="register-header">
+        <h1 className="app-title">
+          Willkommen zu
+          <br />
+          Marbula One MHLWG
+        </h1>
+      </div>
       <div className="register-box">
         <h2>Konto erstellen</h2>
 

@@ -25,6 +25,9 @@ export default function Login() {
 
   return (
     <div className="login-container">
+      <div className="login-header">
+        <h1 className="app-title">Willkommen zu Marbula One MHLWG</h1>
+      </div>
       <div className="login-box">
         <h2>Login</h2>
 
