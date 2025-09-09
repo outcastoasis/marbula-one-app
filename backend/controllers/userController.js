@@ -30,18 +30,20 @@ export const updateUserTeam = async (req, res) => {
   const { teamId } = req.body;
   const userId = req.params.id;
 
-  // Team schon vergeben?
-  const alreadyTaken = await User.findOne({
-    selectedTeam: teamId,
-    _id: { $ne: userId },
-  });
-  if (alreadyTaken) {
-    return res.status(400).json({ message: "Team ist bereits vergeben" });
+  if (teamId) {
+    // Team schon vergeben?
+    const alreadyTaken = await User.findOne({
+      selectedTeam: teamId,
+      _id: { $ne: userId },
+    });
+    if (alreadyTaken) {
+      return res.status(400).json({ message: "Team ist bereits vergeben" });
+    }
   }
 
   const user = await User.findByIdAndUpdate(
     userId,
-    { selectedTeam: teamId || null }, // null für Entfernen
+    { selectedTeam: teamId || null }, // null erlaubt
     { new: true }
   ).populate("selectedTeam");
 
