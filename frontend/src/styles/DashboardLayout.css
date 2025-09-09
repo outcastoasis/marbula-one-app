@@ -144,7 +144,7 @@ body {
   box-sizing: border-box;
 }
 
-@media (min-width: 769px) and (hover: hover) and (pointer: fine) {
+@media (min-width: 1000px) and (hover: hover) and (pointer: fine) {
   .dashboard-header {
     margin-left: 260px;
     width: calc(100% - 260px);
