@@ -136,7 +136,7 @@ export default function Home() {
     const current = payload.find((p) => p.name === hoveredLine);
 
     // Fallback auf ersten Wert, wenn activeDot fehlt
-    const data = current || payload[0];
+    if (!current) return null; // kein Tooltip anzeigen
 
     const { name, value, stroke } = data;
 
@@ -232,8 +232,9 @@ export default function Home() {
                     dataKey={p.realname}
                     stroke={generateColor(i, participants.length)}
                     strokeWidth={2}
-                    dot={{ r: 3 }} // Muss gesetzt sein, sonst ist Hover über Punkte nicht möglich
+                    dot={{ r: 6 }} // Muss gesetzt sein, sonst ist Hover über Punkte nicht möglich
                     activeDot={{
+                      r: 8,
                       onMouseOver: () => setHoveredLine(p.realname),
                       onMouseOut: () => setHoveredLine(null),
                     }}
