@@ -162,7 +162,7 @@ export default function AdminTeams() {
                   />
                 )}
                 <div className="team-actions">
-                  <button onClick={() => startEdit(team)}>🖉</button>
+                  <button onClick={() => startEdit(team)}>Bearbeiten</button>
                   <button onClick={() => deleteTeam(team._id)}>🗑️</button>
                 </div>
               </>

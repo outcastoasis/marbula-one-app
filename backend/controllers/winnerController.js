@@ -13,31 +13,34 @@ export const getAllWinners = async (req, res) => {
 // POST /api/winners – neuen Gewinner eintragen
 export const createWinner = async (req, res) => {
   try {
-    const {
-      date,
-      location,
-      winnerUser,
-      winnerTeam,
-      lastPlaceUser,
-      lastPlaceTeam,
-      nextOrganizer,
-      notes,
-    } = req.body;
-
-    const newWinner = new Winner({
-      date,
-      location,
-      winnerUser,
-      winnerTeam,
-      lastPlaceUser,
-      lastPlaceTeam,
-      nextOrganizer,
-      notes,
-    });
-
+    const newWinner = new Winner(req.body);
     const savedWinner = await newWinner.save();
     res.status(201).json(savedWinner);
   } catch (err) {
     res.status(400).json({ message: "Fehler beim Speichern des Gewinners" });
+  }
+};
+
+// PUT /api/winners/:id – bestehenden Eintrag bearbeiten
+export const updateWinner = async (req, res) => {
+  try {
+    const updated = await Winner.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
+    if (!updated) return res.status(404).json({ message: "Nicht gefunden" });
+    res.json(updated);
+  } catch (err) {
+    res.status(400).json({ message: "Fehler beim Aktualisieren" });
+  }
+};
+
+// DELETE /api/winners/:id – Eintrag löschen
+export const deleteWinner = async (req, res) => {
+  try {
+    const deleted = await Winner.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ message: "Nicht gefunden" });
+    res.json({ message: "Eintrag gelöscht" });
+  } catch (err) {
+    res.status(400).json({ message: "Fehler beim Löschen" });
   }
 };

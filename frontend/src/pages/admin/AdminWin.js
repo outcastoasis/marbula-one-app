@@ -15,49 +15,85 @@ export default function AdminWin() {
   });
 
   const [winners, setWinners] = useState([]);
+  const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
-    const fetchWinners = async () => {
-      try {
-        const res = await API.get("/winners");
-        setWinners(res.data);
-      } catch (err) {
-        console.error("Fehler beim Laden der Gewinner:", err);
-      }
-    };
     fetchWinners();
   }, []);
+
+  const fetchWinners = async () => {
+    try {
+      const res = await API.get("/winners");
+      setWinners(res.data);
+    } catch (err) {
+      console.error("Fehler beim Laden der Gewinner:", err);
+    }
+  };
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
+  const resetForm = () => {
+    setFormData({
+      date: "",
+      location: "",
+      winnerUser: "",
+      winnerTeam: "",
+      lastPlaceUser: "",
+      lastPlaceTeam: "",
+      nextOrganizer: "",
+      notes: "",
+    });
+    setEditingId(null);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await API.post("/winners", formData);
-      alert("Erfolgreich eingetragen!");
-      setFormData({
-        date: "",
-        location: "",
-        winnerUser: "",
-        winnerTeam: "",
-        lastPlaceUser: "",
-        lastPlaceTeam: "",
-        nextOrganizer: "",
-        notes: "",
-      });
+      if (editingId) {
+        await API.put(`/winners/${editingId}`, formData);
+        alert("Eintrag aktualisiert!");
+      } else {
+        await API.post("/winners", formData);
+        alert("Erfolgreich eingetragen!");
+      }
 
-      const res = await API.get("/winners");
-      setWinners(res.data);
+      resetForm();
+      fetchWinners();
     } catch (err) {
       console.error(err);
-      alert("Fehler beim Eintragen.");
+      alert("Fehler beim Speichern.");
+    }
+  };
+
+  const handleEdit = (entry) => {
+    setFormData({
+      date: entry.date?.slice(0, 10),
+      location: entry.location,
+      winnerUser: entry.winnerUser,
+      winnerTeam: entry.winnerTeam,
+      lastPlaceUser: entry.lastPlaceUser,
+      lastPlaceTeam: entry.lastPlaceTeam,
+      nextOrganizer: entry.nextOrganizer,
+      notes: entry.notes || "",
+    });
+    setEditingId(entry._id);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Diesen Eintrag wirklich löschen?")) return;
+    try {
+      await API.delete(`/winners/${id}`);
+      fetchWinners();
+    } catch (err) {
+      console.error(err);
+      alert("Fehler beim Löschen.");
     }
   };
 
   return (
     <div className="admin-win-container">
-      <h2>Event-Sieger eintragen</h2>
+      <h2>{editingId ? "Eintrag bearbeiten" : "Event-Sieger eintragen"}</h2>
 
       <form onSubmit={handleSubmit} className="admin-win-form">
         <input
@@ -121,7 +157,16 @@ export default function AdminWin() {
           value={formData.notes}
           onChange={handleChange}
         ></textarea>
-        <button type="submit">Speichern</button>
+        <div style={{ display: "flex", gap: "1rem" }}>
+          <button type="submit">
+            {editingId ? "Änderungen speichern" : "Speichern"}
+          </button>
+          {editingId && (
+            <button type="button" onClick={resetForm}>
+              Abbrechen
+            </button>
+          )}
+        </div>
       </form>
 
       <h2>Vergangene Events</h2>
@@ -136,6 +181,7 @@ export default function AdminWin() {
               <th>Letzter Platz</th>
               <th>Team</th>
               <th>Organisator Folgejahr</th>
+              <th>Aktionen</th>
             </tr>
           </thead>
           <tbody>
@@ -148,6 +194,10 @@ export default function AdminWin() {
                 <td>{w.lastPlaceUser}</td>
                 <td>{w.lastPlaceTeam}</td>
                 <td>{w.nextOrganizer}</td>
+                <td>
+                  <button onClick={() => handleEdit(w)}>Bearbeiten</button>
+                  <button onClick={() => handleDelete(w._id)}>Löschen</button>
+                </td>
               </tr>
             ))}
           </tbody>
