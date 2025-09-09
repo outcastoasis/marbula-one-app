@@ -116,6 +116,10 @@ a:hover {
   width: 100%;
 }
 
+.scroll-wrapper > * {
+  min-width: 800px; /* oder 1000px – je nach Wunsch */
+}
+
 /* Tabellen */
 .data-table {
   width: 100%;
@@ -147,6 +151,7 @@ a:hover {
 .chart-inner {
   min-width: unset;
   width: 100%;
+  min-width: 800px;
   height: 600px;
   border-radius: 16px;
   background-color: #1a1a1a;
