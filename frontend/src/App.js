@@ -16,7 +16,7 @@ import DashboardLayout from "./layouts/DashboardLayout";
 import { Navigate } from "react-router-dom";
 import AdminUserEdit from "./pages/admin/AdminUserEdit";
 import TeamDetail from "./pages/TeamDetail";
-import AdminWin from "./pages/AdminWin";
+import AdminWin from "./pages/admin/AdminWin";
 import Win from "./pages/Win";
 
 function App() {
