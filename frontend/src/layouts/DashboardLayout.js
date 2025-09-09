@@ -38,18 +38,24 @@ export default function DashboardLayout({ children }) {
   }, []);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia(
-      "(min-width: 769px) and (hover: hover) and (pointer: fine)"
-    );
+    const mediaQuery = window.matchMedia("(min-width: 769px)");
+
+    const isLikelyTouchDevice = () => {
+      return (
+        "ontouchstart" in window ||
+        navigator.maxTouchPoints > 0 ||
+        navigator.userAgent.toLowerCase().includes("android") ||
+        navigator.userAgent.toLowerCase().includes("iphone")
+      );
+    };
 
     const handleMediaChange = (e) => {
-      if (e.matches) {
-        // Desktop-Modus -> Sidebar sicher schließen
+      if (e.matches && !isLikelyTouchDevice()) {
+        // Nur wenn es ein echter Desktop ist
         setSidebarOpen(false);
       }
     };
 
-    // Initial prüfen & Event-Listener registrieren
     handleMediaChange(mediaQuery);
     mediaQuery.addEventListener("change", handleMediaChange);
 
