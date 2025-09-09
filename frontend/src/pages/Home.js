@@ -129,27 +129,31 @@ export default function Home() {
   });
 
   const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length > 0) {
-      const { name, value, stroke } = payload[0];
-      return (
-        <div
-          style={{
-            backgroundColor: "#1a1a1a",
-            padding: "0.75rem 1rem",
-            borderRadius: "10px",
-            color: "#fff",
-            border: `1px solid ${stroke}`,
-            fontSize: "0.9rem",
-          }}
-        >
-          <strong>{name}</strong>: {value} Punkte
-          <br />
-          <span style={{ color: "#ccc" }}>Rennen: {label}</span>
-        </div>
-      );
-    }
+    if (!active || !payload || payload.length === 0) return null;
 
-    return null;
+    // Nur den angehoverten Punkt holen
+    const current = payload.find((p) => p.activeDot);
+
+    if (!current) return null;
+
+    const { name, value, stroke } = current;
+
+    return (
+      <div
+        style={{
+          backgroundColor: "#1a1a1a",
+          padding: "0.75rem 1rem",
+          borderRadius: "10px",
+          color: "#fff",
+          border: `1px solid ${stroke}`,
+          fontSize: "0.9rem",
+        }}
+      >
+        <strong>{name}</strong>: {value} Punkte
+        <br />
+        <span style={{ color: "#ccc" }}>Rennen: {label}</span>
+      </div>
+    );
   };
 
   return (
