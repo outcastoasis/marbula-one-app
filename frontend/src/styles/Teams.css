@@ -42,7 +42,7 @@
   box-shadow: inset 0 0 20px var(--team-color, #44444488);
   background: radial-gradient(
     circle at center,
-    var(--team-color, transparent) 0%,
+    color-mix(in srgb, var(--team-color) 10%, transparent) 0%,
     var(--brand-light) 80%
   );
 }
