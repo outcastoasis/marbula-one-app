@@ -1,6 +1,6 @@
-import { useState } from "react";
-import API from "../api";
-import "../styles/AdminWin.css";
+import { useState, useEffect } from "react";
+import API from "../../api";
+import "../../styles/AdminWin.css"; // Du kannst später ein separates CSS für AdminWin machen
 
 export default function AdminWin() {
   const [formData, setFormData] = useState({
@@ -13,6 +13,20 @@ export default function AdminWin() {
     nextOrganizer: "",
     notes: "",
   });
+
+  const [winners, setWinners] = useState([]);
+
+  useEffect(() => {
+    const fetchWinners = async () => {
+      try {
+        const res = await API.get("/winners");
+        setWinners(res.data);
+      } catch (err) {
+        console.error("Fehler beim Laden der Gewinner:", err);
+      }
+    };
+    fetchWinners();
+  }, []);
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -32,6 +46,10 @@ export default function AdminWin() {
         nextOrganizer: "",
         notes: "",
       });
+
+      // Liste neu laden
+      const res = await API.get("/winners");
+      setWinners(res.data);
     } catch (err) {
       console.error(err);
       alert("Fehler beim Eintragen.");
@@ -39,9 +57,10 @@ export default function AdminWin() {
   };
 
   return (
-    <div className="admin-win-container">
-      <h2>Neuen Event-Sieger eintragen</h2>
-      <form onSubmit={handleSubmit}>
+    <div className="admin-users-container">
+      <h2>Event-Sieger eintragen</h2>
+
+      <form onSubmit={handleSubmit} className="admin-form">
         <input
           type="date"
           name="date"
@@ -105,6 +124,36 @@ export default function AdminWin() {
         ></textarea>
         <button type="submit">Speichern</button>
       </form>
+
+      <h2>Vergangene Events</h2>
+      <div className="table-wrapper">
+        <table className="admin-users-table">
+          <thead>
+            <tr>
+              <th>Datum</th>
+              <th>Ort</th>
+              <th>Gewinner</th>
+              <th>Team</th>
+              <th>Letzter Platz</th>
+              <th>Team</th>
+              <th>Organisator Folgejahr</th>
+            </tr>
+          </thead>
+          <tbody>
+            {winners.map((w) => (
+              <tr key={w._id}>
+                <td>{new Date(w.date).toLocaleDateString()}</td>
+                <td>{w.location}</td>
+                <td>{w.winnerUser}</td>
+                <td>{w.winnerTeam}</td>
+                <td>{w.lastPlaceUser}</td>
+                <td>{w.lastPlaceTeam}</td>
+                <td>{w.nextOrganizer}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
