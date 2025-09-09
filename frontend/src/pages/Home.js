@@ -188,7 +188,7 @@ export default function Home() {
         <h2>Punkteverlauf</h2>
         <div className="scroll-wrapper">
           <div className="chart-inner">
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={600}>
               <LineChart data={cumulativeData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
