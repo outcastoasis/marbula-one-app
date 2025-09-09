@@ -144,7 +144,7 @@ body {
   box-sizing: border-box;
 }
 
-@media (min-width: 769px) {
+@media (min-width: 769px) and (hover: hover) and (pointer: fine) {
   .dashboard-header {
     margin-left: 260px;
     width: calc(100% - 260px);
@@ -152,6 +152,13 @@ body {
 
   .dashboard-header button {
     display: none;
+  }
+
+  .sidebar {
+    transform: translateX(0); /* Immer sichtbar */
+    position: static;
+    height: auto;
+    border-radius: 0;
   }
 }
 
