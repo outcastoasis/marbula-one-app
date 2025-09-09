@@ -105,3 +105,27 @@
   font-size: 0.9rem;
   color: #bbb;
 }
+
+.edit-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  width: 100%;
+  align-items: center;
+}
+
+.team-edit-input {
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--brand-border);
+  background-color: var(--brand-dark);
+  color: var(--brand-text);
+  font-size: 0.95rem;
+  flex: 1 1 150px;
+}
+
+.team-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
+}

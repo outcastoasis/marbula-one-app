@@ -1,4 +1,4 @@
-// === AdminTeams.js mit Bearbeiten-Funktion ===
+// === AdminTeams.js mit verschönertem Edit-Modus ===
 import { useEffect, useState } from "react";
 import API from "../../api";
 import "../../styles/AdminTeams.css";
@@ -91,20 +91,23 @@ export default function AdminTeams() {
         {teams.map((team) => (
           <div key={team._id} className="team-item">
             {editTeamId === team._id ? (
-              <>
+              <div className="edit-fields">
                 <input
+                  className="team-edit-input"
                   value={editTeamData.name}
                   onChange={(e) =>
                     setEditTeamData({ ...editTeamData, name: e.target.value })
                   }
                 />
                 <input
+                  className="team-edit-input"
                   value={editTeamData.color}
                   onChange={(e) =>
                     setEditTeamData({ ...editTeamData, color: e.target.value })
                   }
                 />
                 <input
+                  className="team-edit-input"
                   value={editTeamData.logoUrl}
                   onChange={(e) =>
                     setEditTeamData({
@@ -113,9 +116,11 @@ export default function AdminTeams() {
                     })
                   }
                 />
-                <button onClick={saveEdit}>💾</button>
-                <button onClick={cancelEdit}>✖</button>
-              </>
+                <div className="team-actions">
+                  <button onClick={saveEdit}>💾</button>
+                  <button onClick={cancelEdit}>✖</button>
+                </div>
+              </div>
             ) : (
               <>
                 <span>{team.name}</span>
@@ -129,8 +134,10 @@ export default function AdminTeams() {
                     className="team-logo-small"
                   />
                 )}
-                <button onClick={() => startEdit(team)}>🖉</button>
-                <button onClick={() => deleteTeam(team._id)}>🗑️</button>
+                <div className="team-actions">
+                  <button onClick={() => startEdit(team)}>🖉</button>
+                  <button onClick={() => deleteTeam(team._id)}>🗑️</button>
+                </div>
               </>
             )}
           </div>
