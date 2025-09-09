@@ -1,16 +1,22 @@
-// === AdminTeams.js mit verschönertem Edit-Modus ===
+// === AdminTeams.js mit Beschreibung ===
 import { useEffect, useState } from "react";
 import API from "../../api";
 import "../../styles/AdminTeams.css";
 
 export default function AdminTeams() {
   const [teams, setTeams] = useState([]);
-  const [newTeam, setNewTeam] = useState({ name: "", color: "", logoUrl: "" });
+  const [newTeam, setNewTeam] = useState({
+    name: "",
+    color: "",
+    logoUrl: "",
+    description: "",
+  });
   const [editTeamId, setEditTeamId] = useState(null);
   const [editTeamData, setEditTeamData] = useState({
     name: "",
     color: "",
     logoUrl: "",
+    description: "",
   });
 
   const fetchTeams = async () => {
@@ -21,7 +27,7 @@ export default function AdminTeams() {
   const addTeam = async () => {
     if (!newTeam.name.trim()) return;
     await API.post("/teams", newTeam);
-    setNewTeam({ name: "", color: "", logoUrl: "" });
+    setNewTeam({ name: "", color: "", logoUrl: "", description: "" });
     fetchTeams();
   };
 
@@ -38,12 +44,13 @@ export default function AdminTeams() {
       name: team.name,
       color: team.color || "",
       logoUrl: team.logoUrl || "",
+      description: team.description || "",
     });
   };
 
   const cancelEdit = () => {
     setEditTeamId(null);
-    setEditTeamData({ name: "", color: "", logoUrl: "" });
+    setEditTeamData({ name: "", color: "", logoUrl: "", description: "" });
   };
 
   const saveEdit = async () => {
@@ -84,6 +91,16 @@ export default function AdminTeams() {
           onChange={(e) => setNewTeam({ ...newTeam, logoUrl: e.target.value })}
         />
 
+        <label>Beschreibung</label>
+        <textarea
+          placeholder="Kurzbeschreibung zum Team"
+          value={newTeam.description}
+          onChange={(e) =>
+            setNewTeam({ ...newTeam, description: e.target.value })
+          }
+          className="team-textarea"
+        />
+
         <button onClick={addTeam}>Team hinzufügen</button>
       </div>
 
@@ -113,6 +130,16 @@ export default function AdminTeams() {
                     setEditTeamData({
                       ...editTeamData,
                       logoUrl: e.target.value,
+                    })
+                  }
+                />
+                <textarea
+                  className="team-edit-textarea"
+                  value={editTeamData.description}
+                  onChange={(e) =>
+                    setEditTeamData({
+                      ...editTeamData,
+                      description: e.target.value,
                     })
                   }
                 />

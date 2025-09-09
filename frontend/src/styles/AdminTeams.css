@@ -129,3 +129,16 @@
   gap: 0.5rem;
   margin-left: auto;
 }
+
+.team-textarea,
+.team-edit-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--brand-border);
+  background-color: var(--brand-dark);
+  color: var(--brand-text);
+  font-size: 1rem;
+  resize: vertical;
+}
