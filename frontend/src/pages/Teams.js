@@ -21,7 +21,7 @@ export default function Teams() {
 
   const getTeamOwner = (teamId) => {
     const user = users.find((u) => u.selectedTeam?._id === teamId);
-    return user ? user.username : null;
+    return user ? user.realname : null;
   };
 
   return (
@@ -33,7 +33,15 @@ export default function Teams() {
             key={team._id}
             to={`/teams/${team._id}`}
             className="team-card"
-            style={{ borderColor: team.color || "#444" }}
+            style={{
+              borderColor: team.color || "#444",
+              background: team.color
+                ? `radial-gradient(circle at center, ${team.color}22 0%, var(--brand-light) 80%)`
+                : undefined,
+              boxShadow: team.color
+                ? `inset 0 0 20px ${team.color}88`
+                : "inset 0 0 20px #444",
+            }}
           >
             {team.logoUrl && (
               <img

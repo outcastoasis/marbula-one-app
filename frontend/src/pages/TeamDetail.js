@@ -40,7 +40,7 @@ export default function TeamDetail() {
       <p style={{ color: team.color || "#fff" }}>
         Teamfarbe: {team.color || "n/a"}
       </p>
-      {user && <p>Gewählt von: {user.username}</p>}
+      {user && <p>Gewählt von: {user.realname}</p>}
       <p className="team-description">
         {/* Kurze Beschreibung als Platzhalter */}
         Dieses Team ist eines der traditionsreichsten in der Geschichte der
