@@ -37,29 +37,6 @@ export default function DashboardLayout({ children }) {
     fetchSeasons();
   }, []);
 
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(min-width: 769px)");
-
-    const isTouchDevice = () =>
-      "ontouchstart" in window || navigator.maxTouchPoints > 0;
-
-    const handleMediaChange = (e) => {
-      // Nur wenn Desktop UND kein Touchscreen
-      if (e.matches && !isTouchDevice()) {
-        setSidebarOpen(true); // Sidebar darf standardmässig offen sein
-      } else {
-        setSidebarOpen(false); // Touchgerät → Sidebar zu
-      }
-    };
-
-    handleMediaChange(mediaQuery);
-    mediaQuery.addEventListener("change", handleMediaChange);
-
-    return () => {
-      mediaQuery.removeEventListener("change", handleMediaChange);
-    };
-  }, []);
-
   const closeSidebar = () => setSidebarOpen(false);
 
   return (

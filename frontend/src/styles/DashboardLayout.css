@@ -144,7 +144,7 @@ body {
   box-sizing: border-box;
 }
 
-@media (min-width: 1000px) and (hover: hover) and (pointer: fine) {
+@media (min-width: 769px) and (hover: hover) and (pointer: fine) {
   .dashboard-header {
     margin-left: 260px;
     width: calc(100% - 260px);
@@ -223,4 +223,40 @@ body {
   height: 36px;
   max-height: 36px;
   object-fit: contain;
+}
+
+/* === Smartphone Landscape: Sidebar standardmäßig geschlossen === */
+@media (max-width: 900px) and (orientation: landscape) {
+  .sidebar {
+    transform: translateX(-100%) !important;
+    position: fixed;
+    top: 60px;
+    left: 0;
+    height: calc(100vh - 60px);
+    border-radius: 0 20px 20px 0;
+    transition: transform 0.3s ease-in-out;
+    z-index: 999;
+  }
+
+  .sidebar.open {
+    transform: translateX(0) !important;
+  }
+
+  .dashboard-main {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
+  .dashboard-header {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
+  .dashboard-header button {
+    display: block !important;
+  }
+
+  .sidebar-close {
+    display: block !important;
+  }
 }
