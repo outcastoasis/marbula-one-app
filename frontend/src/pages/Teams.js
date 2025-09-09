@@ -35,6 +35,7 @@ export default function Teams() {
             className="team-card"
             style={{
               "--team-color": team.color || "#444",
+              "--team-color-fade": `${team.color}22`, // z. B. 13% Deckkraft
             }}
           >
             {team.logoUrl && (
