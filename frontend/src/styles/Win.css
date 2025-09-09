@@ -1,0 +1,14 @@
+.win-page {
+  max-width: 900px;
+  margin: auto;
+  padding: 2rem;
+  color: white;
+}
+
+.winner-card {
+  background: #2c2c2c;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 10px;
+  border-left: 5px solid #d40000;
+}

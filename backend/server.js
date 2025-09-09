@@ -8,6 +8,7 @@ import teamRoutes from "./routes/teamRoutes.js";
 import raceRoutes from "./routes/raceRoutes.js";
 import seasonRoutes from "./routes/seasonRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import winnerRoutes from "./routes/winnerRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -41,6 +42,7 @@ app.use("/api/teams", teamRoutes);
 app.use("/api/races", raceRoutes);
 app.use("/api/seasons", seasonRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/winners", winnerRoutes);
 
 // 🔁 Server starten
 const PORT = process.env.PORT || 5000;

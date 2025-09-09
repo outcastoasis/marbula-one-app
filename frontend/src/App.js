@@ -16,6 +16,8 @@ import DashboardLayout from "./layouts/DashboardLayout";
 import { Navigate } from "react-router-dom";
 import AdminUserEdit from "./pages/admin/AdminUserEdit";
 import TeamDetail from "./pages/TeamDetail";
+import AdminWin from "./pages/AdminWin";
+import Win from "./pages/Win";
 
 function App() {
   const { user, loading } = useContext(AuthContext);
@@ -65,7 +67,14 @@ function App() {
                 </ProtectedRoute>
               }
             />
-
+            <Route
+              path="/winners"
+              element={
+                <ProtectedRoute>
+                  <Win />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/choose-team"
               element={
@@ -74,11 +83,20 @@ function App() {
                 </ProtectedRoute>
               }
             />
+
             <Route
               path="/admin/teams"
               element={
                 <ProtectedRoute adminOnly>
                   <AdminTeams />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/winners"
+              element={
+                <ProtectedRoute adminOnly>
+                  <AdminWin />
                 </ProtectedRoute>
               }
             />
