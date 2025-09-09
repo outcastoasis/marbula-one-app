@@ -37,6 +37,27 @@ export default function DashboardLayout({ children }) {
     fetchSeasons();
   }, []);
 
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(
+      "(min-width: 769px) and (hover: hover) and (pointer: fine)"
+    );
+
+    const handleMediaChange = (e) => {
+      if (e.matches) {
+        // Desktop-Modus -> Sidebar sicher schließen
+        setSidebarOpen(false);
+      }
+    };
+
+    // Initial prüfen & Event-Listener registrieren
+    handleMediaChange(mediaQuery);
+    mediaQuery.addEventListener("change", handleMediaChange);
+
+    return () => {
+      mediaQuery.removeEventListener("change", handleMediaChange);
+    };
+  }, []);
+
   const closeSidebar = () => setSidebarOpen(false);
 
   return (
