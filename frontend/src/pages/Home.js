@@ -59,7 +59,7 @@ export default function Home() {
             }
           });
           filtered.forEach((u) => {
-            entry[u.username] = cumulative[u._id];
+            entry[u.realname] = cumulative[u._id];
           });
           return entry;
         });
@@ -94,13 +94,13 @@ export default function Home() {
   const rankingRows = [...participants]
     .map((p) => ({
       ...p,
-      points: cumulativeData.at(-1)?.[p.username] || 0,
+      points: cumulativeData.at(-1)?.[p.realname] || 0,
     }))
     .sort((a, b) => b.points - a.points)
     .map((p, i) => (
       <tr key={p._id}>
         <td>{i + 1}</td>
-        <td>{p.username}</td>
+        <td>{p.realname}</td>
         <td>{p.selectedTeam?.name || "-"}</td>
         <td>{p.points}</td>
       </tr>
@@ -109,14 +109,14 @@ export default function Home() {
   const resultRows = participants.map((p) => {
     let last = 0;
     const racePoints = cumulativeData.map((r) => {
-      const val = r[p.username] ?? 0;
+      const val = r[p.realname] ?? 0;
       const diff = val - last;
       last = val;
       return diff;
     });
     return (
       <tr key={p._id}>
-        <td>{p.username}</td>
+        <td>{p.realname}</td>
         <td>{p.selectedTeam?.name || "-"}</td>
         {racePoints.map((pts, idx) => (
           <td key={idx}>{pts}</td>
@@ -130,7 +130,11 @@ export default function Home() {
 
   return (
     <div className="home-container">
-      <h1>Willkommen zu<br />Marbula One</h1>
+      <h1>
+        Willkommen zu
+        <br />
+        Marbula One
+      </h1>
 
       <div className="sections-grid">
         <section>
@@ -195,7 +199,7 @@ export default function Home() {
                   <Line
                     key={p._id}
                     type="monotone"
-                    dataKey={p.username}
+                    dataKey={p.realname}
                     stroke={generateColor(i, participants.length)}
                     strokeWidth={2}
                     dot={{ r: 3 }}
