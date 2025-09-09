@@ -46,16 +46,16 @@ export default function ChooseTeam() {
           </p>
         </div>
       ) : (
-        <div className="team-grid">
+        <div className="choose-grid">
           {teams.map((team) => (
-            <div key={team._id} className="team-card">
-              <span className="team-name">{team.name}</span>
+            <div key={team._id} className="choose-card">
+              <span className="choose-name">{team.name}</span>
               {takenTeams.includes(team._id) ? (
-                <span className="team-status">vergeben</span>
+                <span className="choose-status">vergeben</span>
               ) : (
                 <button
                   onClick={() => selectTeam(team._id)}
-                  className="team-select-btn"
+                  className="choose-select-btn"
                 >
                   Wählen
                 </button>

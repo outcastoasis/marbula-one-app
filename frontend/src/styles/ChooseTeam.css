@@ -1,10 +1,4 @@
-:root {
-  --brand-dark: #0e0e0e;
-  --brand-light: #1a1a1a;
-  --brand-red: #ff1e1e;
-  --brand-border: #2a2a2a;
-  --brand-text: #ffffff;
-}
+/* KEINE Globalklassen wie .team-card etc.! */
 
 .choose-container {
   max-width: 720px;
@@ -30,19 +24,19 @@
   text-align: center;
 }
 
-.team-grid {
+.choose-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 1rem;
 }
 
 @media (min-width: 600px) {
-  .team-grid {
+  .choose-grid {
     grid-template-columns: 1fr 1fr;
   }
 }
 
-.team-card {
+.choose-card {
   background-color: var(--brand-light);
   padding: 1rem;
   border-radius: 12px;
@@ -52,18 +46,18 @@
   align-items: center;
 }
 
-.team-name {
+.choose-name {
   font-weight: 500;
   font-size: 1rem;
   color: var(--brand-text);
 }
 
-.team-status {
+.choose-status {
   color: #aaa;
   font-size: 0.9rem;
 }
 
-.team-select-btn {
+.choose-select-btn {
   background-color: var(--brand-red);
   color: #fff;
   font-size: 0.85rem;
@@ -75,6 +69,6 @@
   transition: background 0.2s;
 }
 
-.team-select-btn:hover {
+.choose-select-btn:hover {
   background-color: #e60000;
 }

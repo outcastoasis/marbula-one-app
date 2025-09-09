@@ -10,11 +10,13 @@ export default function TeamDetail() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const teamRes = await API.get(`/teams`);
+      const [teamRes, usersRes] = await Promise.all([
+        API.get("/teams"),
+        API.get("/users"),
+      ]);
+
       const foundTeam = teamRes.data.find((t) => t._id === id);
       setTeam(foundTeam);
-
-      const usersRes = await API.get("/users");
       setUsers(usersRes.data);
     };
 
@@ -29,7 +31,7 @@ export default function TeamDetail() {
     <div className="team-detail-container">
       <div
         className="team-detail-card"
-        style={{ "--team-color": team.color || "#444" }}
+        style={{ "--team-color": team.color || "#ff1e1e" }}
       >
         {team.logoUrl && (
           <img

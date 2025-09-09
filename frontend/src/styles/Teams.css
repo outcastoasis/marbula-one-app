@@ -33,7 +33,7 @@
   border: 2px solid var(--team-color, var(--brand-border));
   border-radius: 16px;
   text-decoration: none;
-  min-height: 260px;
+  min-height: 100px;
   justify-content: space-between;
   text-align: center;
   color: inherit;
