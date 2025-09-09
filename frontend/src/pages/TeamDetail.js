@@ -1,8 +1,7 @@
-// === Neue Datei: src/pages/TeamDetail.js ===
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import API from "../api";
-import "../styles/Teams.css";
+import "../styles/TeamDetail.css";
 
 export default function TeamDetail() {
   const { id } = useParams();
@@ -22,30 +21,45 @@ export default function TeamDetail() {
     fetchData();
   }, [id]);
 
-  if (!team) return <p>⏳ Team wird geladen...</p>;
+  if (!team) return <p className="team-loading">⏳ Team wird geladen...</p>;
 
   const user = users.find((u) => u.selectedTeam?._id === team._id);
 
   return (
-    <div className="teams-container">
-      <h2>{team.name}</h2>
-      {team.logoUrl && (
-        <img
-          src={team.logoUrl}
-          alt={`${team.name} Logo`}
-          className="team-logo"
-          style={{ margin: "1rem auto" }}
-        />
-      )}
-      <p style={{ color: team.color || "#fff" }}>
-        Teamfarbe: {team.color || "n/a"}
-      </p>
-      {user && <p>Gewählt von: {user.realname}</p>}
-      <p className="team-description">
-        {/* Kurze Beschreibung als Platzhalter */}
-        Dieses Team ist eines der traditionsreichsten in der Geschichte der
-        Marbula One und bekannt für seine unverwechselbare Dynamik.
-      </p>
+    <div className="team-detail-container">
+      <div
+        className="team-detail-card"
+        style={{ "--team-color": team.color || "#444" }}
+      >
+        {team.logoUrl && (
+          <img
+            src={team.logoUrl}
+            alt={`${team.name} Logo`}
+            className="team-detail-logo"
+          />
+        )}
+
+        <h2 className="team-detail-name">{team.name}</h2>
+
+        {user && (
+          <p className="team-detail-owner">
+            Gewählt von: <strong>{user.realname}</strong>
+          </p>
+        )}
+
+        {team.color && (
+          <p className="team-detail-color">
+            Teamfarbe: <span style={{ color: team.color }}>{team.color}</span>
+          </p>
+        )}
+
+        {team.description && (
+          <div className="team-detail-description">
+            <h3>Beschreibung</h3>
+            <p>{team.description}</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
