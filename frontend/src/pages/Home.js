@@ -132,7 +132,7 @@ export default function Home() {
     if (!active || !payload || payload.length === 0) return null;
 
     // Finde den Punkt, über dem sich der Cursor tatsächlich befindet
-    const current = payload.find((p) => p.activeDot);
+    const current = payload.find((p) => p.name === hoveredLine);
 
     // Fallback auf ersten Wert, wenn activeDot fehlt
     const data = current || payload[0];
@@ -232,6 +232,9 @@ export default function Home() {
                     stroke={generateColor(i, participants.length)}
                     strokeWidth={2}
                     dot={{ r: 3 }} // Muss gesetzt sein, sonst ist Hover über Punkte nicht möglich
+                    activeDot={{
+                      onMouseOver: () => setHoveredLine(p.realname),
+                    }}
                   />
                 ))}
               </LineChart>
