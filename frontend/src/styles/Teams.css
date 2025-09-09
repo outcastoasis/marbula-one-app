@@ -33,6 +33,9 @@
   border: 2px solid var(--team-color, var(--brand-border));
   border-radius: 16px;
   text-decoration: none;
+  min-height: 260px;
+  justify-content: space-between;
+  text-align: center;
   color: inherit;
   display: flex;
   flex-direction: column;
@@ -54,11 +57,18 @@
 .team-logo {
   max-width: 100px;
   height: auto;
+  width: 100px;
+  object-fit: contain;
   margin-bottom: 0.8rem;
 }
 
 .team-info {
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  flex-grow: 1;
+  gap: 0.4rem;
 }
 
 .team-name {
