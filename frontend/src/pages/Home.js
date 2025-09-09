@@ -131,12 +131,13 @@ export default function Home() {
   const CustomTooltip = ({ active, payload, label }) => {
     if (!active || !payload || payload.length === 0) return null;
 
-    // Nur den angehoverten Punkt holen
+    // Finde den Punkt, über dem sich der Cursor tatsächlich befindet
     const current = payload.find((p) => p.activeDot);
 
-    if (!current) return null;
+    // Fallback auf ersten Wert, wenn activeDot fehlt
+    const data = current || payload[0];
 
-    const { name, value, stroke } = current;
+    const { name, value, stroke } = data;
 
     return (
       <div
@@ -222,7 +223,7 @@ export default function Home() {
                 <XAxis dataKey="name" />
                 <YAxis allowDecimals={false} />
                 <Tooltip content={<CustomTooltip />} />
-                {/* <Legend /> ← Optional auskommentieren */}
+                <Legend />
                 {participants.map((p, i) => (
                   <Line
                     key={p._id}
@@ -230,7 +231,7 @@ export default function Home() {
                     dataKey={p.realname}
                     stroke={generateColor(i, participants.length)}
                     strokeWidth={2}
-                    dot={{ r: 3 }}
+                    dot={{ r: 3 }} // Muss gesetzt sein, sonst ist Hover über Punkte nicht möglich
                   />
                 ))}
               </LineChart>
