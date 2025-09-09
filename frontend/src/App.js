@@ -15,6 +15,7 @@ import AdminRaceResults from "./pages/admin/AdminRaceResults";
 import DashboardLayout from "./layouts/DashboardLayout";
 import { Navigate } from "react-router-dom";
 import AdminUserEdit from "./pages/admin/AdminUserEdit";
+import TeamDetail from "./pages/TeamDetail";
 
 function App() {
   const { user, loading } = useContext(AuthContext);
@@ -56,6 +57,15 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/teams/:id"
+              element={
+                <ProtectedRoute>
+                  <TeamDetail />
+                </ProtectedRoute>
+              }
+            />
+
             <Route
               path="/choose-team"
               element={

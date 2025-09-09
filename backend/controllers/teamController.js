@@ -22,3 +22,10 @@ export const deleteTeam = async (req, res) => {
   await Team.findByIdAndDelete(id);
   res.json({ message: "Team gelöscht" });
 };
+
+export const getTeamById = async (req, res) => {
+  const { id } = req.params;
+  const team = await Team.findById(id);
+  if (!team) return res.status(404).json({ message: "Team nicht gefunden" });
+  res.json(team);
+};

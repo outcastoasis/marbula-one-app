@@ -74,7 +74,7 @@ export default function DashboardLayout({ children }) {
                 Teams verwalten
               </Link>
               <Link to="/admin/users" onClick={closeSidebar}>
-                Benutzer
+                Benutzer verwalten
               </Link>
               <Link to="/admin/seasons" onClick={closeSidebar}>
                 Seasons

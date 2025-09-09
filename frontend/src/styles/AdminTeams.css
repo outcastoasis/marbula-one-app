@@ -67,12 +67,13 @@
 }
 
 .team-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
   background-color: var(--brand-light);
   padding: 1rem;
   border-radius: 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   box-shadow: 0 0 10px rgba(255, 30, 30, 0.08);
 }
 
@@ -87,8 +88,20 @@
   color: var(--brand-red);
   font-size: 1.25rem;
   cursor: pointer;
+  margin-left: auto;
 }
 
 .team-item button:hover {
   color: #ff4d4d;
+}
+
+.team-logo-small {
+  height: 30px;
+  border-radius: 4px;
+  background-color: #222;
+}
+
+.team-color-text {
+  font-size: 0.9rem;
+  color: #bbb;
 }
