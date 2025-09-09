@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import API from "../../api";
-import "../../styles/AdminWin.css"; // Du kannst später ein separates CSS für AdminWin machen
+import "../../styles/AdminWin.css";
 
 export default function AdminWin() {
   const [formData, setFormData] = useState({
@@ -47,7 +47,6 @@ export default function AdminWin() {
         notes: "",
       });
 
-      // Liste neu laden
       const res = await API.get("/winners");
       setWinners(res.data);
     } catch (err) {
@@ -57,10 +56,10 @@ export default function AdminWin() {
   };
 
   return (
-    <div className="admin-users-container">
+    <div className="admin-win-container">
       <h2>Event-Sieger eintragen</h2>
 
-      <form onSubmit={handleSubmit} className="admin-form">
+      <form onSubmit={handleSubmit} className="admin-win-form">
         <input
           type="date"
           name="date"
@@ -127,7 +126,7 @@ export default function AdminWin() {
 
       <h2>Vergangene Events</h2>
       <div className="table-wrapper">
-        <table className="admin-users-table">
+        <table className="admin-win-table">
           <thead>
             <tr>
               <th>Datum</th>

@@ -60,6 +60,9 @@ export default function DashboardLayout({ children }) {
           <Link to="/teams" onClick={closeSidebar}>
             Teams
           </Link>
+          <Link to="/winners" onClick={closeSidebar}>
+            Siegerarchiv
+          </Link>
           {user && !user.selectedTeam && (
             <Link to="/choose-team" onClick={closeSidebar}>
               Team wählen
@@ -76,9 +79,13 @@ export default function DashboardLayout({ children }) {
               <Link to="/admin/users" onClick={closeSidebar}>
                 Benutzer verwalten
               </Link>
+              <Link to="/admin/winners" onClick={closeSidebar}>
+                Event-Sieger eintragen
+              </Link>
               <Link to="/admin/seasons" onClick={closeSidebar}>
                 Seasons
               </Link>
+
               {seasons.map((season) => (
                 <div key={season._id}>
                   <button
