@@ -138,7 +138,7 @@ export default function Home() {
     // Fallback auf ersten Wert, wenn activeDot fehlt
     if (!current) return null; // kein Tooltip anzeigen
 
-    const { name, value, stroke } = data;
+    const { name, value, stroke } = current;
 
     return (
       <div
