@@ -128,6 +128,30 @@ export default function Home() {
     );
   });
 
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length > 0) {
+      const { name, value, stroke } = payload[0];
+      return (
+        <div
+          style={{
+            backgroundColor: "#1a1a1a",
+            padding: "0.75rem 1rem",
+            borderRadius: "10px",
+            color: "#fff",
+            border: `1px solid ${stroke}`,
+            fontSize: "0.9rem",
+          }}
+        >
+          <strong>{name}</strong>: {value} Punkte
+          <br />
+          <span style={{ color: "#ccc" }}>Rennen: {label}</span>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <div className="home-container">
       <h1>
@@ -193,8 +217,8 @@ export default function Home() {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis allowDecimals={false} />
-                <Tooltip />
-                <Legend />
+                <Tooltip content={<CustomTooltip />} />
+                {/* <Legend /> ← Optional auskommentieren */}
                 {participants.map((p, i) => (
                   <Line
                     key={p._id}
