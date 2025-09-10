@@ -8,7 +8,6 @@ const winnerSchema = new mongoose.Schema(
     winnerTeam: { type: String, required: true },
     lastPlaceUser: { type: String, required: true },
     lastPlaceTeam: { type: String, required: true },
-    nextOrganizer: { type: String, required: true },
     notes: { type: String },
   },
   { timestamps: true }

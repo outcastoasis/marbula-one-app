@@ -28,9 +28,6 @@ export default function Win() {
             <strong>🥄 Letzter Platz:</strong> {w.lastPlaceUser} (
             {w.lastPlaceTeam})
           </p>
-          <p>
-            <strong>📅 Organisator Folgejahr:</strong> {w.nextOrganizer}
-          </p>
           {w.notes && (
             <p>
               <strong>📝 Notizen:</strong> {w.notes}

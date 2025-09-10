@@ -10,7 +10,6 @@ export default function AdminWin() {
     winnerTeam: "",
     lastPlaceUser: "",
     lastPlaceTeam: "",
-    nextOrganizer: "",
     notes: "",
   });
 
@@ -41,7 +40,6 @@ export default function AdminWin() {
       winnerTeam: "",
       lastPlaceUser: "",
       lastPlaceTeam: "",
-      nextOrganizer: "",
       notes: "",
     });
     setEditingId(null);
@@ -74,7 +72,6 @@ export default function AdminWin() {
       winnerTeam: entry.winnerTeam,
       lastPlaceUser: entry.lastPlaceUser,
       lastPlaceTeam: entry.lastPlaceTeam,
-      nextOrganizer: entry.nextOrganizer,
       notes: entry.notes || "",
     });
     setEditingId(entry._id);
@@ -143,14 +140,6 @@ export default function AdminWin() {
           onChange={handleChange}
           required
         />
-        <input
-          type="text"
-          name="nextOrganizer"
-          placeholder="Organisator nächstes Jahr"
-          value={formData.nextOrganizer}
-          onChange={handleChange}
-          required
-        />
         <textarea
           name="notes"
           placeholder="Notizen (optional)"
@@ -180,7 +169,6 @@ export default function AdminWin() {
               <th>Team</th>
               <th>Letzter Platz</th>
               <th>Team</th>
-              <th>Organisator Folgejahr</th>
               <th>Aktionen</th>
             </tr>
           </thead>
@@ -193,10 +181,11 @@ export default function AdminWin() {
                 <td>{w.winnerTeam}</td>
                 <td>{w.lastPlaceUser}</td>
                 <td>{w.lastPlaceTeam}</td>
-                <td>{w.nextOrganizer}</td>
                 <td>
-                  <button onClick={() => handleEdit(w)}>Bearbeiten</button>
-                  <button onClick={() => handleDelete(w._id)}>Löschen</button>
+                  <div className="winner-actions">
+                    <button onClick={() => handleEdit(w)}>Bearbeiten</button>
+                    <button onClick={() => handleDelete(w._id)}>🗑️</button>
+                  </div>
                 </td>
               </tr>
             ))}
