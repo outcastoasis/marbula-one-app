@@ -18,12 +18,19 @@ import AdminUserEdit from "./pages/admin/AdminUserEdit";
 import TeamDetail from "./pages/TeamDetail";
 import AdminWin from "./pages/admin/AdminWin";
 import Win from "./pages/Win";
+import "./index.css";
 
 function App() {
   const { user, loading } = useContext(AuthContext);
   const location = useLocation();
 
-  if (loading) return <p>⏳ Lade Benutzer...</p>;
+  if (loading)
+    return (
+      <div className="loading-screen">
+        <div className="spinner"></div>
+        <p>Wird geladen, bitte warten...</p>
+      </div>
+    );
 
   return (
     <>
