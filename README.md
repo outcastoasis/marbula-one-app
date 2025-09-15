@@ -22,23 +22,24 @@ zu erfassen, Punkte zu vergeben und Gewinner übersichtlich darzustellen.
 
 ## Projektstruktur
 
+```
 marbula-one-app/
-├── backend/           # Node.js + Express + MongoDB API
-│   ├── models/        # Mongoose-Modelle (User, Team, Race, Winner, usw.)
-│   ├── controllers/   # API-Logik
-│   ├── routes/        # REST-Endpunkte
-│   ├── middleware/    # Authentifizierung etc.
-│   └── server.js      # Einstiegspunkt
+├── backend/                  # Node.js + Express + MongoDB API
+│   ├── models/              # Mongoose-Modelle (User, Team, Race, Winner, usw.)
+│   ├── controllers/         # API-Logik
+│   ├── routes/              # REST-Endpunkte
+│   ├── middleware/          # Authentifizierung usw.
+│   └── server.js            # Einstiegspunkt für das Backend
 │
-├── frontend/          # React-Client
-│   ├── src/
-│   │   ├── pages/     # Hauptseiten (Home, Teams, Win, Admin-Bereich)
-│   │   ├── components/ # Navbar, ProtectedRoute usw.
-│   │   ├── layouts/    # DashboardLayout u. a.
-│   │   └── context/    # Globale Zustände (AuthContext)
+├── frontend/                 # React-Client
+│   └── src/
+│       ├── pages/           # Hauptseiten (Home, Teams, Win, Admin-Bereich)
+│       ├── components/      # Navbar, ProtectedRoute usw.
+│       ├── layouts/         # DashboardLayout usw.
+│       └── context/         # Globale Zustände (AuthContext)
 │
-└── README.md          # Diese Datei
-
+└── README.md                # Diese Datei
+```
 
 ## Technologien
 
@@ -75,9 +76,11 @@ marbula-one-app/
 
 3.  Backend .env Datei erstellen
 
-    MONGO_URI=`<Deine MongoDB-Verbindungszeichenfolge>`{=html}
-    JWT_SECRET=`<Geheimer Schlüssel>`{=html}
-    PORT=5000
+   ```bash
+MONGO_URI=`<Deine MongoDB-Verbindungszeichenfolge>`{=html}
+JWT_SECRET=`<Geheimer Schlüssel>`{=html}
+PORT=5000
+```
 
 5.  Backend starten npm run dev
 
@@ -90,38 +93,18 @@ marbula-one-app/
 
 ## Benutzerrollen
 
-  -----------------------------------------------------------------------
-  Rolle      Rechte
-  ---------- ------------------------------------------------------------
-  Admin      Teams, Rennen, Saisons verwalten, Punkte erfassen, Gewinner
-             eintragen
-
-  Benutzer   Team wählen, Resultate einsehen, Statistiken verfolgen
-  -----------------------------------------------------------------------
+  | Rolle       | Rechte                 |
+| ------------- | --------------------------- |
+| **Admin**  | Teams, Rennen, Saisons verwalten, Punkte erfassen, Gewinner eintragen |
+| **Benutzer**   | Team wählen, Resultate einsehen, Statistiken verfolgen |
 
 ## Authentifizierung
 
 -   JWT-Token werden bei Login im localStorage gespeichert.
 -   ProtectedRoute.js schützt Seiten vor unbefugtem Zugriff.
 
-## Noch offen / Ideen
-
--   Automatische Erinnerung an bevorstehende Rennen
--   Sieges-Animationen oder Soundeffekte
--   Kalenderintegration (Google/Outlook)
--   Mehr Diagramme (Rennverlauf, Heatmap, Teamhistorie)
-
-## Testing
-
-Aktuell sind keine Tests vorhanden -- Jest oder Cypress könnten in
-Zukunft ergänzt werden.
-
-## Lizenz
-
-Noch keine Lizenz definiert -- GPL, MIT oder privat möglich.
-
 ## Fragen / Screenshots
 
-![loginfenster](screenshots/login.png)
-![Teamdetails](screenshots/team.png)
-![Automatischer Graph für Resultate](screenshots/graph.png)
+<img src="screenshots/login.png" alt="loginfenster" height="400"/>
+<img src="screenshots/team.png" alt="Teamdetails" height="400"/>
+<img src="screenshots/graph.png" alt="Automatischer Graph für Resultate" height="400"/>
