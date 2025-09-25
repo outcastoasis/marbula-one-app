@@ -6,26 +6,33 @@ import "../styles/TeamDetail.css";
 export default function TeamDetail() {
   const { id } = useParams();
   const [team, setTeam] = useState(null);
-  const [users, setUsers] = useState([]);
+  const [owner, setOwner] = useState(null);
+  const [seasonName, setSeasonName] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
-      const [teamRes, usersRes] = await Promise.all([
-        API.get("/teams"),
-        API.get("/users"),
-      ]);
+      try {
+        const teamRes = await API.get(`/teams/${id}`);
+        setTeam(teamRes.data);
 
-      const foundTeam = teamRes.data.find((t) => t._id === id);
-      setTeam(foundTeam);
-      setUsers(usersRes.data);
+        const seasonRes = await API.get("/seasons/current");
+        setSeasonName(seasonRes.data?.name || "");
+
+        const assignmentRes = await API.get(
+          `/userSeasonTeams?season=${seasonRes.data._id}`
+        );
+
+        const matching = assignmentRes.data.find((a) => a.team._id === id);
+        setOwner(matching?.user || null);
+      } catch (err) {
+        console.error("Fehler beim Laden der Team-Details:", err);
+      }
     };
 
     fetchData();
   }, [id]);
 
   if (!team) return <p className="team-loading">⏳ Team wird geladen...</p>;
-
-  const user = users.find((u) => u.selectedTeam?._id === team._id);
 
   return (
     <div className="team-detail-container">
@@ -43,9 +50,10 @@ export default function TeamDetail() {
 
         <h2 className="team-detail-name">{team.name}</h2>
 
-        {user && (
+        {owner && (
           <p className="team-detail-owner">
-            Gewählt von: <strong>{user.realname}</strong>
+            Gewählt von: <strong>{owner.realname}</strong>
+            {seasonName && ` (in ${seasonName})`}
           </p>
         )}
 

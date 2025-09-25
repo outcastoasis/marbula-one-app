@@ -9,16 +9,28 @@ import raceRoutes from "./routes/raceRoutes.js";
 import seasonRoutes from "./routes/seasonRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import winnerRoutes from "./routes/winnerRoutes.js";
+import userSeasonTeamRoutes from "./routes/userSeasonTeamRoutes.js";
 
 dotenv.config();
 connectDB();
 
 const app = express();
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://marbula-one-app.vercel.app",
+];
 
 // 🔐 CORS Setup
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "https://marbula-one-app.vercel.app",
+    origin: function (origin, callback) {
+      // allow requests with no origin (like mobile apps, curl, Postman)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS: " + origin));
+      }
+    },
     credentials: true,
   })
 );
@@ -43,6 +55,7 @@ app.use("/api/races", raceRoutes);
 app.use("/api/seasons", seasonRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/winners", winnerRoutes);
+app.use("/api/userSeasonTeams", userSeasonTeamRoutes);
 
 // 🔁 Server starten
 const PORT = process.env.PORT || 5000;

@@ -4,30 +4,62 @@ import { AuthContext } from "../context/AuthContext";
 import "../styles/ChooseTeam.css";
 
 export default function ChooseTeam() {
-  const { user, login } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const [teams, setTeams] = useState([]);
   const [takenTeams, setTakenTeams] = useState([]);
-  const [selectedTeam, setSelectedTeam] = useState(user?.selectedTeam || null);
+  const [selectedTeam, setSelectedTeam] = useState(null);
+  const [activeSeason, setActiveSeason] = useState(null);
 
+  // Aktive Season laden
   useEffect(() => {
-    const fetchData = async () => {
-      const teamRes = await API.get("/teams");
-      setTeams(teamRes.data);
-
-      const allUsers = await API.get("/users");
-      const taken = allUsers.data
-        .map((u) => u.selectedTeam?._id)
-        .filter((id) => id);
-      setTakenTeams(taken);
+    const fetchActiveSeason = async () => {
+      try {
+        const res = await API.get("/seasons/current");
+        setActiveSeason(res.data);
+      } catch (err) {
+        console.error("Fehler beim Laden der aktiven Season", err);
+      }
     };
-    fetchData();
+    fetchActiveSeason();
   }, []);
 
+  // Teams + bereits gewählte Zuordnungen laden
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const teamRes = await API.get("/teams");
+        setTeams(teamRes.data);
+
+        if (activeSeason) {
+          const res = await API.get(
+            `/userSeasonTeams?season=${activeSeason._id}`
+          );
+          const allAssignments = res.data;
+
+          setTakenTeams(allAssignments.map((a) => a.team._id));
+
+          // Prüfen, ob User schon gewählt hat
+          const mine = allAssignments.find((a) => a.user._id === user._id);
+          if (mine) setSelectedTeam(mine.team);
+        }
+      } catch (err) {
+        console.error("Fehler beim Laden", err);
+      }
+    };
+    fetchData();
+  }, [activeSeason, user]);
+
   const selectTeam = async (teamId) => {
+    if (!activeSeason) {
+      alert("Keine aktive Season gefunden");
+      return;
+    }
     try {
-      const res = await API.put("/users/choose-team", { teamId });
-      login(res.data.user);
-      setSelectedTeam(res.data.user.selectedTeam);
+      const res = await API.post("/userSeasonTeams", {
+        teamId,
+        seasonId: activeSeason._id,
+      });
+      setSelectedTeam(res.data.team);
       alert("Team erfolgreich gewählt!");
     } catch (err) {
       alert(err.response?.data?.message || "Fehler bei Teamwahl");
@@ -41,7 +73,7 @@ export default function ChooseTeam() {
       {selectedTeam ? (
         <div className="selected-team-box">
           <p>
-            Du hast bereits ein Team gewählt:{" "}
+            Dein Team für {activeSeason?.name}:{" "}
             <strong>{selectedTeam.name}</strong>
           </p>
         </div>

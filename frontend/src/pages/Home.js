@@ -1,4 +1,3 @@
-// src/pages/Home.js
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import API from "../api";
@@ -20,6 +19,7 @@ export default function Home() {
   const [localUser, setLocalUser] = useState(null);
   const [season, setSeason] = useState(null);
   const [participants, setParticipants] = useState([]);
+  const [assignments, setAssignments] = useState([]);
   const [cumulativeData, setCumulativeData] = useState([]);
   const [hoveredLine, setHoveredLine] = useState(null);
 
@@ -27,7 +27,6 @@ export default function Home() {
     const fetchData = async () => {
       try {
         const userRes = await API.get("/users/me");
-
         if (!user || user._id !== userRes.data._id) {
           login(userRes.data);
         }
@@ -43,6 +42,11 @@ export default function Home() {
           )
         );
         setParticipants(filtered);
+
+        const assignmentRes = await API.get(
+          `/userSeasonTeams?season=${seasonRes.data._id}`
+        );
+        setAssignments(assignmentRes.data);
 
         const racesRes = await API.get(`/races/season/${seasonRes.data._id}`);
         const races = racesRes.data;
@@ -70,9 +74,19 @@ export default function Home() {
         console.error("Fehler beim Laden:", error);
       }
     };
-
     fetchData();
-  }, [user]);
+  }, [user, login]);
+
+  const getTeamName = (userId) => {
+    const entry = assignments.find(
+      (a) =>
+        a.user._id === userId &&
+        (typeof a.season === "object"
+          ? a.season._id === season?._id
+          : a.season === season?._id)
+    );
+    return entry?.team?.name || "-";
+  };
 
   const generateColor = (index, total) =>
     `hsl(${(index * 360) / total}, 70%, 50%)`;
@@ -102,7 +116,7 @@ export default function Home() {
       <tr key={p._id}>
         <td>{i + 1}</td>
         <td>{p.realname}</td>
-        <td>{p.selectedTeam?.name || "-"}</td>
+        <td>{getTeamName(p._id)}</td>
         <td>{p.points}</td>
       </tr>
     ));
@@ -118,7 +132,7 @@ export default function Home() {
     return (
       <tr key={p._id}>
         <td>{p.realname}</td>
-        <td>{p.selectedTeam?.name || "-"}</td>
+        <td>{getTeamName(p._id)}</td>
         {racePoints.map((pts, idx) => (
           <td key={idx}>{pts}</td>
         ))}
@@ -131,13 +145,8 @@ export default function Home() {
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (!active || !payload || payload.length === 0) return null;
-
-    // Finde den Punkt, über dem sich der Cursor tatsächlich befindet
     const current = payload.find((p) => p.name === hoveredLine);
-
-    // Fallback auf ersten Wert, wenn activeDot fehlt
-    if (!current) return null; // kein Tooltip anzeigen
-
+    if (!current) return null;
     const { name, value, stroke } = current;
 
     return (
@@ -169,8 +178,8 @@ export default function Home() {
       <div className="sections-grid">
         <section>
           <h2>Dein Team</h2>
-          {localUser?.selectedTeam ? (
-            <p>{localUser.selectedTeam.name}</p>
+          {season && localUser ? (
+            <p>{getTeamName(localUser._id)}</p>
           ) : (
             <Link to="/choose-team">Team wählen</Link>
           )}
@@ -232,7 +241,7 @@ export default function Home() {
                     dataKey={p.realname}
                     stroke={generateColor(i, participants.length)}
                     strokeWidth={2}
-                    dot={{ r: 6 }} // Muss gesetzt sein, sonst ist Hover über Punkte nicht möglich
+                    dot={{ r: 6 }}
                     activeDot={{
                       r: 8,
                       onMouseOver: () => setHoveredLine(p.realname),

@@ -8,26 +8,26 @@ export default function AdminUserEdit() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [teams, setTeams] = useState([]);
+  const [seasons, setSeasons] = useState([]);
+  const [assignments, setAssignments] = useState([]);
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
-
-  const reloadUser = async () => {
-    try {
-      const userRes = await API.get(`/users/${id}`);
-      setUser(userRes.data);
-      setRole(userRes.data.role);
-    } catch (err) {
-      console.error("Fehler beim Neuladen:", err);
-    }
-  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const userRes = await API.get(`/users/${id}`);
-        const teamsRes = await API.get("/teams");
+        const [userRes, teamsRes, seasonsRes, assignmentsRes] =
+          await Promise.all([
+            API.get(`/users/${id}`),
+            API.get("/teams"),
+            API.get("/seasons"),
+            API.get(`/userSeasonTeams/user/${id}`),
+          ]);
+
         setUser(userRes.data);
         setTeams(teamsRes.data);
+        setSeasons(seasonsRes.data);
+        setAssignments(assignmentsRes.data);
         setRole(userRes.data.role);
       } catch (err) {
         console.error("Fehler beim Laden:", err);
@@ -37,14 +37,31 @@ export default function AdminUserEdit() {
     fetchData();
   }, [id]);
 
-  const updateTeam = async (teamId) => {
-    await API.put(`/users/${id}/team`, { teamId });
-    reloadUser();
-  };
+  const updateAssignment = async (seasonId, teamId) => {
+    try {
+      if (!teamId) {
+        await API.delete(`/userSeasonTeams`, {
+          data: { userId: id, seasonId },
+        });
+      } else {
+        await API.post("/userSeasonTeams", {
+          userId: id,
+          seasonId,
+          teamId,
+        });
+      }
 
-  const removeTeam = async () => {
-    await API.put(`/users/${id}/team`, { teamId: null });
-    reloadUser();
+      const updated = await API.get(`/userSeasonTeams/user/${id}`);
+      setAssignments(updated.data);
+    } catch (err) {
+      const message =
+        err.response?.data?.message ||
+        (err.response?.status === 400
+          ? "Ungültige Anfrage – ist das Team schon vergeben?"
+          : "Fehler beim Speichern/Löschen");
+
+      alert(message);
+    }
   };
 
   const updatePassword = async () => {
@@ -57,7 +74,6 @@ export default function AdminUserEdit() {
   const updateRole = async () => {
     await API.put(`/users/${id}/role`, { role });
     alert("Rolle aktualisiert");
-    reloadUser();
   };
 
   const deleteUser = async () => {
@@ -84,21 +100,34 @@ export default function AdminUserEdit() {
       </p>
 
       <div className="form-group">
-        <label>Team ändern</label>
-        <select
-          value={user.selectedTeam?._id || ""}
-          onChange={(e) => updateTeam(e.target.value)}
-        >
-          <option value="">— Team wählen —</option>
-          {teams.map((t) => (
-            <option key={t._id} value={t._id}>
-              {t.name}
-            </option>
-          ))}
-        </select>
-        {user.selectedTeam && (
-          <button onClick={removeTeam}>Team entfernen</button>
-        )}
+        <label>Teams pro Season</label>
+        {seasons.map((season) => {
+          const selected = assignments.find((a) => a.season._id === season._id);
+          return (
+            <div key={season._id} className="season-assignment">
+              <strong>{season.name}</strong>
+              <select
+                value={selected?.team?._id || ""}
+                onChange={(e) => updateAssignment(season._id, e.target.value)}
+              >
+                <option value="">— Team wählen —</option>
+                {teams.map((t) => (
+                  <option key={t._id} value={t._id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+              {selected?.team && (
+                <button
+                  className="delete-button"
+                  onClick={() => updateAssignment(season._id, null)}
+                >
+                  Team entfernen
+                </button>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       <div className="form-group">

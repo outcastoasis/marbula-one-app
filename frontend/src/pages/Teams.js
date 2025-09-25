@@ -1,4 +1,3 @@
-// === Neue Datei: src/pages/Teams.js ===
 import { useEffect, useState } from "react";
 import API from "../api";
 import { Link } from "react-router-dom";
@@ -6,27 +5,38 @@ import "../styles/Teams.css";
 
 export default function Teams() {
   const [teams, setTeams] = useState([]);
-  const [users, setUsers] = useState([]);
+  const [assignments, setAssignments] = useState([]);
+  const [seasonName, setSeasonName] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
-      const teamsRes = await API.get("/teams");
-      const usersRes = await API.get("/users");
-      setTeams(teamsRes.data);
-      setUsers(usersRes.data);
+      try {
+        const teamsRes = await API.get("/teams");
+        setTeams(teamsRes.data);
+
+        const seasonRes = await API.get("/seasons/current");
+        setSeasonName(seasonRes.data?.name || "");
+
+        const assignmentRes = await API.get(
+          `/userSeasonTeams?season=${seasonRes.data._id}`
+        );
+        setAssignments(assignmentRes.data);
+      } catch (err) {
+        console.error("Fehler beim Laden der Teams:", err);
+      }
     };
 
     fetchData();
   }, []);
 
   const getTeamOwner = (teamId) => {
-    const user = users.find((u) => u.selectedTeam?._id === teamId);
-    return user ? user.realname : null;
+    const match = assignments.find((a) => a.team._id === teamId);
+    return match?.user?.realname || null;
   };
 
   return (
     <div className="teams-container">
-      <h2>Alle Teams</h2>
+      <h2>Gewählte Teams in der{seasonName && <span> {seasonName}</span>}</h2>
       <div className="teams-grid">
         {teams.map((team) => (
           <Link

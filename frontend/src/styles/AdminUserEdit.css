@@ -79,3 +79,31 @@
 .delete-button:hover {
   background-color: #cc0000;
 }
+
+.season-assignment {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.season-assignment strong {
+  font-weight: 600;
+  color: var(--brand-text);
+}
+
+.season-assignment select {
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--brand-border);
+  border-radius: 8px;
+  background-color: var(--brand-dark);
+  color: var(--brand-text);
+  font-size: 1rem;
+}
+
+.form-group .season-assignment {
+  padding: 0.8rem;
+  background-color: var(--brand-dark);
+  border-radius: 10px;
+  border: 1px solid var(--brand-border);
+}
