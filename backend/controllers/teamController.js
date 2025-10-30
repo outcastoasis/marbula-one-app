@@ -6,8 +6,8 @@ export const getAllTeams = async (req, res) => {
 };
 
 export const createTeam = async (req, res) => {
-  const { name, color, logoUrl } = req.body;
-  const team = await Team.create({ name, color, logoUrl });
+  const { name, color, logoUrl, description } = req.body;
+  const team = await Team.create({ name, color, logoUrl, description });
   res.status(201).json(team);
 };
 
