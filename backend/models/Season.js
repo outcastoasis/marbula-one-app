@@ -1,3 +1,5 @@
+// backend/models/Season.js
+
 import mongoose from "mongoose";
 
 const seasonSchema = new mongoose.Schema({
@@ -10,6 +12,7 @@ const seasonSchema = new mongoose.Schema({
     },
   ],
   isCurrent: { type: Boolean, default: false }, // ← hinzugefügt
+  teams: [{ type: mongoose.Schema.Types.ObjectId, ref: "Team" }],
 });
 
 export default mongoose.model("Season", seasonSchema);

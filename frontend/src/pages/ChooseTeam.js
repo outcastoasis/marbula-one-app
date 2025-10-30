@@ -27,10 +27,8 @@ export default function ChooseTeam() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const teamRes = await API.get("/teams");
-        setTeams(teamRes.data);
-
         if (activeSeason) {
+          setTeams(activeSeason.teams || []);
           const res = await API.get(
             `/userSeasonTeams?season=${activeSeason._id}`
           );
@@ -46,8 +44,8 @@ export default function ChooseTeam() {
         console.error("Fehler beim Laden", err);
       }
     };
-    fetchData();
-  }, [activeSeason, user]);
+    if (activeSeason) fetchData();
+  }, [activeSeason]);
 
   const selectTeam = async (teamId) => {
     if (!activeSeason) {

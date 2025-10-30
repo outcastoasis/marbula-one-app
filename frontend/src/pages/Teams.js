@@ -11,11 +11,10 @@ export default function Teams() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const teamsRes = await API.get("/teams");
-        setTeams(teamsRes.data);
-
         const seasonRes = await API.get("/seasons/current");
         setSeasonName(seasonRes.data?.name || "");
+
+        setTeams(seasonRes.data?.teams || []);
 
         const assignmentRes = await API.get(
           `/userSeasonTeams?season=${seasonRes.data._id}`
@@ -49,16 +48,17 @@ export default function Teams() {
             }}
           >
             {team.logoUrl && (
-              <img
-                src={team.logoUrl}
-                alt={`${team.name} Logo`}
-                className="team-logo"
-              />
+              <div className="team-logo-wrapper">
+                <img
+                  src={team.logoUrl}
+                  alt={`${team.name} Logo`}
+                  className="team-logo"
+                />
+              </div>
             )}
+
             <div className="team-info">
-              <h3 className="team-name" style={{ color: team.color || "#fff" }}>
-                {team.name}
-              </h3>
+              <h3 className="team-name">{team.name}</h3>
               {getTeamOwner(team._id) && (
                 <p className="team-owner">
                   Gewählt von: {getTeamOwner(team._id)}

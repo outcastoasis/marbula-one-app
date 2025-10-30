@@ -33,47 +33,53 @@
   border: 2px solid var(--team-color, var(--brand-border));
   border-radius: 16px;
   text-decoration: none;
-  min-height: 100px;
-  justify-content: space-between;
-  text-align: center;
   color: inherit;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
   padding: 1rem;
-  transition: transform 0.2s ease;
+  min-height: 210px; /* Einheitliche Höhe für alle Karten */
   box-shadow: inset 0 0 20px var(--team-color, #44444488);
   background: radial-gradient(
     circle at center,
     var(--team-color-fade, transparent) 0%,
     var(--brand-light) 80%
   );
+  transition: transform 0.2s ease;
 }
 
 .team-card:hover {
   transform: scale(1.03);
 }
 
+.team-logo-wrapper {
+  width: 100%;
+  height: 120px; /* Fixe Höhe für Logo + Leerraum */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0; /* kein zusätzlicher Abstand */
+}
+
 .team-logo {
-  width: 100px;
-  height: 100px;
+  max-height: 100%;
+  max-width: 100%;
   object-fit: contain;
-  margin-bottom: 0.4rem; /* reduziert von 0.8rem */
 }
 
 .team-info {
   text-align: center;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  flex-grow: 1;
-  gap: 0.25rem; /* reduziert von 0.4rem */
+  gap: 0.25rem;
 }
 
 .team-name {
-  font-size: 1.05rem; /* leicht kleiner */
+  font-size: 1.05rem;
   font-weight: 600;
-  margin-bottom: 0; /* entfernt Abstand nach unten */
+  margin-top: 0.5rem; /* kontrollierter Abstand nach Logo-Zone */
+  margin-bottom: 0;
 }
 
 .team-owner {

@@ -8,7 +8,9 @@ export default function AdminSeasons() {
   const [name, setName] = useState("");
   const [eventDate, setEventDate] = useState("");
   const [participants, setParticipants] = useState([]);
+  const [teams, setTeams] = useState([]);
   const [users, setUsers] = useState([]);
+  const [allTeams, setAllTeams] = useState([]);
 
   const fetchSeasons = async () => {
     const res = await API.get("/seasons");
@@ -17,10 +19,11 @@ export default function AdminSeasons() {
 
   const addSeason = async () => {
     if (!name || !eventDate) return;
-    await API.post("/seasons", { name, eventDate, participants });
+    await API.post("/seasons", { name, eventDate, participants, teams });
     setName("");
     setEventDate("");
     setParticipants([]);
+    setTeams([]);
     fetchSeasons();
   };
 
@@ -37,6 +40,7 @@ export default function AdminSeasons() {
   useEffect(() => {
     fetchSeasons();
     API.get("/users").then((res) => setUsers(res.data));
+    API.get("/teams").then((res) => setAllTeams(res.data));
   }, []);
 
   return (
@@ -65,6 +69,7 @@ export default function AdminSeasons() {
             className="form-input"
           />
         </div>
+        {/* === Benutzer-Auswahl === */}
         <div>
           <label>Teilnehmende Benutzer:</label>
           <button
@@ -106,6 +111,48 @@ export default function AdminSeasons() {
             })}
           </div>
         </div>
+
+        {/* === Teams-Auswahl === */}
+        <div>
+          <label>Teilnehmende Teams:</label>
+          <button
+            type="button"
+            onClick={() => {
+              if (teams.length === allTeams.length) {
+                setTeams([]);
+              } else {
+                setTeams(allTeams.map((t) => t._id));
+              }
+            }}
+            className="toggle-select"
+          >
+            {teams.length === allTeams.length
+              ? "Alle abwählen"
+              : "Alle auswählen"}
+          </button>
+          <div className="checkbox-list">
+            {allTeams.map((t) => {
+              const isSelected = teams.includes(t._id);
+              return (
+                <label key={t._id}>
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setTeams([...teams, t._id]);
+                      } else {
+                        setTeams(teams.filter((id) => id !== t._id));
+                      }
+                    }}
+                  />
+                  <span>{t.name}</span>
+                </label>
+              );
+            })}
+          </div>
+        </div>
+
         <button onClick={addSeason} className="add-button">
           Season hinzufügen
         </button>

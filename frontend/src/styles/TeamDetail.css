@@ -72,3 +72,29 @@
   color: var(--brand-text);
   margin-top: 2rem;
 }
+
+.team-detail-seasons {
+  margin-top: 1.5rem;
+  background-color: #1f1f1f;
+  padding: 1rem;
+  border-radius: 12px;
+  text-align: left;
+  box-shadow: 0 0 6px rgba(255, 30, 30, 0.05);
+}
+
+.team-detail-seasons h3 {
+  color: var(--brand-red);
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.team-detail-seasons ul {
+  list-style: disc inside;
+  padding-left: 1rem;
+  margin: 0;
+  color: #ddd;
+}
+
+.team-detail-seasons li {
+  margin: 0.25rem 0;
+}

@@ -1,4 +1,7 @@
+// backend/controllers/teamController.js
+
 import Team from "../models/Team.js";
+import Season from "../models/Season.js";
 
 export const getAllTeams = async (req, res) => {
   const teams = await Team.find();
@@ -28,4 +31,12 @@ export const getTeamById = async (req, res) => {
   const team = await Team.findById(id);
   if (!team) return res.status(404).json({ message: "Team nicht gefunden" });
   res.json(team);
+};
+
+export const getSeasonsByTeam = async (req, res) => {
+  const teamId = req.params.id;
+  const seasons = await Season.find({ teams: teamId }).select(
+    "name eventDate _id"
+  );
+  res.json(seasons);
 };

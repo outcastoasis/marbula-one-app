@@ -1,3 +1,5 @@
+// backend/routes/userSeasonTeamRoutes.js
+
 import express from "express";
 import {
   createUserSeasonTeam,

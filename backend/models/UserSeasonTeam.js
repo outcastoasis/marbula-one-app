@@ -1,3 +1,5 @@
+// backend/models/UserSeasonTeam.js
+
 import mongoose from "mongoose";
 
 const userSeasonTeamSchema = new mongoose.Schema(

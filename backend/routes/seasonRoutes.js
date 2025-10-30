@@ -1,3 +1,5 @@
+// backend/routes/seasonRoutes.js
+
 import express from "express";
 import {
   getAllSeasons,
