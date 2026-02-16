@@ -1,4 +1,3 @@
-/* === Farben definieren (Formel 1 Style) === */
 :root {
   --brand-dark: #0e0e0e;
   --brand-light: #1a1a1a;
@@ -6,45 +5,52 @@
   --brand-border: #2a2a2a;
   --brand-hover: #2a2a2a;
   --brand-button-bg: #1a1a1a;
+  --dashboard-header-height: 60px;
+  --dashboard-sidebar-width: 260px;
 }
 
-/* === Allgemein === */
-body {
-  margin: 0;
-  font-family: "Segoe UI", sans-serif;
-  background-color: var(--brand-dark);
-  color: #ffffff;
-}
-
-/* === Layout-Wrapper === */
 .dashboard-layout {
-  display: flex;
   min-height: 100vh;
   background-color: var(--brand-dark);
 }
 
-/* === Sidebar === */
 .sidebar {
-  background-color: var(--brand-light);
-  width: 260px;
-  padding: 1.5rem;
+  position: fixed;
+  top: var(--dashboard-header-height);
+  left: 0;
+  width: var(--dashboard-sidebar-width);
+  height: calc(100vh - var(--dashboard-header-height));
+  padding: 1.25rem;
+  box-sizing: border-box;
   border-right: 1px solid var(--brand-border);
-  flex-shrink: 0;
-  overflow-y: auto;
+  background-color: var(--brand-light);
   box-shadow: 4px 0 12px rgba(0, 0, 0, 0.6);
-  z-index: 999;
+  overflow-y: auto;
+  transform: translateX(-100%);
+  transition: transform 0.25s ease-in-out;
+  z-index: 1000;
+}
+
+.sidebar.open {
+  transform: translateX(0);
+}
+
+.sidebar h2 {
+  margin: 0 0 1.25rem;
+  color: var(--brand-red);
+  font-size: 1.6rem;
 }
 
 .sidebar nav a {
   display: block;
-  padding: 0.75rem 1rem;
   margin-bottom: 0.5rem;
-  background-color: #111;
+  padding: 0.75rem 1rem;
   border-radius: 12px;
-  color: #fff;
   text-decoration: none;
+  color: #fff;
+  background-color: #111;
   font-weight: 500;
-  transition: background 0.2s;
+  transition: background 0.2s ease-in-out;
 }
 
 .sidebar nav a:hover {
@@ -52,209 +58,158 @@ body {
 }
 
 .sidebar hr {
-  margin: 1.5rem 0;
+  margin: 1.25rem 0;
   border: 1px solid var(--brand-border);
 }
 
-.sidebar h2 {
-  margin-bottom: 1.5rem;
-  font-size: 1.6rem;
-  color: var(--brand-red);
+.sidebar nav p {
+  margin: 0 0 0.5rem;
+  color: #fff;
+  opacity: 0.8;
+  font-weight: 600;
 }
 
-.sidebar button {
-  background: none;
+.season-group {
+  margin-bottom: 0.25rem;
+}
+
+.season-toggle {
+  width: 100%;
   border: none;
-  color: var(--brand-red);
-  cursor: pointer;
-  font-size: 1rem;
-  margin: 0.25rem 0;
+  border-radius: 10px;
+  padding: 0.6rem 0.75rem;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem;
+  justify-content: space-between;
+  color: var(--brand-red);
+  background-color: transparent;
+  cursor: pointer;
+  font-size: 0.95rem;
 }
 
-/* === Sidebar nur auf Mobile versteckt === */
-@media (max-width: 768px) {
-  .sidebar {
-    position: fixed;
-    top: 60px;
-    left: 0;
-    height: calc(100vh - 60px);
-    transform: translateX(-100%);
-    border-radius: 0 20px 20px 0;
-    transition: transform 0.3s ease-in-out;
-  }
-
-  .sidebar.open {
-    transform: translateX(0);
-  }
-
-  .dashboard-header button {
-    display: block;
-  }
-
-  .dashboard-main {
-    margin-left: 0;
-    width: 100%;
-  }
-
-  .dashboard-header {
-    margin-left: 0;
-    width: 100%;
-  }
+.season-toggle:hover {
+  background-color: rgba(255, 30, 30, 0.08);
 }
 
-/* === Sidebar Close-Button (nur sichtbar bei Mobile) === */
+.race-links a {
+  margin-left: 0.6rem;
+  margin-bottom: 0.35rem;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.92rem;
+}
+
+.sidebar-user-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--brand-border);
+}
+
+.sidebar-user-section p {
+  margin: 0 0 0.75rem;
+  color: #fff;
+}
+
+.logout-button {
+  border: 1px solid var(--brand-border);
+  border-radius: 10px;
+  padding: 0.55rem 0.8rem;
+  color: #fff;
+  background-color: #111;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+}
+
+.logout-button:hover {
+  background-color: var(--brand-hover);
+}
+
 .sidebar-close {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  background: none;
+  top: 0.7rem;
+  right: 0.7rem;
   border: none;
+  background: none;
   color: var(--brand-red);
-  font-size: 1.5rem;
   cursor: pointer;
-  z-index: 1001;
-  display: none;
 }
 
-@media (max-width: 768px) {
-  .sidebar-close {
-    display: block;
-  }
-}
-
-/* === Header === */
 .dashboard-header {
   position: fixed;
   top: 0;
   left: 0;
-  height: 60px;
   width: 100%;
-  background-color: var(--brand-light);
-  color: var(--brand-red);
+  height: var(--dashboard-header-height);
+  padding: 0 1rem;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 1rem;
-  z-index: 900;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  box-sizing: border-box;
-}
-
-@media (min-width: 769px) and (hover: hover) and (pointer: fine) {
-  .dashboard-header {
-    margin-left: 260px;
-    width: calc(100% - 260px);
-  }
-
-  .dashboard-header button {
-    display: none;
-  }
-
-  .sidebar {
-    transform: translateX(0); /* Immer sichtbar */
-    position: static;
-    height: auto;
-    border-radius: 0;
-  }
-}
-
-.dashboard-header h2 {
+  background-color: var(--brand-light);
   color: var(--brand-red);
-  margin: 0;
-}
-
-/* === Main Content === */
-.dashboard-main {
-  flex-grow: 1;
-  background-color: var(--brand-dark);
-  overflow-x: hidden;
-  margin-top: 60px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-@media (min-width: 769px) {
-  .dashboard-main {
-    width: calc(100% - 260px);
-  }
-}
-
-/* === Hamburger Icon Styling === */
-.dashboard-header button {
-  background-color: var(--brand-button-bg);
-  border: 1px solid var(--brand-border);
-  color: var(--brand-red);
-  padding: 0.5rem;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.dashboard-header button:hover {
-  background-color: var(--brand-hover);
+  z-index: 900;
 }
 
 .dashboard-header-inner {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
 }
 
-.dashboard-header-inner .header-logo {
-  margin-left: auto;
-  height: 36px;
-  object-fit: contain;
-  display: block;
+.dashboard-menu-toggle {
+  border: 1px solid var(--brand-border);
+  border-radius: 12px;
+  padding: 0.45rem 0.65rem;
+  background-color: var(--brand-button-bg);
+  color: var(--brand-red);
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
 }
 
-.dashboard-header-inner button {
-  flex-shrink: 0;
-  margin-right: 0.5rem;
+.dashboard-menu-toggle:hover {
+  background-color: var(--brand-hover);
 }
 
 .header-logo {
+  margin-left: auto;
   height: 36px;
   max-height: 36px;
   object-fit: contain;
 }
 
-/* === Smartphone Landscape: Sidebar standardmäßig geschlossen === */
-@media (max-width: 900px) and (orientation: landscape) {
+.dashboard-main {
+  margin-top: var(--dashboard-header-height);
+  padding: 0;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  background-color: var(--brand-dark);
+}
+
+.sidebar nav a:focus-visible,
+.season-toggle:focus-visible,
+.logout-button:focus-visible,
+.dashboard-menu-toggle:focus-visible,
+.sidebar-close:focus-visible {
+  outline: 2px solid var(--brand-red);
+  outline-offset: 2px;
+}
+
+@media (min-width: 769px) {
   .sidebar {
-    transform: translateX(-100%) !important;
-    position: fixed;
-    top: 60px;
-    left: 0;
-    height: calc(100vh - 60px);
-    border-radius: 0 20px 20px 0;
-    transition: transform 0.3s ease-in-out;
-    z-index: 999;
-  }
-
-  .sidebar.open {
-    transform: translateX(0) !important;
-  }
-
-  .dashboard-main {
-    margin-left: 0 !important;
-    width: 100% !important;
-  }
-
-  .dashboard-header {
-    margin-left: 0 !important;
-    width: 100% !important;
-  }
-
-  .dashboard-header button {
-    display: block !important;
+    transform: translateX(0);
   }
 
   .sidebar-close {
-    display: block !important;
+    display: none;
+  }
+
+  .dashboard-menu-toggle {
+    display: none;
+  }
+
+  .dashboard-main {
+    margin-left: var(--dashboard-sidebar-width);
+    width: calc(100% - var(--dashboard-sidebar-width));
   }
 }

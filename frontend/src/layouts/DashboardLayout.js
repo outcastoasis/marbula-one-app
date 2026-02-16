@@ -1,9 +1,13 @@
-// === DashboardLayout.js ===
-
 import { Link, useNavigate } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faBars,
+  faChevronDown,
+  faChevronUp,
+  faXmark,
+} from "@fortawesome/free-solid-svg-icons";
 import { AuthContext } from "../context/AuthContext";
-import { Menu, X, ChevronDown, ChevronUp } from "lucide-react";
 import API from "../api";
 import "../styles/DashboardLayout.css";
 import navbarLogo from "../assets/navbar_2.png";
@@ -41,19 +45,23 @@ export default function DashboardLayout({ children }) {
 
   return (
     <div className="dashboard-layout">
-      <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
+      <aside
+        id="dashboard-sidebar"
+        className={`sidebar ${sidebarOpen ? "open" : ""}`}
+      >
         {sidebarOpen && (
           <button
+            type="button"
             className="sidebar-close"
             onClick={closeSidebar}
             aria-label="Sidebar schliessen"
           >
-            <X size={24} />
+            <FontAwesomeIcon icon={faXmark} size="lg" />
           </button>
         )}
         <h2>Marbula One</h2>
 
-        <nav>
+        <nav aria-label="Hauptnavigation">
           <Link to="/" onClick={closeSidebar}>
             Home
           </Link>
@@ -86,45 +94,54 @@ export default function DashboardLayout({ children }) {
                 Seasons
               </Link>
 
-              {seasons.map((season) => (
-                <div key={season._id}>
-                  <button
-                    onClick={() =>
-                      setExpandedSeason((prev) =>
-                        prev === season._id ? null : season._id
-                      )
-                    }
-                  >
-                    <span>{season.name}</span>
-                    {expandedSeason === season._id ? (
-                      <ChevronUp size={16} />
-                    ) : (
-                      <ChevronDown size={16} />
+              {seasons.map((season) => {
+                const isExpanded = expandedSeason === season._id;
+
+                return (
+                  <div key={season._id} className="season-group">
+                    <button
+                      type="button"
+                      className="season-toggle"
+                      aria-expanded={isExpanded}
+                      aria-controls={`season-races-${season._id}`}
+                      onClick={() =>
+                        setExpandedSeason((prev) =>
+                          prev === season._id ? null : season._id
+                        )
+                      }
+                    >
+                      <span>{season.name}</span>
+                      <FontAwesomeIcon
+                        icon={isExpanded ? faChevronUp : faChevronDown}
+                        size="sm"
+                      />
+                    </button>
+                    {isExpanded && (
+                      <div id={`season-races-${season._id}`} className="race-links">
+                        {season.races.map((race) => (
+                          <Link
+                            key={race._id}
+                            to={`/admin/races/${race._id}/results`}
+                            onClick={closeSidebar}
+                          >
+                            {race.name}
+                          </Link>
+                        ))}
+                      </div>
                     )}
-                  </button>
-                  {expandedSeason === season._id && (
-                    <div>
-                      {season.races.map((race) => (
-                        <Link
-                          key={race._id}
-                          to={`/admin/races/${race._id}/results`}
-                          onClick={closeSidebar}
-                        >
-                          {race.name}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
+                  </div>
+                );
+              })}
             </>
           )}
         </nav>
 
         {user && (
-          <div style={{ marginTop: "1rem" }}>
+          <div className="sidebar-user-section">
             <p>Hallo, {user.username}</p>
             <button
+              type="button"
+              className="logout-button"
               onClick={() => {
                 logout();
                 navigate("/login");
@@ -138,8 +155,15 @@ export default function DashboardLayout({ children }) {
 
       <header className="dashboard-header">
         <div className="dashboard-header-inner">
-          <button onClick={() => setSidebarOpen(!sidebarOpen)}>
-            {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
+          <button
+            type="button"
+            className="dashboard-menu-toggle"
+            onClick={() => setSidebarOpen((prev) => !prev)}
+            aria-label={sidebarOpen ? "Sidebar schliessen" : "Sidebar öffnen"}
+            aria-expanded={sidebarOpen}
+            aria-controls="dashboard-sidebar"
+          >
+            <FontAwesomeIcon icon={sidebarOpen ? faXmark : faBars} size="lg" />
           </button>
           <img src={navbarLogo} alt="Marbula One" className="header-logo" />
         </div>
