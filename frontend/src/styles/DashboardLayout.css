@@ -170,7 +170,6 @@ body {
 /* === Main Content === */
 .dashboard-main {
   flex-grow: 1;
-  padding: 1rem;
   background-color: var(--brand-dark);
   overflow-x: hidden;
   margin-top: 60px;
@@ -180,7 +179,6 @@ body {
 
 @media (min-width: 769px) {
   .dashboard-main {
-    margin-left: 10px;
     width: calc(100% - 260px);
   }
 }
