@@ -6,95 +6,185 @@
   --brand-text: #ffffff;
 }
 
-.team-detail-container {
-  max-width: 720px;
-  margin: 2rem auto;
-  padding: 0 1rem;
+.team-detail-page {
+  width: min(1100px, 100%);
+  margin: 0 auto;
+  padding: clamp(0.85rem, 2vw, 1.5rem);
+  box-sizing: border-box;
   color: var(--brand-text);
-  background-color: var(--brand-dark);
-  box-sizing: border-box;
 }
 
-.team-detail-card {
-  background-color: var(--brand-light);
+.team-detail-hero {
+  border: 1px solid var(--brand-border);
   border-radius: 16px;
-  padding: 1.5rem;
-  margin: 1rem 0;
-  box-shadow: 0 0 10px rgba(255, 30, 30, 0.1);
-  text-align: center;
+  padding: clamp(1rem, 2.4vw, 1.35rem);
+  margin-bottom: 1rem;
   box-sizing: border-box;
+  background:
+    radial-gradient(
+      160% 170% at 0% 0%,
+      var(--team-color-fade, rgba(255, 30, 30, 0.1)) 0%,
+      transparent 58%
+    ),
+    linear-gradient(125deg, #1a1a1a 0%, #151515 100%);
+  box-shadow: 0 14px 26px rgba(0, 0, 0, 0.25);
 }
 
-@media (min-width: 600px) {
-  .team-detail-card {
-    padding: 2rem 2.5rem;
-  }
+.team-detail-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.9rem;
+  color: #e5e5e5;
+  text-decoration: none;
+  font-size: 0.92rem;
+}
+
+.team-detail-back-link:hover {
+  color: #ffffff;
+}
+
+.team-detail-hero-content {
+  display: flex;
+  align-items: center;
+  gap: 0.95rem;
 }
 
 .team-detail-logo {
-  max-width: 100px;
-  height: 100px;
+  width: 92px;
+  height: 92px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.04);
   object-fit: contain;
-  margin: 0 auto 1rem auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--team-color, #ff1e1e);
+  font-size: 1.5rem;
+}
+
+.team-detail-title-wrap {
+  min-width: 0;
 }
 
 .team-detail-name {
-  font-size: 1.6rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  color: var(--team-color, var(--brand-text));
+  margin: 0 0 0.2rem;
+  color: var(--team-color, var(--brand-red));
+  font-size: clamp(1.45rem, 3.2vw, 2.1rem);
+  line-height: 1.1;
 }
 
-.team-detail-owner,
-.team-detail-color {
-  font-size: 0.95rem;
-  color: #ddd;
-  margin: 0.25rem 0;
+.team-detail-subtitle {
+  margin: 0;
+  color: #d4d4d4;
+}
+
+.team-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.9rem;
+}
+
+.team-detail-panel {
+  border: 1px solid var(--brand-border);
+  border-radius: 14px;
+  background-color: #171717;
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.22);
+  padding: 1rem 1.1rem;
+}
+
+.team-detail-panel h2 {
+  margin: 0 0 0.6rem;
+  color: var(--brand-red);
+  font-size: 1.08rem;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.team-detail-inline-title {
+  margin-top: 1rem;
+}
+
+.team-detail-meta-line {
+  margin: 0;
+  margin-bottom: 1rem;
+  color: #e4e4e4;
 }
 
 .team-detail-description {
-  margin-top: 1.5rem;
-  background-color: #1f1f1f;
-  padding: 1rem;
-  border-radius: 12px;
-  text-align: left;
-  box-shadow: 0 0 6px rgba(255, 30, 30, 0.05);
-}
-
-.team-detail-description h3 {
-  color: var(--brand-red);
-  font-size: 1.2rem;
-  margin-bottom: 0.5rem;
-}
-
-.team-loading {
-  text-align: center;
-  color: var(--brand-text);
-  margin-top: 2rem;
-}
-
-.team-detail-seasons {
-  margin-top: 1.5rem;
-  background-color: #1f1f1f;
-  padding: 1rem;
-  border-radius: 12px;
-  text-align: left;
-  box-shadow: 0 0 6px rgba(255, 30, 30, 0.05);
-}
-
-.team-detail-seasons h3 {
-  color: var(--brand-red);
-  font-size: 1.2rem;
-  margin-bottom: 0.5rem;
-}
-
-.team-detail-seasons ul {
-  list-style: disc inside;
-  padding-left: 1rem;
   margin: 0;
-  color: #ddd;
+  color: #dddddd;
+  line-height: 1.5;
 }
 
-.team-detail-seasons li {
-  margin: 0.25rem 0;
+.team-color-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  margin-right: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  vertical-align: middle;
+}
+
+.team-detail-season-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.team-detail-season-list li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid var(--brand-border);
+  background-color: #1d1d1d;
+  color: #ececec;
+  font-size: 0.9rem;
+}
+
+.team-detail-muted {
+  margin: 0;
+  color: #aaaaaa;
+}
+
+.team-detail-loading {
+  border: 1px solid var(--brand-border);
+  border-radius: 12px;
+  background-color: #171717;
+  color: #dddddd;
+  padding: 1rem 1.1rem;
+}
+
+.team-detail-back-link:focus-visible {
+  outline: 2px solid var(--brand-red);
+  outline-offset: 2px;
+}
+
+@media (min-width: 920px) {
+  .team-detail-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .team-detail-panel-seasons {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 600px) {
+  .team-detail-hero-content {
+    align-items: flex-start;
+  }
+
+  .team-detail-logo {
+    width: 76px;
+    height: 76px;
+  }
 }
