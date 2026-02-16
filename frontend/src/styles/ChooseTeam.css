@@ -1,74 +1,118 @@
-/* KEINE Globalklassen wie .team-card etc.! */
-
 .choose-container {
-  max-width: 720px;
-  margin: 2rem auto;
-  padding: 0 1rem;
+  width: min(1200px, 100%);
+  margin: 0 auto;
+  padding: clamp(0.75rem, 2vw, 1.5rem);
+  box-sizing: border-box;
   color: var(--brand-text);
   background-color: var(--brand-dark);
-  box-sizing: border-box;
 }
 
-.choose-container h2 {
-  font-size: 2rem;
-  color: var(--brand-red);
-  margin-bottom: 1.5rem;
+.choose-page-title {
+  margin: 0.5rem auto 1.4rem;
+  max-width: 20ch;
   text-align: center;
+  text-wrap: balance;
+  color: var(--brand-red);
+  font-size: clamp(1.7rem, 4.5vw, 2.9rem);
+  line-height: 1.15;
+}
+
+.choose-page-subtitle {
+  margin: -0.7rem auto 1rem;
+  max-width: 46ch;
+  text-align: center;
+  color: #d4d4d4;
+  font-size: clamp(0.92rem, 2.2vw, 1rem);
+}
+
+.choose-page-subtitle strong {
+  color: #ffffff;
 }
 
 .selected-team-box {
-  background-color: var(--brand-light);
-  padding: 1rem;
-  border-radius: 12px;
-  box-shadow: 0 0 10px rgba(255, 30, 30, 0.05);
+  border: 1px solid var(--brand-border);
+  border-radius: 14px;
+  padding: clamp(0.9rem, 2vw, 1.5rem);
+  background: linear-gradient(130deg, #191919 0%, #151515 100%);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
   text-align: center;
+}
+
+.selected-team-box p {
+  margin: 0;
+  color: #efefef;
+  font-size: clamp(0.92rem, 2.2vw, 1rem);
+}
+
+.selected-team-box strong {
+  color: var(--brand-red);
 }
 
 .choose-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1rem;
+  gap: 0.9rem;
 }
 
-@media (min-width: 600px) {
+@media (min-width: 700px) {
   .choose-grid {
     grid-template-columns: 1fr 1fr;
   }
 }
 
 .choose-card {
-  background-color: var(--brand-light);
-  padding: 1rem;
-  border-radius: 12px;
-  box-shadow: 0 0 10px rgba(255, 30, 30, 0.08);
+  border: 1px solid var(--brand-border);
+  border-radius: 14px;
+  padding: 0.95rem;
+  background: linear-gradient(130deg, #191919 0%, #151515 100%);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.22);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 0.75rem;
 }
 
 .choose-name {
-  font-weight: 500;
-  font-size: 1rem;
   color: var(--brand-text);
+  font-weight: 600;
+  font-size: 1rem;
 }
 
 .choose-status {
-  color: #aaa;
+  color: #a9a9a9;
   font-size: 0.9rem;
 }
 
 .choose-select-btn {
+  border: 1px solid var(--brand-border);
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
   background-color: var(--brand-red);
-  color: #fff;
-  font-size: 0.85rem;
+  color: #ffffff;
+  font-size: 0.88rem;
   font-weight: 600;
-  padding: 6px 12px;
-  border: none;
-  border-radius: 8px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
 .choose-select-btn:hover {
-  background-color: #e60000;
+  background-color: #e31414;
+  transform: translateY(-1px);
+}
+
+.choose-select-btn:focus-visible {
+  outline: 2px solid var(--brand-red);
+  outline-offset: 2px;
+}
+
+@media (max-width: 900px) {
+  .choose-container {
+    padding: 0.75rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .choose-page-title {
+    margin-bottom: 1rem;
+  }
 }

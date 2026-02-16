@@ -10,7 +10,6 @@ export default function ChooseTeam() {
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [activeSeason, setActiveSeason] = useState(null);
 
-  // Aktive Season laden
   useEffect(() => {
     const fetchActiveSeason = async () => {
       try {
@@ -20,38 +19,44 @@ export default function ChooseTeam() {
         console.error("Fehler beim Laden der aktiven Season", err);
       }
     };
+
     fetchActiveSeason();
   }, []);
 
-  // Teams + bereits gewählte Zuordnungen laden
   useEffect(() => {
     const fetchData = async () => {
       try {
-        if (activeSeason) {
-          setTeams(activeSeason.teams || []);
-          const res = await API.get(
-            `/userSeasonTeams?season=${activeSeason._id}`
-          );
-          const allAssignments = res.data;
+        if (!activeSeason) {
+          return;
+        }
 
-          setTakenTeams(allAssignments.map((a) => a.team._id));
+        setTeams(activeSeason.teams || []);
 
-          // Prüfen, ob User schon gewählt hat
-          const mine = allAssignments.find((a) => a.user._id === user._id);
-          if (mine) setSelectedTeam(mine.team);
+        const res = await API.get(`/userSeasonTeams?season=${activeSeason._id}`);
+        const allAssignments = res.data;
+
+        setTakenTeams(allAssignments.map((assignment) => assignment.team._id));
+
+        const mine = allAssignments.find((assignment) => assignment.user._id === user._id);
+        if (mine) {
+          setSelectedTeam(mine.team);
         }
       } catch (err) {
         console.error("Fehler beim Laden", err);
       }
     };
-    if (activeSeason) fetchData();
-  }, [activeSeason]);
+
+    if (activeSeason) {
+      fetchData();
+    }
+  }, [activeSeason, user?._id]);
 
   const selectTeam = async (teamId) => {
     if (!activeSeason) {
       alert("Keine aktive Season gefunden");
       return;
     }
+
     try {
       const res = await API.post("/userSeasonTeams", {
         teamId,
@@ -66,13 +71,23 @@ export default function ChooseTeam() {
 
   return (
     <div className="choose-container">
-      <h2>Team auswählen</h2>
+      <h1 className="choose-page-title">Team auswählen</h1>
+      <p className="choose-page-subtitle">
+        Wähle dein Team
+        {activeSeason?.name ? (
+          <>
+            {" "}
+            für <strong>{activeSeason.name}</strong>
+          </>
+        ) : (
+          " für die aktuelle Season"
+        )}
+      </p>
 
       {selectedTeam ? (
         <div className="selected-team-box">
           <p>
-            Dein Team für {activeSeason?.name}:{" "}
-            <strong>{selectedTeam.name}</strong>
+            Dein Team für {activeSeason?.name}: <strong>{selectedTeam.name}</strong>
           </p>
         </div>
       ) : (
@@ -81,9 +96,10 @@ export default function ChooseTeam() {
             <div key={team._id} className="choose-card">
               <span className="choose-name">{team.name}</span>
               {takenTeams.includes(team._id) ? (
-                <span className="choose-status">vergeben</span>
+                <span className="choose-status">Vergeben</span>
               ) : (
                 <button
+                  type="button"
                   onClick={() => selectTeam(team._id)}
                   className="choose-select-btn"
                 >

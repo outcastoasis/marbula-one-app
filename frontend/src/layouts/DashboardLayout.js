@@ -29,7 +29,7 @@ export default function DashboardLayout({ children }) {
           allSeasons.map(async (season) => {
             const racesRes = await API.get(`/races/season/${season._id}`);
             return { ...season, races: racesRes.data };
-          })
+          }),
         );
 
         setSeasons(seasonsWithRaces);
@@ -69,7 +69,7 @@ export default function DashboardLayout({ children }) {
             Teams
           </Link>
           <Link to="/winners" onClick={closeSidebar}>
-            Siegerarchiv
+            Sieger-Archiv
           </Link>
           {user && !user.selectedTeam && (
             <Link to="/choose-team" onClick={closeSidebar}>
@@ -106,7 +106,7 @@ export default function DashboardLayout({ children }) {
                       aria-controls={`season-races-${season._id}`}
                       onClick={() =>
                         setExpandedSeason((prev) =>
-                          prev === season._id ? null : season._id
+                          prev === season._id ? null : season._id,
                         )
                       }
                     >
@@ -117,7 +117,10 @@ export default function DashboardLayout({ children }) {
                       />
                     </button>
                     {isExpanded && (
-                      <div id={`season-races-${season._id}`} className="race-links">
+                      <div
+                        id={`season-races-${season._id}`}
+                        className="race-links"
+                      >
                         {season.races.map((race) => (
                           <Link
                             key={race._id}

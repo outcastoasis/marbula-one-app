@@ -1,14 +1,192 @@
+:root {
+  --brand-dark: #0e0e0e;
+  --brand-light: #1a1a1a;
+  --brand-red: #ff1e1e;
+  --brand-border: #2a2a2a;
+  --brand-text: #ffffff;
+  --win-card-padding: clamp(0.9rem, 2vw, 1.5rem);
+  --win-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+}
+
 .win-page {
-  max-width: 900px;
-  margin: auto;
-  padding: 1rem;
-  color: white;
+  width: min(1200px, 100%);
+  margin: 0 auto;
+  padding: clamp(0.75rem, 2vw, 1.5rem);
+  box-sizing: border-box;
+  color: var(--brand-text);
+  background-color: var(--brand-dark);
+}
+
+.win-page-title {
+  margin: 0.5rem auto 1.4rem;
+  max-width: 20ch;
+  text-align: center;
+  text-wrap: balance;
+  color: var(--brand-red);
+  font-size: clamp(1.7rem, 4.5vw, 2.9rem);
+  line-height: 1.15;
+}
+
+.win-page-subtitle {
+  margin: -0.7rem auto 1rem;
+  max-width: 46ch;
+  text-align: center;
+  color: #d4d4d4;
+  font-size: clamp(0.92rem, 2.2vw, 1rem);
+}
+
+.win-empty-card {
+  border: 1px solid var(--brand-border);
+  border-radius: 14px;
+  background-color: var(--brand-light);
+  padding: var(--win-card-padding);
+  color: #d7d7d7;
+  box-shadow: var(--win-shadow);
+}
+
+.win-empty-card-error {
+  border-color: rgba(255, 30, 30, 0.45);
+  color: #ffb7b7;
+}
+
+.winner-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.95rem;
 }
 
 .winner-card {
-  background: #2c2c2c;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  border-radius: 10px;
-  border-left: 5px solid #d40000;
+  border: 1px solid var(--brand-border);
+  border-radius: 14px;
+  padding: var(--win-card-padding);
+  box-sizing: border-box;
+  background:
+    radial-gradient(130% 120% at 0% 0%, rgba(255, 30, 30, 0.09) 0%, transparent 52%),
+    linear-gradient(132deg, #1a1a1a 0%, #151515 100%);
+  box-shadow: var(--win-shadow);
+}
+
+.winner-card-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid var(--brand-border);
+  margin-bottom: 0.85rem;
+}
+
+.winner-card-header h2 {
+  margin: 0;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: clamp(1.1rem, 2.6vw, 1.45rem);
+  line-height: 1.2;
+}
+
+.winner-location {
+  margin: 0;
+  color: #d3d3d3;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: clamp(0.92rem, 2.2vw, 1rem);
+}
+
+.winner-results-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.7rem;
+}
+
+.winner-result {
+  border: 1px solid var(--brand-border);
+  border-radius: 12px;
+  padding: 0.85rem 0.95rem;
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.winner-result h3 {
+  margin: 0 0 0.45rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--brand-red);
+  font-size: clamp(0.98rem, 2.3vw, 1.08rem);
+}
+
+.winner-result p {
+  margin: 0;
+  color: #f0f0f0;
+  font-size: clamp(0.92rem, 2.2vw, 1rem);
+}
+
+.winner-result-first {
+  border-left: 3px solid rgba(255, 30, 30, 0.95);
+}
+
+.winner-result-last {
+  border-left: 3px solid rgba(255, 255, 255, 0.35);
+}
+
+.winner-notes {
+  margin-top: 0.8rem;
+  border: 1px solid var(--brand-border);
+  border-radius: 12px;
+  padding: 0.85rem 0.95rem;
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.winner-notes h3 {
+  margin: 0 0 0.45rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--brand-red);
+  font-size: clamp(0.98rem, 2.3vw, 1.08rem);
+}
+
+.winner-notes p {
+  margin: 0;
+  color: #dddddd;
+  line-height: 1.45;
+  font-size: clamp(0.92rem, 2.2vw, 1rem);
+}
+
+.winner-card-header h2 .svg-inline--fa,
+.winner-location .svg-inline--fa,
+.winner-result h3 .svg-inline--fa,
+.winner-notes h3 .svg-inline--fa {
+  font-size: 0.9em;
+}
+
+@media (min-width: 860px) {
+  .winner-results-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .win-page {
+    padding: 0.75rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .win-page-title {
+    margin-bottom: 1rem;
+  }
+
+  .winner-card-header {
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.6rem;
+  }
+
+  .winner-result,
+  .winner-notes {
+    padding: 0.7rem 0.8rem;
+  }
 }
