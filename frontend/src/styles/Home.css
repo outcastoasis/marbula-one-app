@@ -1,160 +1,184 @@
-/* === Home.css — Formel 1 Stil, perfekt für Mobile & Desktop === */
-
+/* Home page layout */
 .home-container {
-  width: 100%;
-  padding: 0 1rem; /* Statt padding: 1rem; */
+  --home-bg: #0e0e0e;
+  --home-card: #1a1a1a;
+  --home-border: #2d2d2d;
+  --home-red: #ff1e1e;
+  --home-text: #ffffff;
+  --home-muted: #d3d3d3;
+  --home-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+  --home-card-padding: clamp(0.9rem, 2vw, 1.5rem);
+
+  width: min(1200px, 100%);
   margin: 0 auto;
-  background-color: #0e0e0e;
+  padding: clamp(0.75rem, 2vw, 1.5rem);
+  background-color: var(--home-bg);
   box-sizing: border-box;
 }
 
-/* Hauptüberschrift */
-h1 {
-  color: #ff1e1e;
-  font-size: 1.8rem;
-  margin: 2rem auto;
+.home-container > h1 {
+  color: var(--home-red);
+  font-size: clamp(1.7rem, 4.5vw, 2.9rem);
+  line-height: 1.15;
+  margin: 0.5rem auto 1.4rem;
   text-align: center;
-  overflow-wrap: break-word; /* verbessert Umbruch auf kleinen Screens */
-  max-width: 640px;
-  padding: 0 1rem;
-  box-sizing: border-box;
+  max-width: 20ch;
+  text-wrap: balance;
 }
 
-.sections-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.sections-grid > section {
-  background-color: #1a1a1a;
-  border-radius: 16px;
-  padding: 1rem;
-  margin: 1rem 0;
-  box-shadow: 0 0 10px rgba(255, 30, 30, 0.1);
-  box-sizing: border-box;
-  width: 100%;
-}
-
-/* Desktop-Ansicht */
-@media (min-width: 900px) {
-  .sections-grid {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  .sections-grid > section {
-    background-color: #1a1a1a;
-    border-radius: 16px;
-    padding: 1rem;
-    box-shadow: 0 0 10px rgba(255, 30, 30, 0.1);
-    flex: 1 1 300px;
-    box-sizing: border-box;
-  }
-}
-
-/* Sektionen */
-.home-container > section {
-  background-color: #1a1a1a;
-  border-radius: 16px;
-  padding: 1rem;
-  margin: 1rem auto 2rem auto;
-  box-shadow: 0 0 10px rgba(255, 30, 30, 0.1);
-  width: 100%;
-  box-sizing: border-box;
-}
-
-/* Größere Breakpoints – nur Fontgröße & Padding anpassen */
-@media (min-width: 600px) {
-  h1 {
-    font-size: 2.4rem;
-  }
-
-  .home-container section {
-    padding: 1.5rem 2rem;
-  }
-}
-
-@media (min-width: 900px) {
-  h1 {
-    font-size: 2.8rem;
-  }
-}
-
-h2 {
-  color: #ff1e1e;
-  margin-top: 1rem;
+.home-container .sections-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.9rem;
   margin-bottom: 1rem;
-  font-size: 1.3rem;
 }
 
-section p {
-  margin: 0.25rem 0;
-  font-size: 0.95rem;
-  color: #ddd;
+.home-container .sections-grid > section,
+.home-container > section {
+  background-color: var(--home-card);
+  border: 1px solid var(--home-border);
+  border-radius: 14px;
+  padding: var(--home-card-padding);
+  box-shadow: var(--home-shadow);
+  width: 100%;
+  box-sizing: border-box;
 }
 
-section strong {
-  color: #fff;
+.home-container > section {
+  margin-bottom: 1rem;
+}
+
+.home-container h2 {
+  color: var(--home-red);
+  margin: 0 0 0.7rem;
+  font-size: clamp(1.1rem, 2.6vw, 1.45rem);
+}
+
+.home-container section p {
+  margin: 0.35rem 0;
+  font-size: clamp(0.92rem, 2.2vw, 1rem);
+  color: var(--home-muted);
+}
+
+.home-container section strong {
+  color: var(--home-text);
   font-weight: 600;
 }
 
-a {
-  color: #ff1e1e;
-  font-weight: 500;
+.home-container a {
+  color: var(--home-red);
   text-decoration: none;
+  font-weight: 600;
 }
 
-a:hover {
+.home-container a:hover {
   text-decoration: underline;
 }
 
-/* Scrollbare Tabellen & Diagramme */
-.scroll-wrapper {
+.home-container .scroll-wrapper {
+  width: 100%;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 0.25rem;
+}
+
+.home-container .table-scroll-wrapper {
   overflow-x: auto;
-  width: 100%;
+  overflow-y: hidden;
 }
 
-.scroll-wrapper > * {
-  min-width: 800px; /* oder 1000px – je nach Wunsch */
+.home-container .chart-scroll-wrapper {
+  overflow-x: auto;
+  overflow-y: visible;
 }
 
-/* Tabellen */
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
+.home-container .scroll-wrapper > * {
   min-width: 100%;
+}
+
+.home-container .data-table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
   border-radius: 12px;
   overflow: hidden;
 }
 
-.data-table th,
-.data-table td {
-  border: 1px solid #333;
-  padding: 0.75rem;
+.home-container .data-table th,
+.home-container .data-table td {
+  border-bottom: 1px solid #333;
+  border-right: 1px solid #333;
+  padding: 0.65rem 0.75rem;
   text-align: left;
+  white-space: nowrap;
+  font-size: 0.94rem;
 }
 
-.data-table th {
-  background-color: #2c2c2c;
-  color: #ff1e1e;
-  font-weight: 600;
+.home-container .data-table th:first-child,
+.home-container .data-table td:first-child {
+  border-left: 1px solid #333;
 }
 
-.data-table td {
-  background-color: #1e1e1e;
-  color: #fff;
+.home-container .data-table tr:first-child th {
+  border-top: 1px solid #333;
 }
 
-/* Chart Design */
-.chart-inner {
-  min-width: unset;
+.home-container .data-table th {
+  background-color: #252525;
+  color: var(--home-red);
+  font-weight: 700;
+}
+
+.home-container .data-table td {
+  background-color: #1c1c1c;
+  color: var(--home-text);
+}
+
+.home-container .data-table tbody tr:nth-child(even) td {
+  background-color: #191919;
+}
+
+.home-container .chart-inner {
   width: 100%;
-  min-width: 800px;
   height: 600px;
-  border-radius: 16px;
-  background-color: #1a1a1a;
-  padding: 1rem;
-  box-shadow: 0 0 12px rgba(255, 30, 30, 0.08);
+  min-width: 800px;
+  border-radius: 14px;
+  background-color: #181818;
+  border: 1px solid var(--home-border);
+  padding: clamp(0.75rem, 2vw, 1rem);
+  box-sizing: border-box;
+}
+
+@media (min-width: 900px) {
+  .home-container .sections-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .home-container {
+    padding: 0.75rem;
+  }
+
+  .home-container .chart-inner {
+    height: 520px;
+  }
+}
+
+@media (max-width: 600px) {
+  .home-container > h1 {
+    margin-bottom: 1rem;
+  }
+
+  .home-container .data-table th,
+  .home-container .data-table td {
+    padding: 0.55rem 0.6rem;
+    font-size: 0.86rem;
+  }
+
+  .home-container .chart-inner {
+    height: 460px;
+    padding: 0.6rem;
+  }
 }

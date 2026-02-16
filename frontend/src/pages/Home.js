@@ -92,7 +92,7 @@ export default function Home() {
     `hsl(${(index * 360) / total}, 70%, 50%)`;
 
   const renderTable = (rows, columns) => (
-    <div className="scroll-wrapper">
+    <div className="scroll-wrapper table-scroll-wrapper">
       <table className="data-table">
         <thead>
           <tr>
@@ -225,9 +225,9 @@ export default function Home() {
 
       <section>
         <h2>Punkteverlauf</h2>
-        <div className="scroll-wrapper">
+        <div className="scroll-wrapper chart-scroll-wrapper">
           <div className="chart-inner">
-            <ResponsiveContainer width="100%" height={600}>
+            <ResponsiveContainer width="100%" height="100%">
               <LineChart data={cumulativeData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
