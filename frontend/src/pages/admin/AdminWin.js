@@ -179,7 +179,7 @@ export default function AdminWin() {
             <input
               type="text"
               name="location"
-              placeholder="z. B. Midnight Bay"
+              placeholder="z. B. Cave"
               value={createFormData.location}
               onChange={handleCreateChange}
               required

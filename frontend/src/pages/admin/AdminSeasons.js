@@ -11,6 +11,7 @@ import {
   faUsers,
 } from "@fortawesome/free-solid-svg-icons";
 import API from "../../api";
+import { useToast } from "../../context/ToastContext";
 import "../../styles/AdminSeasons.css";
 
 function formatDate(value) {
@@ -18,7 +19,12 @@ function formatDate(value) {
   return new Date(value).toLocaleDateString("de-CH");
 }
 
+function getApiErrorMessage(error, fallback) {
+  return error.response?.data?.message || fallback;
+}
+
 export default function AdminSeasons() {
+  const toast = useToast();
   const [seasons, setSeasons] = useState([]);
   const [name, setName] = useState("");
   const [eventDate, setEventDate] = useState("");
@@ -27,7 +33,6 @@ export default function AdminSeasons() {
   const [users, setUsers] = useState([]);
   const [allTeams, setAllTeams] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [notice, setNotice] = useState(null);
 
   const sortedSeasons = useMemo(
     () =>
@@ -37,7 +42,7 @@ export default function AdminSeasons() {
     [seasons],
   );
 
-  const fetchData = async () => {
+  const fetchData = async ({ showErrorToast = true } = {}) => {
     setIsLoading(true);
     try {
       const [seasonsRes, usersRes, teamsRes] = await Promise.all([
@@ -46,12 +51,16 @@ export default function AdminSeasons() {
         API.get("/teams"),
       ]);
 
-      setSeasons(seasonsRes.data);
-      setUsers(usersRes.data);
-      setAllTeams(teamsRes.data);
+      setSeasons(Array.isArray(seasonsRes.data) ? seasonsRes.data : []);
+      setUsers(Array.isArray(usersRes.data) ? usersRes.data : []);
+      setAllTeams(Array.isArray(teamsRes.data) ? teamsRes.data : []);
+      return true;
     } catch (error) {
       console.error("Fehler beim Laden:", error);
-      setNotice({ type: "error", text: "Daten konnten nicht geladen werden." });
+      if (showErrorToast) {
+        toast.error("Daten konnten nicht geladen werden.");
+      }
+      return false;
     } finally {
       setIsLoading(false);
     }
@@ -77,10 +86,7 @@ export default function AdminSeasons() {
 
   const addSeason = async () => {
     if (!name.trim() || !eventDate) {
-      setNotice({
-        type: "error",
-        text: "Bitte mindestens Name und Event-Datum ausfüllen.",
-      });
+      toast.info("Bitte mindestens Name und Event-Datum ausfüllen.");
       return;
     }
 
@@ -96,17 +102,19 @@ export default function AdminSeasons() {
       setEventDate("");
       setParticipants([]);
       setTeams([]);
-      setNotice({
-        type: "success",
-        text: "Season wurde erfolgreich erstellt.",
-      });
-      fetchData();
+
+      const refreshed = await fetchData({ showErrorToast: false });
+      if (!refreshed) {
+        toast.info(
+          "Season wurde erstellt, aber die Liste konnte nicht aktualisiert werden.",
+        );
+        return;
+      }
+
+      toast.success("Season wurde erfolgreich erstellt.");
     } catch (error) {
       console.error("Fehler beim Erstellen der Season:", error);
-      setNotice({
-        type: "error",
-        text: "Season konnte nicht erstellt werden.",
-      });
+      toast.error(getApiErrorMessage(error, "Season konnte nicht erstellt werden."));
     }
   };
 
@@ -115,31 +123,40 @@ export default function AdminSeasons() {
 
     try {
       await API.delete(`/seasons/${season._id}`);
-      setNotice({ type: "success", text: "Season wurde gelöscht." });
-      fetchData();
+
+      const refreshed = await fetchData({ showErrorToast: false });
+      if (!refreshed) {
+        toast.info(
+          "Season wurde gelöscht, aber die Liste konnte nicht aktualisiert werden.",
+        );
+        return;
+      }
+
+      toast.success("Season wurde gelöscht.");
     } catch (error) {
       console.error("Fehler beim Löschen der Season:", error);
-      setNotice({
-        type: "error",
-        text: "Season konnte nicht gelöscht werden.",
-      });
+      toast.error(getApiErrorMessage(error, "Season konnte nicht gelöscht werden."));
     }
   };
 
   const setCurrentSeason = async (seasonId) => {
     try {
       await API.put(`/seasons/${seasonId}/set-current`);
-      setNotice({
-        type: "success",
-        text: "Aktuelle Season wurde aktualisiert.",
-      });
-      fetchData();
+
+      const refreshed = await fetchData({ showErrorToast: false });
+      if (!refreshed) {
+        toast.info(
+          "Aktuelle Season wurde gesetzt, aber die Liste konnte nicht aktualisiert werden.",
+        );
+        return;
+      }
+
+      toast.success("Aktuelle Season wurde aktualisiert.");
     } catch (error) {
       console.error("Fehler beim Setzen der aktuellen Season:", error);
-      setNotice({
-        type: "error",
-        text: "Aktuelle Season konnte nicht gesetzt werden.",
-      });
+      toast.error(
+        getApiErrorMessage(error, "Aktuelle Season konnte nicht gesetzt werden."),
+      );
     }
   };
 
@@ -152,10 +169,6 @@ export default function AdminSeasons() {
           Season.
         </p>
       </header>
-
-      {notice && (
-        <p className={`admin-seasons-notice ${notice.type}`}>{notice.text}</p>
-      )}
 
       <section className="admin-seasons-panel">
         <div className="admin-seasons-panel-head">
@@ -277,9 +290,7 @@ export default function AdminSeasons() {
                       <input
                         type="checkbox"
                         checked={isSelected}
-                        onChange={() =>
-                          toggleSelection(user._id, setParticipants)
-                        }
+                        onChange={() => toggleSelection(user._id, setParticipants)}
                       />
                       <span>{user.username}</span>
                     </label>
@@ -299,9 +310,7 @@ export default function AdminSeasons() {
                 className="admin-seasons-toggle"
                 onClick={() => toggleAll(allTeams, teams, setTeams)}
               >
-                {teams.length === allTeams.length
-                  ? "Alle abwählen"
-                  : "Alle auswählen"}
+                {teams.length === allTeams.length ? "Alle abwählen" : "Alle auswählen"}
               </button>
             </div>
 

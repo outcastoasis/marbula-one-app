@@ -8,6 +8,7 @@ import {
   faUsers,
 } from "@fortawesome/free-solid-svg-icons";
 import API from "../../api";
+import { useToast } from "../../context/ToastContext";
 import "../../styles/AdminRaceResults.css";
 
 function formatDate(value) {
@@ -15,8 +16,13 @@ function formatDate(value) {
   return new Date(value).toLocaleDateString("de-CH");
 }
 
+function getApiErrorMessage(error, fallback) {
+  return error.response?.data?.message || fallback;
+}
+
 export default function AdminRaceResults() {
   const { raceId } = useParams();
+  const toast = useToast();
   const [race, setRace] = useState(null);
   const [season, setSeason] = useState(null);
   const [participants, setParticipants] = useState([]);
@@ -24,7 +30,6 @@ export default function AdminRaceResults() {
   const [points, setPoints] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [notice, setNotice] = useState(null);
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -35,27 +40,28 @@ export default function AdminRaceResults() {
       setRace(raceData);
 
       const seasonId =
-        typeof raceData.season === "object"
-          ? raceData.season?._id
-          : raceData.season;
+        typeof raceData.season === "object" ? raceData.season?._id : raceData.season;
 
-      const [seasonsRes, usersRes, teamsRes, assignmentsRes] =
-        await Promise.all([
-          API.get("/seasons"),
-          API.get("/users"),
-          API.get("/teams"),
-          API.get(`/userSeasonTeams?season=${seasonId}`),
-        ]);
+      const [seasonsRes, usersRes, teamsRes, assignmentsRes] = await Promise.all([
+        API.get("/seasons"),
+        API.get("/users"),
+        API.get("/teams"),
+        API.get(`/userSeasonTeams?season=${seasonId}`),
+      ]);
 
-      const foundSeason =
-        seasonsRes.data.find((entry) => entry._id === seasonId) || null;
+      const seasons = Array.isArray(seasonsRes.data) ? seasonsRes.data : [];
+      const users = Array.isArray(usersRes.data) ? usersRes.data : [];
+      const teams = Array.isArray(teamsRes.data) ? teamsRes.data : [];
+      const assignments = Array.isArray(assignmentsRes.data) ? assignmentsRes.data : [];
+
+      const foundSeason = seasons.find((entry) => entry._id === seasonId) || null;
       setSeason(foundSeason);
 
       const participantIds = (foundSeason?.participants || []).map((entry) =>
         typeof entry === "object" ? entry._id : entry,
       );
 
-      const filteredParticipants = usersRes.data
+      const filteredParticipants = users
         .filter((user) => participantIds.includes(user._id))
         .sort((a, b) =>
           (a.realname || a.username).localeCompare(
@@ -66,12 +72,10 @@ export default function AdminRaceResults() {
 
       setParticipants(filteredParticipants);
 
-      const teamsById = new Map(
-        teamsRes.data.map((team) => [team._id, team.name]),
-      );
+      const teamsById = new Map(teams.map((team) => [team._id, team.name]));
       const teamByUserId = {};
 
-      (assignmentsRes.data || []).forEach((assignment) => {
+      assignments.forEach((assignment) => {
         const assignmentSeasonId =
           typeof assignment.season === "object"
             ? assignment.season?._id
@@ -107,14 +111,11 @@ export default function AdminRaceResults() {
       setPoints(existingPoints);
     } catch (error) {
       console.error("Fehler beim Laden der Resultate:", error);
-      setNotice({
-        type: "error",
-        text: "Resultatdaten konnten nicht geladen werden.",
-      });
+      toast.error("Resultatdaten konnten nicht geladen werden.");
     } finally {
       setIsLoading(false);
     }
-  }, [raceId]);
+  }, [raceId, toast]);
 
   useEffect(() => {
     loadData();
@@ -148,13 +149,12 @@ export default function AdminRaceResults() {
       }));
 
       await API.put(`/races/${raceId}/results`, { results });
-      setNotice({ type: "success", text: "Ergebnisse wurden gespeichert." });
+      toast.success("Ergebnisse wurden gespeichert.");
     } catch (error) {
       console.error("Fehler beim Speichern:", error);
-      setNotice({
-        type: "error",
-        text: "Ergebnisse konnten nicht gespeichert werden.",
-      });
+      toast.error(
+        getApiErrorMessage(error, "Ergebnisse konnten nicht gespeichert werden."),
+      );
     } finally {
       setIsSaving(false);
     }
@@ -195,19 +195,12 @@ export default function AdminRaceResults() {
         </p>
       </header>
 
-      {notice && (
-        <p className={`admin-race-results-notice ${notice.type}`}>
-          {notice.text}
-        </p>
-      )}
-
       <section className="admin-race-results-panel">
         <div className="admin-race-results-panel-head">
           <h2>Punkte erfassen</h2>
           <span className="admin-race-results-count">
             <FontAwesomeIcon icon={faUsers} />
-            {participants.length}{" "}
-            {participants.length === 1 ? "Teilnehmer" : "Teilnehmer"}
+            {participants.length} {participants.length === 1 ? "Teilnehmer" : "Teilnehmer"}
           </span>
         </div>
 
@@ -224,9 +217,7 @@ export default function AdminRaceResults() {
                 <div className="admin-race-result-meta">
                   <h3>{user.displayName}</h3>
                   {user.realname && user.username && (
-                    <p className="admin-race-result-username">
-                      @{user.username}
-                    </p>
+                    <p className="admin-race-result-username">@{user.username}</p>
                   )}
                   <span className={user.teamName ? "" : "is-muted"}>
                     <FontAwesomeIcon icon={faFlagCheckered} />
@@ -245,9 +236,7 @@ export default function AdminRaceResults() {
                   <input
                     type="number"
                     value={user.points}
-                    onChange={(event) =>
-                      handleChange(user._id, event.target.value)
-                    }
+                    onChange={(event) => handleChange(user._id, event.target.value)}
                     min="0"
                   />
                 </label>

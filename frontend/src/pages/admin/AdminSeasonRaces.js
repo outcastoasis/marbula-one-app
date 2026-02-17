@@ -9,6 +9,7 @@ import {
   faTrashCan,
 } from "@fortawesome/free-solid-svg-icons";
 import API from "../../api";
+import { useToast } from "../../context/ToastContext";
 import "../../styles/AdminSeasonRaces.css";
 
 function formatDate(value) {
@@ -16,20 +17,36 @@ function formatDate(value) {
   return new Date(value).toLocaleDateString("de-CH");
 }
 
+function getApiErrorMessage(error, fallback) {
+  return error.response?.data?.message || fallback;
+}
+
 export default function AdminSeasonRaces() {
   const { seasonId } = useParams();
+  const toast = useToast();
   const [season, setSeason] = useState(null);
   const [races, setRaces] = useState([]);
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [notice, setNotice] = useState(null);
 
   const sortedRaces = useMemo(() => [...races], [races]);
 
-  const fetchRaces = useCallback(async () => {
-    const raceRes = await API.get(`/races/season/${seasonId}`);
-    setRaces(raceRes.data);
-  }, [seasonId]);
+  const fetchRaces = useCallback(
+    async ({ showErrorToast = true } = {}) => {
+      try {
+        const raceRes = await API.get(`/races/season/${seasonId}`);
+        setRaces(Array.isArray(raceRes.data) ? raceRes.data : []);
+        return true;
+      } catch (error) {
+        console.error("Fehler beim Laden der Rennen:", error);
+        if (showErrorToast) {
+          toast.error("Rennen konnten nicht geladen werden.");
+        }
+        return false;
+      }
+    },
+    [seasonId, toast],
+  );
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -39,20 +56,22 @@ export default function AdminSeasonRaces() {
         API.get(`/races/season/${seasonId}`),
       ]);
 
-      const foundSeason = seasonRes.data.find((entry) => entry._id === seasonId);
-      setSeason(foundSeason || null);
-      setRaces(raceRes.data);
+      const seasons = Array.isArray(seasonRes.data) ? seasonRes.data : [];
+      const foundSeason = seasons.find((entry) => entry._id === seasonId) || null;
+
+      setSeason(foundSeason);
+      setRaces(Array.isArray(raceRes.data) ? raceRes.data : []);
 
       if (!foundSeason) {
-        setNotice({ type: "error", text: "Season wurde nicht gefunden." });
+        toast.error("Season wurde nicht gefunden.");
       }
     } catch (error) {
       console.error("Fehler beim Laden:", error);
-      setNotice({ type: "error", text: "Daten konnten nicht geladen werden." });
+      toast.error("Daten konnten nicht geladen werden.");
     } finally {
       setIsLoading(false);
     }
-  }, [seasonId]);
+  }, [seasonId, toast]);
 
   useEffect(() => {
     fetchData();
@@ -61,18 +80,26 @@ export default function AdminSeasonRaces() {
   const addRace = async (event) => {
     event.preventDefault();
     if (!name.trim()) {
-      setNotice({ type: "error", text: "Bitte einen Rennnamen eingeben." });
+      toast.info("Bitte einen Rennnamen eingeben.");
       return;
     }
 
     try {
       await API.post(`/races/season/${seasonId}`, { name: name.trim() });
       setName("");
-      setNotice({ type: "success", text: "Rennen wurde hinzugefügt." });
-      fetchRaces();
+
+      const refreshed = await fetchRaces({ showErrorToast: false });
+      if (!refreshed) {
+        toast.info(
+          "Rennen wurde hinzugefügt, aber die Liste konnte nicht aktualisiert werden.",
+        );
+        return;
+      }
+
+      toast.success("Rennen wurde hinzugefügt.");
     } catch (error) {
       console.error("Fehler beim Hinzufügen:", error);
-      setNotice({ type: "error", text: "Rennen konnte nicht hinzugefügt werden." });
+      toast.error(getApiErrorMessage(error, "Rennen konnte nicht hinzugefügt werden."));
     }
   };
 
@@ -81,11 +108,19 @@ export default function AdminSeasonRaces() {
 
     try {
       await API.delete(`/races/${race._id}`);
-      setNotice({ type: "success", text: "Rennen wurde gelöscht." });
-      fetchRaces();
+
+      const refreshed = await fetchRaces({ showErrorToast: false });
+      if (!refreshed) {
+        toast.info(
+          "Rennen wurde gelöscht, aber die Liste konnte nicht aktualisiert werden.",
+        );
+        return;
+      }
+
+      toast.success("Rennen wurde gelöscht.");
     } catch (error) {
       console.error("Fehler beim Löschen:", error);
-      setNotice({ type: "error", text: "Rennen konnte nicht gelöscht werden." });
+      toast.error(getApiErrorMessage(error, "Rennen konnte nicht gelöscht werden."));
     }
   };
 
@@ -112,10 +147,6 @@ export default function AdminSeasonRaces() {
           )}
         </p>
       </header>
-
-      {notice && (
-        <p className={`admin-season-races-notice ${notice.type}`}>{notice.text}</p>
-      )}
 
       <section className="admin-season-races-panel">
         <div className="admin-season-races-panel-head">
