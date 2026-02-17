@@ -13,7 +13,8 @@ const initialFormData = {
 };
 
 export default function AdminWin() {
-  const [formData, setFormData] = useState(initialFormData);
+  const [createFormData, setCreateFormData] = useState(initialFormData);
+  const [editFormData, setEditFormData] = useState(initialFormData);
   const [winners, setWinners] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,27 +37,35 @@ export default function AdminWin() {
     }
   };
 
-  const handleChange = (event) => {
-    setFormData({ ...formData, [event.target.name]: event.target.value });
+  const handleCreateChange = (event) => {
+    setCreateFormData({
+      ...createFormData,
+      [event.target.name]: event.target.value,
+    });
   };
 
-  const resetForm = () => {
-    setFormData(initialFormData);
+  const handleEditChange = (event) => {
+    setEditFormData({
+      ...editFormData,
+      [event.target.name]: event.target.value,
+    });
+  };
+
+  const resetCreateForm = () => {
+    setCreateFormData(initialFormData);
+  };
+
+  const closeInlineEdit = () => {
     setEditingId(null);
+    setEditFormData(initialFormData);
   };
 
-  const handleSubmit = async (event) => {
+  const handleCreateSubmit = async (event) => {
     event.preventDefault();
     try {
-      if (editingId) {
-        await API.put(`/winners/${editingId}`, formData);
-        setNotice({ type: "success", text: "Eintrag wurde aktualisiert." });
-      } else {
-        await API.post("/winners", formData);
-        setNotice({ type: "success", text: "Eintrag wurde erfolgreich gespeichert." });
-      }
-
-      resetForm();
+      await API.post("/winners", createFormData);
+      setNotice({ type: "success", text: "Eintrag wurde erfolgreich gespeichert." });
+      resetCreateForm();
       fetchWinners();
     } catch (error) {
       console.error("Fehler beim Speichern:", error);
@@ -64,8 +73,8 @@ export default function AdminWin() {
     }
   };
 
-  const handleEdit = (entry) => {
-    setFormData({
+  const openInlineEdit = (entry) => {
+    setEditFormData({
       date: entry.date?.slice(0, 10) || "",
       location: entry.location || "",
       winnerUser: entry.winnerUser || "",
@@ -78,6 +87,19 @@ export default function AdminWin() {
     setNotice(null);
   };
 
+  const handleInlineEditSubmit = async (event, id) => {
+    event.preventDefault();
+    try {
+      await API.put(`/winners/${id}`, editFormData);
+      setNotice({ type: "success", text: "Eintrag wurde aktualisiert." });
+      closeInlineEdit();
+      fetchWinners();
+    } catch (error) {
+      console.error("Fehler beim Speichern:", error);
+      setNotice({ type: "error", text: "Eintrag konnte nicht gespeichert werden." });
+    }
+  };
+
   const handleDelete = async (id) => {
     if (!window.confirm("Diesen Eintrag wirklich löschen?")) return;
 
@@ -85,7 +107,7 @@ export default function AdminWin() {
       await API.delete(`/winners/${id}`);
       setNotice({ type: "success", text: "Eintrag wurde gelöscht." });
       if (editingId === id) {
-        resetForm();
+        closeInlineEdit();
       }
       fetchWinners();
     } catch (error) {
@@ -105,17 +127,17 @@ export default function AdminWin() {
 
       <section className="admin-win-panel">
         <div className="admin-win-panel-head">
-          <h2>{editingId ? "Eintrag bearbeiten" : "Neuen Eintrag erstellen"}</h2>
+          <h2>Neuen Eintrag erstellen</h2>
         </div>
 
-        <form onSubmit={handleSubmit} className="admin-win-form">
+        <form onSubmit={handleCreateSubmit} className="admin-win-form">
           <label className="admin-win-field">
             <span>Datum</span>
             <input
               type="date"
               name="date"
-              value={formData.date}
-              onChange={handleChange}
+              value={createFormData.date}
+              onChange={handleCreateChange}
               required
             />
           </label>
@@ -126,8 +148,8 @@ export default function AdminWin() {
               type="text"
               name="location"
               placeholder="z. B. Midnight Bay"
-              value={formData.location}
-              onChange={handleChange}
+              value={createFormData.location}
+              onChange={handleCreateChange}
               required
             />
           </label>
@@ -138,8 +160,8 @@ export default function AdminWin() {
               type="text"
               name="winnerUser"
               placeholder="Name des Gewinners"
-              value={formData.winnerUser}
-              onChange={handleChange}
+              value={createFormData.winnerUser}
+              onChange={handleCreateChange}
               required
             />
           </label>
@@ -150,8 +172,8 @@ export default function AdminWin() {
               type="text"
               name="winnerTeam"
               placeholder="Team des Gewinners"
-              value={formData.winnerTeam}
-              onChange={handleChange}
+              value={createFormData.winnerTeam}
+              onChange={handleCreateChange}
               required
             />
           </label>
@@ -162,8 +184,8 @@ export default function AdminWin() {
               type="text"
               name="lastPlaceUser"
               placeholder="Name des letzten Platzes"
-              value={formData.lastPlaceUser}
-              onChange={handleChange}
+              value={createFormData.lastPlaceUser}
+              onChange={handleCreateChange}
               required
             />
           </label>
@@ -174,8 +196,8 @@ export default function AdminWin() {
               type="text"
               name="lastPlaceTeam"
               placeholder="Team des letzten Platzes"
-              value={formData.lastPlaceTeam}
-              onChange={handleChange}
+              value={createFormData.lastPlaceTeam}
+              onChange={handleCreateChange}
               required
             />
           </label>
@@ -185,20 +207,15 @@ export default function AdminWin() {
             <textarea
               name="notes"
               placeholder="Zusätzliche Informationen zum Event"
-              value={formData.notes}
-              onChange={handleChange}
+              value={createFormData.notes}
+              onChange={handleCreateChange}
             />
           </label>
 
           <div className="admin-win-form-actions">
             <button type="submit" className="admin-win-button">
-              {editingId ? "Änderungen speichern" : "Speichern"}
+              Speichern
             </button>
-            {editingId && (
-              <button type="button" className="admin-win-button ghost" onClick={resetForm}>
-                Abbrechen
-              </button>
-            )}
           </div>
         </form>
       </section>
@@ -230,38 +247,143 @@ export default function AdminWin() {
                 </tr>
               </thead>
               <tbody>
-                {winners.map((winner) => (
-                  <tr key={winner._id}>
-                    <td data-label="Datum">
-                      {winner.date
-                        ? new Date(winner.date).toLocaleDateString("de-CH")
-                        : "—"}
-                    </td>
-                    <td data-label="Ort">{winner.location || "—"}</td>
-                    <td data-label="Gewinner">{winner.winnerUser || "—"}</td>
-                    <td data-label="Gewinner-Team">{winner.winnerTeam || "—"}</td>
-                    <td data-label="Letzter Platz">{winner.lastPlaceUser || "—"}</td>
-                    <td data-label="Team letzter Platz">{winner.lastPlaceTeam || "—"}</td>
-                    <td data-label="Aktionen">
-                      <div className="winner-actions">
-                        <button
-                          type="button"
-                          className="admin-win-action"
-                          onClick={() => handleEdit(winner)}
-                        >
-                          Bearbeiten
-                        </button>
-                        <button
-                          type="button"
-                          className="admin-win-action danger"
-                          onClick={() => handleDelete(winner._id)}
-                        >
-                          Löschen
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {winners.map((winner) => {
+                  const isEditing = editingId === winner._id;
+
+                  return (
+                    <tr key={winner._id}>
+                      <td data-label="Datum">
+                        {winner.date
+                          ? new Date(winner.date).toLocaleDateString("de-CH")
+                          : "—"}
+                      </td>
+                      <td data-label="Ort">{winner.location || "—"}</td>
+                      <td data-label="Gewinner">{winner.winnerUser || "—"}</td>
+                      <td data-label="Gewinner-Team">{winner.winnerTeam || "—"}</td>
+                      <td data-label="Letzter Platz">{winner.lastPlaceUser || "—"}</td>
+                      <td data-label="Team letzter Platz">{winner.lastPlaceTeam || "—"}</td>
+                      <td data-label="Aktionen">
+                        <div className="winner-actions">
+                          <button
+                            type="button"
+                            className="admin-win-action"
+                            onClick={() =>
+                              isEditing ? closeInlineEdit() : openInlineEdit(winner)
+                            }
+                          >
+                            {isEditing ? "Schliessen" : "Bearbeiten"}
+                          </button>
+                          <button
+                            type="button"
+                            className="admin-win-action danger"
+                            onClick={() => handleDelete(winner._id)}
+                          >
+                            Löschen
+                          </button>
+                        </div>
+
+                        {isEditing && (
+                          <form
+                            className="admin-win-inline-form"
+                            onSubmit={(event) =>
+                              handleInlineEditSubmit(event, winner._id)
+                            }
+                          >
+                            <div className="admin-win-inline-grid">
+                              <label className="admin-win-inline-field">
+                                <span>Datum</span>
+                                <input
+                                  type="date"
+                                  name="date"
+                                  value={editFormData.date}
+                                  onChange={handleEditChange}
+                                  required
+                                />
+                              </label>
+
+                              <label className="admin-win-inline-field">
+                                <span>Ort</span>
+                                <input
+                                  type="text"
+                                  name="location"
+                                  value={editFormData.location}
+                                  onChange={handleEditChange}
+                                  required
+                                />
+                              </label>
+
+                              <label className="admin-win-inline-field">
+                                <span>Gewinner (Name)</span>
+                                <input
+                                  type="text"
+                                  name="winnerUser"
+                                  value={editFormData.winnerUser}
+                                  onChange={handleEditChange}
+                                  required
+                                />
+                              </label>
+
+                              <label className="admin-win-inline-field">
+                                <span>Gewinner-Team</span>
+                                <input
+                                  type="text"
+                                  name="winnerTeam"
+                                  value={editFormData.winnerTeam}
+                                  onChange={handleEditChange}
+                                  required
+                                />
+                              </label>
+
+                              <label className="admin-win-inline-field">
+                                <span>Letzter Platz (Name)</span>
+                                <input
+                                  type="text"
+                                  name="lastPlaceUser"
+                                  value={editFormData.lastPlaceUser}
+                                  onChange={handleEditChange}
+                                  required
+                                />
+                              </label>
+
+                              <label className="admin-win-inline-field">
+                                <span>Team letzter Platz</span>
+                                <input
+                                  type="text"
+                                  name="lastPlaceTeam"
+                                  value={editFormData.lastPlaceTeam}
+                                  onChange={handleEditChange}
+                                  required
+                                />
+                              </label>
+
+                              <label className="admin-win-inline-field admin-win-inline-field-full">
+                                <span>Notizen</span>
+                                <textarea
+                                  name="notes"
+                                  value={editFormData.notes}
+                                  onChange={handleEditChange}
+                                />
+                              </label>
+                            </div>
+
+                            <div className="admin-win-inline-actions">
+                              <button type="submit" className="admin-win-button small">
+                                Änderungen speichern
+                              </button>
+                              <button
+                                type="button"
+                                className="admin-win-button ghost small"
+                                onClick={closeInlineEdit}
+                              >
+                                Abbrechen
+                              </button>
+                            </div>
+                          </form>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

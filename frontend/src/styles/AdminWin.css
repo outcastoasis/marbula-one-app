@@ -187,6 +187,12 @@
   outline-offset: 2px;
 }
 
+.admin-win-button.small {
+  min-height: 32px;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.82rem;
+}
+
 .admin-win-table-wrapper {
   overflow-x: auto;
   border: 1px solid var(--brand-border);
@@ -228,6 +234,68 @@
   align-items: center;
   gap: 0.45rem;
   flex-wrap: wrap;
+}
+
+.admin-win-inline-form {
+  width: 100%;
+  margin-top: 0.65rem;
+  padding: 0.7rem;
+  border: 1px solid #2d2d2d;
+  border-radius: 10px;
+  background-color: #131313;
+  box-sizing: border-box;
+}
+
+.admin-win-inline-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.admin-win-inline-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.admin-win-inline-field span {
+  color: #cfcfcf;
+  font-size: 0.78rem;
+}
+
+.admin-win-inline-field input,
+.admin-win-inline-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--brand-border);
+  border-radius: 8px;
+  background-color: #111111;
+  color: var(--brand-text);
+  font-size: 0.86rem;
+  padding: 0.48rem 0.58rem;
+}
+
+.admin-win-inline-field textarea {
+  min-height: 74px;
+  resize: vertical;
+}
+
+.admin-win-inline-field input:focus-visible,
+.admin-win-inline-field textarea:focus-visible {
+  outline: 2px solid rgba(255, 30, 30, 0.7);
+  outline-offset: 1px;
+}
+
+.admin-win-inline-field-full {
+  grid-column: 1 / -1;
+}
+
+.admin-win-inline-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  margin-top: 0.65rem;
 }
 
 .admin-win-action {
@@ -326,6 +394,15 @@
   .admin-win-table td[data-label="Aktionen"] {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .admin-win-inline-form {
+    margin-top: 0.5rem;
+    padding: 0.65rem;
+  }
+
+  .admin-win-inline-grid {
+    grid-template-columns: 1fr;
   }
 }
 
