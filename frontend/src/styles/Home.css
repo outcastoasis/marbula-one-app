@@ -26,6 +26,17 @@
   text-wrap: balance;
 }
 
+.home-container .home-logged-in-as {
+  margin: -0.8rem auto 1.2rem;
+  text-align: center;
+  color: var(--home-muted);
+  font-size: clamp(0.9rem, 2vw, 0.98rem);
+}
+
+.home-container .home-logged-in-as strong {
+  color: var(--home-text);
+}
+
 .home-container .sections-grid {
   display: grid;
   grid-template-columns: 1fr;

@@ -219,6 +219,10 @@ export default function Home() {
   };
 
   const myTeam = localUser ? getTeamData(localUser._id) : null;
+  const loggedInRealname =
+    typeof localUser?.realname === "string" && localUser.realname.trim()
+      ? localUser.realname.trim()
+      : "Unbekannt";
   const isCurrentSeasonParticipant =
     !!season &&
     !!localUser &&
@@ -235,6 +239,11 @@ export default function Home() {
         <br />
         Marbula One
       </h1>
+      {localUser && (
+        <p className="home-logged-in-as">
+          Angemeldet als: <strong>{loggedInRealname}</strong>
+        </p>
+      )}
 
       <div className="sections-grid">
         <section
