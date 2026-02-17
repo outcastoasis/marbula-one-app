@@ -5,6 +5,10 @@ import {
   faBars,
   faChevronDown,
   faChevronUp,
+  faFlagCheckered,
+  faHouse,
+  faTrophy,
+  faUsers,
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { AuthContext } from "../context/AuthContext";
@@ -63,17 +67,17 @@ export default function DashboardLayout({ children }) {
 
         <nav aria-label="Hauptnavigation">
           <Link to="/" onClick={closeSidebar}>
-            Home
+            <FontAwesomeIcon icon={faHouse} /> Home
           </Link>
           <Link to="/teams" onClick={closeSidebar}>
-            Teams
+            <FontAwesomeIcon icon={faUsers} /> Teams
           </Link>
           <Link to="/winners" onClick={closeSidebar}>
-            Sieger-Archiv
+            <FontAwesomeIcon icon={faTrophy} /> Sieger-Archiv
           </Link>
           {user && !user.selectedTeam && (
             <Link to="/choose-team" onClick={closeSidebar}>
-              Team wählen
+              <FontAwesomeIcon icon={faFlagCheckered} /> Team wählen
             </Link>
           )}
 

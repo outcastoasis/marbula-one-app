@@ -37,9 +37,11 @@ export default function TeamDetail() {
         setSeasonName(seasonRes.data?.name || "");
 
         const assignmentRes = await API.get(
-          `/userSeasonTeams?season=${seasonRes.data._id}`
+          `/userSeasonTeams?season=${seasonRes.data._id}`,
         );
-        const matching = assignmentRes.data.find((entry) => entry.team._id === id);
+        const matching = assignmentRes.data.find(
+          (entry) => entry.team._id === id,
+        );
         setOwner(matching?.user || null);
 
         const seasonListRes = await API.get(`/teams/${id}/seasons`);
@@ -145,10 +147,7 @@ export default function TeamDetail() {
           {seasons.length > 0 ? (
             <ul className="team-detail-season-list">
               {seasons.map((season) => (
-                <li key={season._id}>
-                  <FontAwesomeIcon icon={faTrophy} />
-                  {season.name}
-                </li>
+                <li key={season._id}>{season.name}</li>
               ))}
             </ul>
           ) : (
