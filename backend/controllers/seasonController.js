@@ -2,6 +2,25 @@
 
 import Season from "../models/Season.js";
 import UserSeasonTeam from "../models/UserSeasonTeam.js";
+import Race from "../models/Race.js";
+import { runWithOptionalTransaction } from "../utils/transaction.js";
+
+const deleteSeasonWithDependencies = async (seasonId, session) => {
+  const writeOptions = session ? { session } : undefined;
+  const deletedSeason = await Season.findByIdAndDelete(seasonId, writeOptions);
+
+  if (!deletedSeason) {
+    return { status: 404, body: { message: "Season nicht gefunden" } };
+  }
+
+  await UserSeasonTeam.deleteMany({ season: seasonId }, writeOptions);
+  await Race.deleteMany({ season: seasonId }, writeOptions);
+
+  return {
+    status: 200,
+    body: { message: "Season, zugehörige Teamzuweisungen und Rennen gelöscht" },
+  };
+};
 
 export const getAllSeasons = async (req, res) => {
   const seasons = await Season.find().sort({ year: -1 });
@@ -23,21 +42,13 @@ export const createSeason = async (req, res) => {
 
 export const deleteSeason = async (req, res) => {
   try {
-    const seasonId = req.params.id;
-
-    // 1️⃣ Season löschen
-    const deletedSeason = await Season.findByIdAndDelete(seasonId);
-    if (!deletedSeason) {
-      return res.status(404).json({ message: "Season nicht gefunden" });
-    }
-
-    // 2️⃣ Alle zugehörigen Teamzuweisungen löschen
-    await UserSeasonTeam.deleteMany({ season: seasonId });
-
-    res.json({ message: "Season und zugehörige Teamzuweisungen gelöscht" });
+    const result = await runWithOptionalTransaction((session) =>
+      deleteSeasonWithDependencies(req.params.id, session),
+    );
+    return res.status(result.status).json(result.body);
   } catch (error) {
     console.error("Fehler beim Löschen der Season:", error);
-    res.status(500).json({ message: "Fehler beim Löschen der Season" });
+    return res.status(500).json({ message: "Fehler beim Löschen der Season" });
   }
 };
 
