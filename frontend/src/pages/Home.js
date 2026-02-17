@@ -21,7 +21,7 @@ export default function Home() {
   const [participants, setParticipants] = useState([]);
   const [assignments, setAssignments] = useState([]);
   const [cumulativeData, setCumulativeData] = useState([]);
-  const [hoveredUserId, setHoveredUserId] = useState(null);
+  const [activePoint, setActivePoint] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -195,26 +195,98 @@ export default function Home() {
   });
 
   const CustomTooltip = ({ active, payload, label }) => {
-    if (!active || !payload || payload.length === 0) return null;
-    const current = payload.find((p) => p.dataKey === hoveredUserId);
-    if (!current) return null;
-    const { name, value, stroke } = current;
+    if (!active || !payload || payload.length === 0) {
+      return null;
+    }
+
+    if (!activePoint?.userId) {
+      return (
+        <div className="home-chart-tooltip">
+          <p className="home-chart-tooltip-hint">
+            Punkt anklicken, um Details zu sehen.
+          </p>
+        </div>
+      );
+    }
+
+    const selectedEntry = payload.find(
+      (entry) => entry.dataKey === activePoint.userId,
+    );
+    if (!selectedEntry) {
+      return null;
+    }
 
     return (
-      <div
-        style={{
-          backgroundColor: "#1a1a1a",
-          padding: "0.75rem 1rem",
-          borderRadius: "10px",
-          color: "#fff",
-          border: `1px solid ${stroke}`,
-          fontSize: "0.9rem",
-        }}
-      >
-        <strong>{name}</strong>: {value} Punkte
-        <br />
-        <span style={{ color: "#ccc" }}>Rennen: {label}</span>
+      <div className="home-chart-tooltip">
+        <p className="home-chart-tooltip-label">Rennen: {label}</p>
+        <p className="home-chart-tooltip-entry">
+          <span
+            className="home-chart-tooltip-dot"
+            style={{ backgroundColor: selectedEntry.color }}
+          />
+          <strong>{selectedEntry.name}</strong>: {selectedEntry.value}
+        </p>
+        <p className="home-chart-tooltip-meta">
+          Team: {getTeamName(activePoint.userId)}
+        </p>
       </div>
+    );
+  };
+
+  const renderClickableDot = (participant) => (props) => {
+    const { cx, cy, payload, value, stroke } = props;
+    if (typeof cx !== "number" || typeof cy !== "number" || value == null) {
+      return null;
+    }
+
+    const raceName = payload?.name || "-";
+    const points = Number(value);
+    const isActive =
+      activePoint?.userId === participant._id &&
+      activePoint?.raceName === raceName;
+
+    const handleSelect = (event) => {
+      event?.stopPropagation?.();
+
+      setActivePoint((previous) => {
+        if (
+          previous &&
+          previous.userId === participant._id &&
+          previous.raceName === raceName
+        ) {
+          return null;
+        }
+
+        return {
+          userId: participant._id,
+          userName: participant.realname,
+          raceName,
+          points: Number.isFinite(points) ? points : 0,
+          color: stroke || "#ff1e1e",
+        };
+      });
+    };
+
+    return (
+      <g className="home-chart-dot-group" onClick={handleSelect}>
+        <circle className="home-chart-dot-hitbox" cx={cx} cy={cy} r={14} />
+        {isActive ? (
+          <circle
+            className="home-chart-dot-active-ring"
+            cx={cx}
+            cy={cy}
+            r={10}
+            stroke={stroke || "#ff1e1e"}
+          />
+        ) : null}
+        <circle
+          className="home-chart-dot-visible"
+          cx={cx}
+          cy={cy}
+          r={isActive ? 7 : 5.5}
+          fill={stroke || "#ff1e1e"}
+        />
+      </g>
     );
   };
 
@@ -339,12 +411,8 @@ export default function Home() {
                     name={p.realname}
                     stroke={generateColor(i, participants.length)}
                     strokeWidth={2}
-                    dot={{ r: 6 }}
-                    activeDot={{
-                      r: 8,
-                      onMouseOver: () => setHoveredUserId(p._id),
-                      onMouseOut: () => setHoveredUserId(null),
-                    }}
+                    dot={renderClickableDot(p)}
+                    activeDot={{ r: 0 }}
                   />
                 ))}
               </LineChart>

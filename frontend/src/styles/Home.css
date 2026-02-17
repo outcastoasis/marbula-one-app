@@ -212,6 +212,68 @@
   box-sizing: border-box;
 }
 
+.home-container .home-chart-tooltip {
+  background-color: #1a1a1a;
+  border: 1px solid #353535;
+  border-radius: 10px;
+  padding: 0.65rem 0.8rem;
+  color: #fff;
+  font-size: 0.86rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+.home-container .home-chart-tooltip-label {
+  margin: 0 0 0.45rem;
+  color: #d5d5d5;
+  font-size: 0.8rem;
+}
+
+.home-container .home-chart-tooltip-entry {
+  margin: 0.2rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.home-container .home-chart-tooltip-hint {
+  margin: 0;
+  color: #d5d5d5;
+  font-size: 0.82rem;
+}
+
+.home-container .home-chart-tooltip-meta {
+  margin: 0.35rem 0 0;
+  color: #c9c9c9;
+  font-size: 0.8rem;
+}
+
+.home-container .home-chart-tooltip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.home-container .home-chart-dot-group {
+  cursor: pointer;
+}
+
+.home-container .home-chart-dot-hitbox {
+  fill: transparent;
+  pointer-events: all;
+}
+
+.home-container .home-chart-dot-visible {
+  stroke: #0f0f0f;
+  stroke-width: 1.5px;
+}
+
+.home-container .home-chart-dot-active-ring {
+  fill: none;
+  stroke-width: 2px;
+  opacity: 0.9;
+}
+
 @media (min-width: 900px) {
   .home-container .sections-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
