@@ -1,11 +1,14 @@
-import User from "../models/User.js";
+import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
+import User from "../models/User.js";
 import UserSeasonTeam from "../models/UserSeasonTeam.js";
 import Race from "../models/Race.js";
 import Season from "../models/Season.js";
 import { runWithOptionalTransaction } from "../utils/transaction.js";
 
-const applySession = (query, session) => (session ? query.session(session) : query);
+const applySession = (query, session) =>
+  session ? query.session(session) : query;
+const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 const buildBlockingSeasonList = (racesWithResults) => {
   const blockingSeasonMap = new Map();
@@ -17,21 +20,54 @@ const buildBlockingSeasonList = (racesWithResults) => {
       typeof race?.season === "object" ? race.season?.name : null;
 
     if (seasonId) {
-      blockingSeasonMap.set(String(seasonId), seasonName || "Unbekannte Season");
+      blockingSeasonMap.set(
+        String(seasonId),
+        seasonName || "Unbekannte Season",
+      );
     }
   });
 
-  return [...blockingSeasonMap.values()].sort((a, b) => a.localeCompare(b, "de-CH"));
+  return [...blockingSeasonMap.values()].sort((a, b) =>
+    a.localeCompare(b, "de-CH"),
+  );
 };
 
-const deleteUserWithDependencies = async (userId, session) => {
+const deleteUserWithDependencies = async (userId, actingUserId, session) => {
+  if (!isValidObjectId(userId)) {
+    return { status: 400, body: { message: "Ungültige Benutzer-ID" } };
+  }
+
   const user = await applySession(User.findById(userId), session);
   if (!user) {
     return { status: 404, body: { message: "Benutzer nicht gefunden" } };
   }
 
+  const isAdminSelfDelete =
+    user.role === "admin" && String(actingUserId || "") === String(user._id);
+  if (isAdminSelfDelete) {
+    return {
+      status: 403,
+      body: { message: "Admin kann sich nicht selbst löschen." },
+    };
+  }
+
+  if (user.role === "admin") {
+    const adminCount = await applySession(
+      User.countDocuments({ role: "admin" }),
+      session,
+    );
+    if (adminCount <= 1) {
+      return {
+        status: 409,
+        body: { message: "Der letzte Admin kann nicht gelöscht werden." },
+      };
+    }
+  }
+
   const racesWithResults = await applySession(
-    Race.find({ "results.user": userId }).select("season").populate("season", "name"),
+    Race.find({ "results.user": userId })
+      .select("season")
+      .populate("season", "name"),
     session,
   );
 
@@ -71,7 +107,12 @@ export const getCurrentUser = async (req, res) => {
 
 // GET /users/:id
 export const getSingleUser = async (req, res) => {
-  const user = await User.findById(req.params.id).select("-password");
+  const { id } = req.params;
+  if (!isValidObjectId(id)) {
+    return res.status(400).json({ message: "Ungültige Benutzer-ID" });
+  }
+
+  const user = await User.findById(id).select("-password");
   if (!user) {
     return res.status(404).json({ message: "Benutzer nicht gefunden" });
   }
@@ -80,18 +121,37 @@ export const getSingleUser = async (req, res) => {
 
 // PUT /users/:id/password
 export const updateUserPassword = async (req, res) => {
+  const { id } = req.params;
+  if (!isValidObjectId(id)) {
+    return res.status(400).json({ message: "Ungültige Benutzer-ID" });
+  }
+
   const hashed = await bcrypt.hash(req.body.password, 10);
-  await User.findByIdAndUpdate(req.params.id, { password: hashed });
+  const updated = await User.findByIdAndUpdate(id, { password: hashed });
+  if (!updated) {
+    return res.status(404).json({ message: "Benutzer nicht gefunden" });
+  }
+
   res.json({ message: "Passwort aktualisiert" });
 };
 
 // PUT /users/:id/role
 export const updateUserRole = async (req, res) => {
+  const { id } = req.params;
   const { role } = req.body;
+
+  if (!isValidObjectId(id)) {
+    return res.status(400).json({ message: "Ungültige Benutzer-ID" });
+  }
   if (!["admin", "user"].includes(role)) {
     return res.status(400).json({ message: "Ungültige Rolle" });
   }
-  await User.findByIdAndUpdate(req.params.id, { role });
+
+  const updated = await User.findByIdAndUpdate(id, { role });
+  if (!updated) {
+    return res.status(404).json({ message: "Benutzer nicht gefunden" });
+  }
+
   res.json({ message: "Rolle aktualisiert" });
 };
 
@@ -99,11 +159,13 @@ export const updateUserRole = async (req, res) => {
 export const deleteUser = async (req, res) => {
   try {
     const result = await runWithOptionalTransaction((session) =>
-      deleteUserWithDependencies(req.params.id, session),
+      deleteUserWithDependencies(req.params.id, req.user?._id, session),
     );
     return res.status(result.status).json(result.body);
   } catch (error) {
     console.error("Fehler beim Löschen des Benutzers:", error);
-    return res.status(500).json({ message: "Fehler beim Löschen des Benutzers" });
+    return res
+      .status(500)
+      .json({ message: "Fehler beim Löschen des Benutzers" });
   }
 };
