@@ -22,12 +22,10 @@ export default function Navbar() {
       {user && (
         <>
           Hallo, {user.username} |{" "}
-          {/* Nur zeigen, wenn der Benutzer noch kein Team gewählt hat */}
-          {!user.selectedTeam && (
-            <>
-              <Link to="/choose-team">Team wählen</Link> |{" "}
-            </>
-          )}
+          {/* Teamauswahl läuft über Season-Zuweisungen */}
+          <>
+            <Link to="/choose-team">Team wählen</Link> |{" "}
+          </>
           {/* Adminlinks */}
           {user.role === "admin" && (
             <>

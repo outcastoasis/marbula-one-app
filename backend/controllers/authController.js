@@ -2,6 +2,11 @@ import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
+const sanitizeUser = (userDoc) => {
+  const { password: _password, ...safeUser } = userDoc.toObject();
+  return safeUser;
+};
+
 export const registerUser = async (req, res) => {
   const { username, realname, password } = req.body;
 
@@ -20,7 +25,7 @@ export const registerUser = async (req, res) => {
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
     expiresIn: "1d",
   });
-  res.status(201).json({ token, user });
+  res.status(201).json({ token, user: sanitizeUser(user) });
 };
 
 export const loginUser = async (req, res) => {
@@ -33,7 +38,7 @@ export const loginUser = async (req, res) => {
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
     expiresIn: "1d",
   });
-  res.status(200).json({ token, user });
+  res.status(200).json({ token, user: sanitizeUser(user) });
 };
 
 export const getMe = async (req, res) => {

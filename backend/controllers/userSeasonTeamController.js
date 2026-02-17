@@ -3,27 +3,47 @@
 import asyncHandler from "express-async-handler";
 import UserSeasonTeam from "../models/UserSeasonTeam.js";
 
+const resolveTargetUserId = (req, userIdFromBody) => {
+  if (req.user?.role === "admin") {
+    return userIdFromBody || req.user._id;
+  }
+
+  if (userIdFromBody && userIdFromBody !== req.user?._id?.toString()) {
+    return null;
+  }
+
+  return req.user?._id;
+};
+
 // @desc    Team für User in einer bestimmten Season zuweisen
 // @route   POST /api/userSeasonTeams
 // @access  Private
 const createUserSeasonTeam = asyncHandler(async (req, res) => {
   const { teamId, seasonId, userId: userIdFromBody } = req.body;
-  const userId = userIdFromBody || req.user._id;
+  const userId = resolveTargetUserId(req, userIdFromBody);
 
-  if (!teamId || !seasonId || !userId) {
-    res.status(400);
-    throw new Error("TeamId, SeasonId und UserId sind erforderlich.");
+  if (!userId) {
+    res.status(403);
+    throw new Error(
+      "Nur Admins dürfen Teamzuweisungen für andere Benutzer speichern.",
+    );
   }
 
-  // Prüfen, ob User schon ein Team in dieser Season hat
+  if (!teamId || !seasonId) {
+    res.status(400);
+    throw new Error("TeamId und SeasonId sind erforderlich.");
+  }
+
   const existingUserEntry = await UserSeasonTeam.findOne({
     user: userId,
     season: seasonId,
   });
+
   try {
     if (existingUserEntry) {
       existingUserEntry.team = teamId;
       await existingUserEntry.save();
+      await existingUserEntry.populate("team", "name logo color");
       return res.status(200).json(existingUserEntry);
     }
 
@@ -32,10 +52,9 @@ const createUserSeasonTeam = asyncHandler(async (req, res) => {
       season: seasonId,
       team: teamId,
     });
-
+    await newEntry.populate("team", "name logo color");
     return res.status(201).json(newEntry);
   } catch (error) {
-    // Fehler durch Unique Index auf (team + season)
     if (
       error.code === 11000 &&
       error.keyPattern?.team &&
@@ -43,23 +62,14 @@ const createUserSeasonTeam = asyncHandler(async (req, res) => {
     ) {
       res.status(400);
       throw new Error(
-        "Dieses Team wurde bereits von einer anderen Person gewählt."
+        "Dieses Team wurde bereits von einer anderen Person gewählt.",
       );
     }
 
-    // Anderer Fehler
     console.error("Fehler bei Teamzuweisung:", error);
     res.status(500);
     throw new Error("Fehler beim Speichern der Teamzuweisung.");
   }
-
-  const newEntry = await UserSeasonTeam.create({
-    user: userId,
-    season: seasonId,
-    team: teamId,
-  });
-
-  res.status(201).json(newEntry);
 });
 
 // @desc    Alle Teamzuweisungen einer Season abrufen
@@ -74,7 +84,7 @@ const getUserSeasonTeams = asyncHandler(async (req, res) => {
   }
 
   const assignments = await UserSeasonTeam.find({ season })
-    .populate("user", "realname username email")
+    .populate("user", "realname username")
     .populate("team", "name logo color")
     .populate("season", "name");
 
@@ -95,11 +105,19 @@ const getUserSeasonTeamsByUser = asyncHandler(async (req, res) => {
 });
 
 const deleteUserSeasonTeam = asyncHandler(async (req, res) => {
-  const { userId, seasonId } = req.body;
+  const { userId: userIdFromBody, seasonId } = req.body;
+  const userId = resolveTargetUserId(req, userIdFromBody);
 
-  if (!userId || !seasonId) {
+  if (!userId) {
+    res.status(403);
+    throw new Error(
+      "Nur Admins dürfen Teamzuweisungen anderer Benutzer löschen.",
+    );
+  }
+
+  if (!seasonId) {
     res.status(400);
-    throw new Error("UserId und SeasonId sind erforderlich.");
+    throw new Error("SeasonId ist erforderlich.");
   }
 
   const deleted = await UserSeasonTeam.findOneAndDelete({

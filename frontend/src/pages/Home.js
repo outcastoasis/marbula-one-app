@@ -21,7 +21,7 @@ export default function Home() {
   const [participants, setParticipants] = useState([]);
   const [assignments, setAssignments] = useState([]);
   const [cumulativeData, setCumulativeData] = useState([]);
-  const [hoveredLine, setHoveredLine] = useState(null);
+  const [hoveredUserId, setHoveredUserId] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -61,7 +61,7 @@ export default function Home() {
             }
           });
           filtered.forEach((u) => {
-            entry[u.realname] = cumulative[u._id];
+            entry[u._id] = cumulative[u._id];
           });
           return entry;
         });
@@ -106,7 +106,7 @@ export default function Home() {
   const rankingRows = [...participants]
     .map((p) => ({
       ...p,
-      points: cumulativeData.at(-1)?.[p.realname] || 0,
+      points: cumulativeData.at(-1)?.[p._id] || 0,
     }))
     .sort((a, b) => b.points - a.points)
     .map((p, i) => (
@@ -121,7 +121,7 @@ export default function Home() {
   const resultRows = participants.map((p) => {
     let last = 0;
     const racePoints = cumulativeData.map((r) => {
-      const val = r[p.realname] ?? 0;
+      const val = r[p._id] ?? 0;
       const diff = val - last;
       last = val;
       return diff;
@@ -142,7 +142,7 @@ export default function Home() {
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (!active || !payload || payload.length === 0) return null;
-    const current = payload.find((p) => p.name === hoveredLine);
+    const current = payload.find((p) => p.dataKey === hoveredUserId);
     if (!current) return null;
     const { name, value, stroke } = current;
 
@@ -164,6 +164,8 @@ export default function Home() {
     );
   };
 
+  const myTeamName = localUser ? getTeamName(localUser._id) : "-";
+
   return (
     <div className="home-container">
       <h1>
@@ -175,8 +177,8 @@ export default function Home() {
       <div className="sections-grid">
         <section>
           <h2>Dein Team</h2>
-          {season && localUser ? (
-            <p>{getTeamName(localUser._id)}</p>
+          {season && localUser && myTeamName !== "-" ? (
+            <p>{myTeamName}</p>
           ) : (
             <Link to="/choose-team">Team wählen</Link>
           )}
@@ -235,14 +237,15 @@ export default function Home() {
                   <Line
                     key={p._id}
                     type="monotone"
-                    dataKey={p.realname}
+                    dataKey={p._id}
+                    name={p.realname}
                     stroke={generateColor(i, participants.length)}
                     strokeWidth={2}
                     dot={{ r: 6 }}
                     activeDot={{
                       r: 8,
-                      onMouseOver: () => setHoveredLine(p.realname),
-                      onMouseOut: () => setHoveredLine(null),
+                      onMouseOver: () => setHoveredUserId(p._id),
+                      onMouseOut: () => setHoveredUserId(null),
                     }}
                   />
                 ))}
@@ -254,3 +257,4 @@ export default function Home() {
     </div>
   );
 }
+

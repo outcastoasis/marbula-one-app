@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBars,
@@ -22,9 +22,57 @@ export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [seasons, setSeasons] = useState([]);
   const [expandedSeason, setExpandedSeason] = useState(null);
+  const [showChooseTeamLink, setShowChooseTeamLink] = useState(false);
+
+  const checkCurrentSeasonAssignment = useCallback(async () => {
+    if (!user?._id) {
+      setShowChooseTeamLink(false);
+      return;
+    }
+
+    try {
+      const currentSeasonRes = await API.get("/seasons/current");
+      const currentSeasonId = currentSeasonRes.data?._id;
+
+      if (!currentSeasonId) {
+        setShowChooseTeamLink(false);
+        return;
+      }
+
+      const assignmentsRes = await API.get(
+        `/userSeasonTeams?season=${currentSeasonId}`,
+      );
+      const assignments = Array.isArray(assignmentsRes.data)
+        ? assignmentsRes.data
+        : [];
+
+      const hasAssignment = assignments.some((assignment) => {
+        const assignmentUserId =
+          typeof assignment.user === "object"
+            ? assignment.user?._id
+            : assignment.user;
+        return assignmentUserId === user._id;
+      });
+
+      setShowChooseTeamLink(!hasAssignment);
+    } catch (error) {
+      if (error?.response?.status !== 404) {
+        console.error(
+          "Fehler beim Prüfen der Teamzuweisung für die aktuelle Season:",
+          error,
+        );
+      }
+      setShowChooseTeamLink(false);
+    }
+  }, [user?._id]);
 
   useEffect(() => {
     const fetchSeasons = async () => {
+      if (user?.role !== "admin") {
+        setSeasons([]);
+        return;
+      }
+
       try {
         const res = await API.get("/seasons");
         const allSeasons = res.data;
@@ -43,7 +91,29 @@ export default function DashboardLayout({ children }) {
     };
 
     fetchSeasons();
-  }, []);
+  }, [user?.role]);
+
+  useEffect(() => {
+    checkCurrentSeasonAssignment();
+  }, [checkCurrentSeasonAssignment]);
+
+  useEffect(() => {
+    const handleTeamAssignmentUpdated = () => {
+      checkCurrentSeasonAssignment();
+    };
+
+    window.addEventListener(
+      "user-season-team-updated",
+      handleTeamAssignmentUpdated,
+    );
+
+    return () => {
+      window.removeEventListener(
+        "user-season-team-updated",
+        handleTeamAssignmentUpdated,
+      );
+    };
+  }, [checkCurrentSeasonAssignment]);
 
   const closeSidebar = () => setSidebarOpen(false);
 
@@ -75,7 +145,7 @@ export default function DashboardLayout({ children }) {
           <Link to="/winners" onClick={closeSidebar}>
             <FontAwesomeIcon icon={faTrophy} /> Sieger-Archiv
           </Link>
-          {user && !user.selectedTeam && (
+          {user && showChooseTeamLink && (
             <Link to="/choose-team" onClick={closeSidebar}>
               <FontAwesomeIcon icon={faFlagCheckered} /> Team wählen
             </Link>
@@ -182,3 +252,4 @@ export default function DashboardLayout({ children }) {
     </div>
   );
 }
+

@@ -37,10 +37,10 @@ export default function ChooseTeam() {
 
         setTakenTeams(allAssignments.map((assignment) => assignment.team._id));
 
-        const mine = allAssignments.find((assignment) => assignment.user._id === user._id);
-        if (mine) {
-          setSelectedTeam(mine.team);
-        }
+        const mine = allAssignments.find(
+          (assignment) => assignment.user._id === user._id,
+        );
+        setSelectedTeam(mine ? mine.team : null);
       } catch (err) {
         console.error("Fehler beim Laden", err);
       }
@@ -63,6 +63,8 @@ export default function ChooseTeam() {
         seasonId: activeSeason._id,
       });
       setSelectedTeam(res.data.team);
+      setTakenTeams((prev) => (prev.includes(teamId) ? prev : [...prev, teamId]));
+      window.dispatchEvent(new Event("user-season-team-updated"));
       alert("Team erfolgreich gewählt!");
     } catch (err) {
       alert(err.response?.data?.message || "Fehler bei Teamwahl");
