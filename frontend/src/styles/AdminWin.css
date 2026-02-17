@@ -110,6 +110,13 @@
   gap: 0.45rem;
 }
 
+.admin-win-field input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(1.2);
+  opacity: 0.95;
+  cursor: pointer;
+  color-scheme: auto;
+}
+
 .admin-win-field span {
   color: #dcdcdc;
   font-size: 0.9rem;

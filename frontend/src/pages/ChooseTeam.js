@@ -54,7 +54,9 @@ export default function ChooseTeam() {
 
         setTeams(activeSeason.teams || []);
 
-        const res = await API.get(`/userSeasonTeams?season=${activeSeason._id}`);
+        const res = await API.get(
+          `/userSeasonTeams?season=${activeSeason._id}`,
+        );
         const allAssignments = Array.isArray(res.data) ? res.data : [];
 
         setTakenTeams(
@@ -77,8 +79,9 @@ export default function ChooseTeam() {
         const selected =
           typeof mine?.team === "object"
             ? mine.team
-            : (activeSeason.teams || []).find((team) => team?._id === mine?.team) ||
-              null;
+            : (activeSeason.teams || []).find(
+                (team) => team?._id === mine?.team,
+              ) || null;
         setSelectedTeam(selected);
       } catch (err) {
         console.error("Fehler beim Laden", err);
@@ -96,7 +99,7 @@ export default function ChooseTeam() {
 
     if (!isSeasonParticipant) {
       alert(
-        "Du bist in der aktuellen Season nicht als Teilnehmer hinterlegt. Teamwahl ist nicht moeglich.",
+        "Du bist in der aktuellen Season nicht als Teilnehmer hinterlegt. Teamwahl ist nicht möglich.",
       );
       return;
     }
@@ -107,7 +110,9 @@ export default function ChooseTeam() {
         seasonId: activeSeason._id,
       });
       setSelectedTeam(res.data.team);
-      setTakenTeams((prev) => (prev.includes(teamId) ? prev : [...prev, teamId]));
+      setTakenTeams((prev) =>
+        prev.includes(teamId) ? prev : [...prev, teamId],
+      );
       window.dispatchEvent(new Event("user-season-team-updated"));
       alert("Team erfolgreich gewählt!");
     } catch (err) {
@@ -144,7 +149,8 @@ export default function ChooseTeam() {
       ) : selectedTeam ? (
         <div className="selected-team-box">
           <p>
-            Dein Team für {activeSeason.name}: <strong>{selectedTeam.name}</strong>
+            Dein Team für {activeSeason.name}:{" "}
+            <strong>{selectedTeam.name}</strong>
           </p>
         </div>
       ) : (

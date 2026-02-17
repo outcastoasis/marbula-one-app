@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import API from "../../api";
+import { useToast } from "../../context/ToastContext";
 import "../../styles/AdminWin.css";
 
 const initialFormData = {
@@ -12,26 +13,34 @@ const initialFormData = {
   notes: "",
 };
 
+function getApiErrorMessage(error, fallback) {
+  return error.response?.data?.message || fallback;
+}
+
 export default function AdminWin() {
+  const toast = useToast();
   const [createFormData, setCreateFormData] = useState(initialFormData);
   const [editFormData, setEditFormData] = useState(initialFormData);
   const [winners, setWinners] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [notice, setNotice] = useState(null);
 
   useEffect(() => {
     fetchWinners();
   }, []);
 
-  const fetchWinners = async () => {
+  const fetchWinners = async ({ showErrorToast = true } = {}) => {
     setIsLoading(true);
     try {
       const response = await API.get("/winners");
-      setWinners(response.data);
+      setWinners(Array.isArray(response.data) ? response.data : []);
+      return true;
     } catch (error) {
       console.error("Fehler beim Laden der Gewinner:", error);
-      setNotice({ type: "error", text: "Gewinner konnten nicht geladen werden." });
+      if (showErrorToast) {
+        toast.error("Gewinner konnten nicht geladen werden.");
+      }
+      return false;
     } finally {
       setIsLoading(false);
     }
@@ -64,12 +73,20 @@ export default function AdminWin() {
     event.preventDefault();
     try {
       await API.post("/winners", createFormData);
-      setNotice({ type: "success", text: "Eintrag wurde erfolgreich gespeichert." });
       resetCreateForm();
-      fetchWinners();
+      const refreshed = await fetchWinners({ showErrorToast: false });
+
+      if (!refreshed) {
+        toast.info(
+          "Eintrag wurde gespeichert, aber die Liste konnte nicht aktualisiert werden.",
+        );
+        return;
+      }
+
+      toast.success("Eintrag wurde erfolgreich gespeichert.");
     } catch (error) {
       console.error("Fehler beim Speichern:", error);
-      setNotice({ type: "error", text: "Eintrag konnte nicht gespeichert werden." });
+      toast.error(getApiErrorMessage(error, "Eintrag konnte nicht gespeichert werden."));
     }
   };
 
@@ -84,19 +101,28 @@ export default function AdminWin() {
       notes: entry.notes || "",
     });
     setEditingId(entry._id);
-    setNotice(null);
   };
 
   const handleInlineEditSubmit = async (event, id) => {
     event.preventDefault();
     try {
       await API.put(`/winners/${id}`, editFormData);
-      setNotice({ type: "success", text: "Eintrag wurde aktualisiert." });
       closeInlineEdit();
-      fetchWinners();
+      const refreshed = await fetchWinners({ showErrorToast: false });
+
+      if (!refreshed) {
+        toast.info(
+          "Eintrag wurde aktualisiert, aber die Liste konnte nicht aktualisiert werden.",
+        );
+        return;
+      }
+
+      toast.success("Eintrag wurde aktualisiert.");
     } catch (error) {
       console.error("Fehler beim Speichern:", error);
-      setNotice({ type: "error", text: "Eintrag konnte nicht gespeichert werden." });
+      toast.error(
+        getApiErrorMessage(error, "Eintrag konnte nicht aktualisiert werden."),
+      );
     }
   };
 
@@ -105,14 +131,22 @@ export default function AdminWin() {
 
     try {
       await API.delete(`/winners/${id}`);
-      setNotice({ type: "success", text: "Eintrag wurde gelöscht." });
       if (editingId === id) {
         closeInlineEdit();
       }
-      fetchWinners();
+      const refreshed = await fetchWinners({ showErrorToast: false });
+
+      if (!refreshed) {
+        toast.info(
+          "Eintrag wurde gelöscht, aber die Liste konnte nicht aktualisiert werden.",
+        );
+        return;
+      }
+
+      toast.success("Eintrag wurde gelöscht.");
     } catch (error) {
       console.error("Fehler beim Löschen:", error);
-      setNotice({ type: "error", text: "Eintrag konnte nicht gelöscht werden." });
+      toast.error(getApiErrorMessage(error, "Eintrag konnte nicht gelöscht werden."));
     }
   };
 
@@ -122,8 +156,6 @@ export default function AdminWin() {
         <h1>Event-Sieger verwalten</h1>
         <p>Pflege Gewinner, Teams und letzte Plätze für vergangene Events.</p>
       </header>
-
-      {notice && <p className={`admin-win-notice ${notice.type}`}>{notice.text}</p>}
 
       <section className="admin-win-panel">
         <div className="admin-win-panel-head">
@@ -261,7 +293,9 @@ export default function AdminWin() {
                       <td data-label="Gewinner">{winner.winnerUser || "—"}</td>
                       <td data-label="Gewinner-Team">{winner.winnerTeam || "—"}</td>
                       <td data-label="Letzter Platz">{winner.lastPlaceUser || "—"}</td>
-                      <td data-label="Team letzter Platz">{winner.lastPlaceTeam || "—"}</td>
+                      <td data-label="Team letzter Platz">
+                        {winner.lastPlaceTeam || "—"}
+                      </td>
                       <td data-label="Aktionen">
                         <div className="winner-actions">
                           <button
