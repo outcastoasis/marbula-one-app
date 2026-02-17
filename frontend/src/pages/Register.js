@@ -1,6 +1,6 @@
 import { useContext, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import API from "../api";
 import "../styles/Register.css"; // Externes CSS
 
@@ -78,7 +78,7 @@ export default function Register() {
         </form>
 
         <p className="register-footer">
-          Bereits registriert? <a href="/login">Zum Login</a>
+          Bereits registriert? <Link to="/login">Zum Login</Link>
         </p>
       </div>
     </div>

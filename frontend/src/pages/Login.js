@@ -1,6 +1,6 @@
 import { useContext, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import API from "../api";
 import "../styles/Login.css"; // ← CSS importieren
 
@@ -63,7 +63,7 @@ export default function Login() {
         </form>
 
         <p className="login-footer">
-          Noch kein Konto? <a href="/register">Jetzt registrieren</a>
+          Noch kein Konto? <Link to="/register">Jetzt registrieren</Link>
         </p>
       </div>
     </div>
