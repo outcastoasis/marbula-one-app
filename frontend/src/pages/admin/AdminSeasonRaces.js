@@ -131,19 +131,20 @@ export default function AdminSeasonRaces() {
           Zurück zu den Seasons
         </Link>
         <h1>Rennen verwalten</h1>
-        <p>
+        <p className="admin-season-races-meta admin-season-races-meta-line">
           {season ? (
             <>
-              Season <strong>{season.name}</strong>
+              <span className="admin-season-races-meta-item">
+                Saison:&nbsp;<strong>{season.name}</strong>
+              </span>
               {season.eventDate && (
-                <>
-                  {" "}
-                  · Event-Datum: {formatDate(season.eventDate)}
-                </>
+                <span className="admin-season-races-meta-item">
+                  Event-Datum:&nbsp;<strong>{formatDate(season.eventDate)}</strong>
+                </span>
               )}
             </>
           ) : (
-            "Lade Season-Informationen…"
+            "Lade Season-Daten…"
           )}
         </p>
       </header>
