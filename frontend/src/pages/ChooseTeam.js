@@ -35,12 +35,28 @@ export default function ChooseTeam() {
         const res = await API.get(`/userSeasonTeams?season=${activeSeason._id}`);
         const allAssignments = res.data;
 
-        setTakenTeams(allAssignments.map((assignment) => assignment.team._id));
+        setTakenTeams(
+          allAssignments
+            .map((assignment) =>
+              typeof assignment?.team === "object"
+                ? assignment.team?._id
+                : assignment?.team,
+            )
+            .filter(Boolean),
+        );
 
         const mine = allAssignments.find(
-          (assignment) => assignment.user._id === user._id,
+          (assignment) =>
+            (typeof assignment?.user === "object"
+              ? assignment.user?._id
+              : assignment?.user) === user._id,
         );
-        setSelectedTeam(mine ? mine.team : null);
+        const selectedTeam =
+          typeof mine?.team === "object"
+            ? mine.team
+            : (activeSeason.teams || []).find((team) => team?._id === mine?.team) ||
+              null;
+        setSelectedTeam(selectedTeam);
       } catch (err) {
         console.error("Fehler beim Laden", err);
       }

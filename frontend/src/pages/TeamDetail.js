@@ -39,9 +39,11 @@ export default function TeamDetail() {
         const assignmentRes = await API.get(
           `/userSeasonTeams?season=${seasonRes.data._id}`,
         );
-        const matching = assignmentRes.data.find(
-          (entry) => entry.team._id === id,
-        );
+        const matching = assignmentRes.data.find((entry) => {
+          const assignmentTeamId =
+            typeof entry?.team === "object" ? entry.team?._id : entry?.team;
+          return assignmentTeamId === id;
+        });
         setOwner(matching?.user || null);
 
         const seasonListRes = await API.get(`/teams/${id}/seasons`);

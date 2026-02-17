@@ -1,11 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import API from "../../api";
+import { useToast } from "../../context/ToastContext";
 import "../../styles/AdminUserEdit.css";
+
+function getApiErrorMessage(error, fallback) {
+  return error.response?.data?.message || fallback;
+}
 
 export default function AdminUserEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const toast = useToast();
   const [user, setUser] = useState(null);
   const [teams, setTeams] = useState([]);
   const [seasons, setSeasons] = useState([]);
@@ -13,7 +19,6 @@ export default function AdminUserEdit() {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [notice, setNotice] = useState(null);
 
   useEffect(() => {
     let ignore = false;
@@ -38,7 +43,7 @@ export default function AdminUserEdit() {
       } catch (error) {
         console.error("Fehler beim Laden:", error);
         if (!ignore) {
-          setNotice({ type: "error", text: "Daten konnten nicht geladen werden." });
+          toast.error("Daten konnten nicht geladen werden.");
         }
       } finally {
         if (!ignore) {
@@ -51,7 +56,7 @@ export default function AdminUserEdit() {
     return () => {
       ignore = true;
     };
-  }, [id]);
+  }, [id, toast]);
 
   const assignmentBySeasonId = useMemo(() => {
     const map = new Map();
@@ -83,7 +88,7 @@ export default function AdminUserEdit() {
     seasons.forEach((season) => {
       const seasonTeamIds = (season?.teams || [])
         .map((teamEntry) =>
-          typeof teamEntry === "object" ? teamEntry?._id : teamEntry
+          typeof teamEntry === "object" ? teamEntry?._id : teamEntry,
         )
         .filter(Boolean);
 
@@ -108,14 +113,14 @@ export default function AdminUserEdit() {
         await API.delete("/userSeasonTeams", {
           data: { userId: id, seasonId },
         });
-        setNotice({ type: "success", text: "Teamzuweisung wurde entfernt." });
+        toast.success("Teamzuweisung wurde entfernt.");
       } else {
         await API.post("/userSeasonTeams", {
           userId: id,
           seasonId,
           teamId,
         });
-        setNotice({ type: "success", text: "Teamzuweisung wurde gespeichert." });
+        toast.success("Teamzuweisung wurde gespeichert.");
       }
 
       await refreshAssignments();
@@ -125,32 +130,44 @@ export default function AdminUserEdit() {
         (error.response?.status === 400
           ? "Ungültige Anfrage. Ist das Team schon vergeben?"
           : "Fehler beim Speichern oder Löschen.");
-      setNotice({ type: "error", text: message });
+      toast.error(message);
     }
   };
 
   const updatePassword = async () => {
     if (!password.trim()) {
-      setNotice({ type: "error", text: "Bitte ein neues Passwort eingeben." });
+      toast.info("Bitte ein neues Passwort eingeben.");
       return;
     }
 
     try {
       await API.put(`/users/${id}/password`, { password });
       setPassword("");
-      setNotice({ type: "success", text: "Passwort wurde erfolgreich geändert." });
+      toast.success("Passwort wurde erfolgreich geändert.");
     } catch (error) {
-      setNotice({ type: "error", text: "Passwort konnte nicht geändert werden." });
+      toast.error(
+        getApiErrorMessage(error, "Passwort konnte nicht geändert werden."),
+      );
     }
   };
 
   const updateRole = async () => {
+    if (!role) {
+      toast.info("Bitte eine Rolle auswählen.");
+      return;
+    }
+
+    if (user?.role === role) {
+      toast.info("Die Rolle ist bereits gesetzt.");
+      return;
+    }
+
     try {
       await API.put(`/users/${id}/role`, { role });
       setUser((prev) => (prev ? { ...prev, role } : prev));
-      setNotice({ type: "success", text: "Rolle wurde erfolgreich aktualisiert." });
+      toast.success("Rolle wurde erfolgreich aktualisiert.");
     } catch (error) {
-      setNotice({ type: "error", text: "Rolle konnte nicht aktualisiert werden." });
+      toast.error(getApiErrorMessage(error, "Rolle konnte nicht aktualisiert werden."));
     }
   };
 
@@ -160,9 +177,10 @@ export default function AdminUserEdit() {
 
     try {
       await API.delete(`/users/${id}`);
+      toast.success("Benutzer wurde gelöscht.");
       navigate("/admin/users");
     } catch (error) {
-      setNotice({ type: "error", text: "Benutzer konnte nicht gelöscht werden." });
+      toast.error(getApiErrorMessage(error, "Benutzer konnte nicht gelöscht werden."));
     }
   };
 
@@ -191,8 +209,6 @@ export default function AdminUserEdit() {
         <h1>Benutzer bearbeiten</h1>
         <p>Verwalte Teamzuweisungen, Rolle und Passwort dieses Benutzers.</p>
       </header>
-
-      {notice && <p className={`admin-user-notice ${notice.type}`}>{notice.text}</p>}
 
       <section className="admin-user-edit-panel admin-user-meta-grid">
         <article className="admin-user-meta-card">

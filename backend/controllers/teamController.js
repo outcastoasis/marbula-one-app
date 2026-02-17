@@ -2,6 +2,7 @@
 
 import Team from "../models/Team.js";
 import Season from "../models/Season.js";
+import UserSeasonTeam from "../models/UserSeasonTeam.js";
 
 export const getAllTeams = async (req, res) => {
   const teams = await Team.find();
@@ -23,6 +24,7 @@ export const updateTeam = async (req, res) => {
 export const deleteTeam = async (req, res) => {
   const { id } = req.params;
   await Team.findByIdAndDelete(id);
+  await UserSeasonTeam.deleteMany({ team: id });
   res.json({ message: "Team gelöscht" });
 };
 
@@ -36,7 +38,7 @@ export const getTeamById = async (req, res) => {
 export const getSeasonsByTeam = async (req, res) => {
   const teamId = req.params.id;
   const seasons = await Season.find({ teams: teamId }).select(
-    "name eventDate _id"
+    "name eventDate _id",
   );
   res.json(seasons);
 };

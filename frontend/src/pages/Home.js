@@ -87,13 +87,18 @@ export default function Home() {
   }, [user, login]);
 
   const getUserAssignment = (userId) =>
-    assignments.find(
-      (a) =>
-        a.user._id === userId &&
-        (typeof a.season === "object"
-          ? a.season._id === season?._id
-          : a.season === season?._id)
-    );
+    assignments.find((assignment) => {
+      const assignmentUserId =
+        typeof assignment?.user === "object"
+          ? assignment.user?._id
+          : assignment?.user;
+      const assignmentSeasonId =
+        typeof assignment?.season === "object"
+          ? assignment.season?._id
+          : assignment?.season;
+
+      return assignmentUserId === userId && assignmentSeasonId === season?._id;
+    });
 
   const getTeamName = (userId) => {
     const entry = getUserAssignment(userId);
