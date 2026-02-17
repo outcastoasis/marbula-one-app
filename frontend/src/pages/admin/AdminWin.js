@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import API from "../../api";
 import { useToast } from "../../context/ToastContext";
 import "../../styles/AdminWin.css";
@@ -25,26 +25,29 @@ export default function AdminWin() {
   const [editingId, setEditingId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const fetchWinners = useCallback(
+    async ({ showErrorToast = true } = {}) => {
+      setIsLoading(true);
+      try {
+        const response = await API.get("/winners");
+        setWinners(Array.isArray(response.data) ? response.data : []);
+        return true;
+      } catch (error) {
+        console.error("Fehler beim Laden der Gewinner:", error);
+        if (showErrorToast) {
+          toast.error("Gewinner konnten nicht geladen werden.");
+        }
+        return false;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [toast],
+  );
+
   useEffect(() => {
     fetchWinners();
-  }, []);
-
-  const fetchWinners = async ({ showErrorToast = true } = {}) => {
-    setIsLoading(true);
-    try {
-      const response = await API.get("/winners");
-      setWinners(Array.isArray(response.data) ? response.data : []);
-      return true;
-    } catch (error) {
-      console.error("Fehler beim Laden der Gewinner:", error);
-      if (showErrorToast) {
-        toast.error("Gewinner konnten nicht geladen werden.");
-      }
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  }, [fetchWinners]);
 
   const handleCreateChange = (event) => {
     setCreateFormData({
@@ -86,7 +89,9 @@ export default function AdminWin() {
       toast.success("Eintrag wurde erfolgreich gespeichert.");
     } catch (error) {
       console.error("Fehler beim Speichern:", error);
-      toast.error(getApiErrorMessage(error, "Eintrag konnte nicht gespeichert werden."));
+      toast.error(
+        getApiErrorMessage(error, "Eintrag konnte nicht gespeichert werden."),
+      );
     }
   };
 
@@ -146,7 +151,9 @@ export default function AdminWin() {
       toast.success("Eintrag wurde gelöscht.");
     } catch (error) {
       console.error("Fehler beim Löschen:", error);
-      toast.error(getApiErrorMessage(error, "Eintrag konnte nicht gelöscht werden."));
+      toast.error(
+        getApiErrorMessage(error, "Eintrag konnte nicht gelöscht werden."),
+      );
     }
   };
 
@@ -263,7 +270,9 @@ export default function AdminWin() {
         {isLoading ? (
           <p className="admin-win-state">Lade Einträge…</p>
         ) : winners.length === 0 ? (
-          <p className="admin-win-state">Noch keine Event-Sieger eingetragen.</p>
+          <p className="admin-win-state">
+            Noch keine Event-Sieger eingetragen.
+          </p>
         ) : (
           <div className="admin-win-table-wrapper">
             <table className="admin-win-table">
@@ -291,8 +300,12 @@ export default function AdminWin() {
                       </td>
                       <td data-label="Ort">{winner.location || "—"}</td>
                       <td data-label="Gewinner">{winner.winnerUser || "—"}</td>
-                      <td data-label="Gewinner-Team">{winner.winnerTeam || "—"}</td>
-                      <td data-label="Letzter Platz">{winner.lastPlaceUser || "—"}</td>
+                      <td data-label="Gewinner-Team">
+                        {winner.winnerTeam || "—"}
+                      </td>
+                      <td data-label="Letzter Platz">
+                        {winner.lastPlaceUser || "—"}
+                      </td>
                       <td data-label="Team letzter Platz">
                         {winner.lastPlaceTeam || "—"}
                       </td>
@@ -302,7 +315,9 @@ export default function AdminWin() {
                             type="button"
                             className="admin-win-action"
                             onClick={() =>
-                              isEditing ? closeInlineEdit() : openInlineEdit(winner)
+                              isEditing
+                                ? closeInlineEdit()
+                                : openInlineEdit(winner)
                             }
                           >
                             {isEditing ? "Schliessen" : "Bearbeiten"}
@@ -401,7 +416,10 @@ export default function AdminWin() {
                             </div>
 
                             <div className="admin-win-inline-actions">
-                              <button type="submit" className="admin-win-button small">
+                              <button
+                                type="submit"
+                                className="admin-win-button small"
+                              >
                                 Änderungen speichern
                               </button>
                               <button

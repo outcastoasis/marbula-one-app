@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -42,33 +42,36 @@ export default function AdminSeasons() {
     [seasons],
   );
 
-  const fetchData = async ({ showErrorToast = true } = {}) => {
-    setIsLoading(true);
-    try {
-      const [seasonsRes, usersRes, teamsRes] = await Promise.all([
-        API.get("/seasons"),
-        API.get("/users"),
-        API.get("/teams"),
-      ]);
+  const fetchData = useCallback(
+    async ({ showErrorToast = true } = {}) => {
+      setIsLoading(true);
+      try {
+        const [seasonsRes, usersRes, teamsRes] = await Promise.all([
+          API.get("/seasons"),
+          API.get("/users"),
+          API.get("/teams"),
+        ]);
 
-      setSeasons(Array.isArray(seasonsRes.data) ? seasonsRes.data : []);
-      setUsers(Array.isArray(usersRes.data) ? usersRes.data : []);
-      setAllTeams(Array.isArray(teamsRes.data) ? teamsRes.data : []);
-      return true;
-    } catch (error) {
-      console.error("Fehler beim Laden:", error);
-      if (showErrorToast) {
-        toast.error("Daten konnten nicht geladen werden.");
+        setSeasons(Array.isArray(seasonsRes.data) ? seasonsRes.data : []);
+        setUsers(Array.isArray(usersRes.data) ? usersRes.data : []);
+        setAllTeams(Array.isArray(teamsRes.data) ? teamsRes.data : []);
+        return true;
+      } catch (error) {
+        console.error("Fehler beim Laden:", error);
+        if (showErrorToast) {
+          toast.error("Daten konnten nicht geladen werden.");
+        }
+        return false;
+      } finally {
+        setIsLoading(false);
       }
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    },
+    [toast],
+  );
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   const toggleSelection = (id, setState) => {
     setState((prev) =>
