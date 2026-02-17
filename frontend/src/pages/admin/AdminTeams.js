@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faAlignLeft,
@@ -11,6 +11,7 @@ import {
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import API from "../../api";
+import { useToast } from "../../context/ToastContext";
 import "../../styles/AdminTeams.css";
 
 function getTeamColor(color) {
@@ -25,7 +26,12 @@ function getTeamColorFade(color) {
   return color.startsWith("#") ? `${color}22` : "rgba(255, 255, 255, 0.04)";
 }
 
+function getApiErrorMessage(error, fallback) {
+  return error.response?.data?.message || fallback;
+}
+
 export default function AdminTeams() {
+  const toast = useToast();
   const [teams, setTeams] = useState([]);
   const [newTeam, setNewTeam] = useState({
     name: "",
@@ -41,24 +47,45 @@ export default function AdminTeams() {
     description: "",
   });
 
-  const fetchTeams = async () => {
-    try {
-      const res = await API.get("/teams");
-      setTeams(res.data);
-    } catch (error) {
-      console.error("Fehler beim Laden der Teams:", error);
-    }
-  };
+  const fetchTeams = useCallback(
+    async ({ showErrorToast = true } = {}) => {
+      try {
+        const res = await API.get("/teams");
+        setTeams(res.data);
+        return true;
+      } catch (error) {
+        console.error("Fehler beim Laden der Teams:", error);
+        if (showErrorToast) {
+          toast.error("Teams konnten nicht geladen werden.");
+        }
+        return false;
+      }
+    },
+    [toast],
+  );
 
   const addTeam = async () => {
-    if (!newTeam.name.trim()) return;
+    if (!newTeam.name.trim()) {
+      toast.info("Bitte gib einen Teamnamen ein.");
+      return;
+    }
 
     try {
       await API.post("/teams", newTeam);
       setNewTeam({ name: "", color: "", logoUrl: "", description: "" });
-      fetchTeams();
+      const refreshed = await fetchTeams({ showErrorToast: false });
+
+      if (!refreshed) {
+        toast.info(
+          "Team wurde hinzugefügt, aber die Liste konnte nicht aktualisiert werden.",
+        );
+        return;
+      }
+
+      toast.success("Team erfolgreich hinzugefügt.");
     } catch (error) {
       console.error("Fehler beim Hinzufügen des Teams:", error);
+      toast.error(getApiErrorMessage(error, "Fehler beim Hinzufügen des Teams."));
     }
   };
 
@@ -67,9 +94,19 @@ export default function AdminTeams() {
 
     try {
       await API.delete(`/teams/${id}`);
-      fetchTeams();
+      const refreshed = await fetchTeams({ showErrorToast: false });
+
+      if (!refreshed) {
+        toast.info(
+          "Team wurde gelöscht, aber die Liste konnte nicht aktualisiert werden.",
+        );
+        return;
+      }
+
+      toast.success("Team erfolgreich gelöscht.");
     } catch (error) {
       console.error("Fehler beim Löschen des Teams:", error);
+      toast.error(getApiErrorMessage(error, "Fehler beim Löschen des Teams."));
     }
   };
 
@@ -89,20 +126,38 @@ export default function AdminTeams() {
   };
 
   const saveEdit = async () => {
-    if (!editTeamId) return;
+    if (!editTeamId) {
+      toast.info("Kein Team zum Speichern ausgewählt.");
+      return;
+    }
+
+    if (!editTeamData.name.trim()) {
+      toast.info("Bitte gib einen Teamnamen ein.");
+      return;
+    }
 
     try {
       await API.put(`/teams/${editTeamId}`, editTeamData);
       cancelEdit();
-      fetchTeams();
+      const refreshed = await fetchTeams({ showErrorToast: false });
+
+      if (!refreshed) {
+        toast.info(
+          "Team wurde gespeichert, aber die Liste konnte nicht aktualisiert werden.",
+        );
+        return;
+      }
+
+      toast.success("Team erfolgreich gespeichert.");
     } catch (error) {
       console.error("Fehler beim Speichern des Teams:", error);
+      toast.error(getApiErrorMessage(error, "Fehler beim Speichern des Teams."));
     }
   };
 
   useEffect(() => {
     fetchTeams();
-  }, []);
+  }, [fetchTeams]);
 
   return (
     <div className="admin-teams-page">
@@ -134,9 +189,7 @@ export default function AdminTeams() {
               type="text"
               placeholder="#ff0000"
               value={newTeam.color}
-              onChange={(e) =>
-                setNewTeam({ ...newTeam, color: e.target.value })
-              }
+              onChange={(e) => setNewTeam({ ...newTeam, color: e.target.value })}
             />
           </label>
 

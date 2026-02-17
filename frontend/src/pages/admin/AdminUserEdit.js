@@ -67,6 +67,36 @@ export default function AdminUserEdit() {
     return map;
   }, [assignments]);
 
+  const teamsById = useMemo(() => {
+    const map = new Map();
+    teams.forEach((team) => {
+      if (team?._id) {
+        map.set(team._id, team);
+      }
+    });
+    return map;
+  }, [teams]);
+
+  const seasonTeamOptionsBySeasonId = useMemo(() => {
+    const map = new Map();
+
+    seasons.forEach((season) => {
+      const seasonTeamIds = (season?.teams || [])
+        .map((teamEntry) =>
+          typeof teamEntry === "object" ? teamEntry?._id : teamEntry
+        )
+        .filter(Boolean);
+
+      const seasonTeams = seasonTeamIds
+        .map((teamId) => teamsById.get(teamId))
+        .filter(Boolean);
+
+      map.set(season._id, seasonTeams);
+    });
+
+    return map;
+  }, [seasons, teamsById]);
+
   const refreshAssignments = async () => {
     const updated = await API.get(`/userSeasonTeams/user/${id}`);
     setAssignments(updated.data);
@@ -184,6 +214,9 @@ export default function AdminUserEdit() {
         <div className="season-assignment-list">
           {seasons.map((season) => {
             const selected = assignmentBySeasonId.get(season._id);
+            const seasonTeams = seasonTeamOptionsBySeasonId.get(season._id) || [];
+            const selectedTeamId =
+              typeof selected?.team === "object" ? selected?.team?._id : selected?.team;
 
             return (
               <article key={season._id} className="season-assignment-card">
@@ -192,11 +225,11 @@ export default function AdminUserEdit() {
                 </div>
                 <select
                   className="admin-user-control"
-                  value={selected?.team?._id || ""}
+                  value={selectedTeamId || ""}
                   onChange={(event) => updateAssignment(season._id, event.target.value)}
                 >
                   <option value="">— Team wählen —</option>
-                  {teams.map((team) => (
+                  {seasonTeams.map((team) => (
                     <option key={team._id} value={team._id}>
                       {team.name}
                     </option>

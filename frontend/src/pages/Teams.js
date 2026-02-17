@@ -30,7 +30,7 @@ export default function Teams() {
         setTeams(seasonRes.data?.teams || []);
 
         const assignmentRes = await API.get(
-          `/userSeasonTeams?season=${seasonRes.data._id}`
+          `/userSeasonTeams?season=${seasonRes.data._id}`,
         );
         setAssignments(assignmentRes.data);
       } catch (err) {
@@ -55,7 +55,7 @@ export default function Teams() {
     <div className="teams-page">
       <h1 className="teams-page-title">Marbula One Teams</h1>
       <p className="teams-season-subtitle">
-        Gewählte Teams
+        Verfügbare Teams
         {seasonName ? (
           <>
             {" "}
