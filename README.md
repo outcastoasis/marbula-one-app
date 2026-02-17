@@ -1,8 +1,7 @@
 # Marbula One App
 
-Dies ist eine MERN-Stack Webanwendung, die für ein jährliches
-Freundes-Event entwickelt wurde. Ziel ist es, Teams zu verwalten, Rennen
-zu erfassen, Punkte zu vergeben und Gewinner übersichtlich darzustellen.
+Webapp für ein jährliches Freundes-Event rund um Marbula One.
+Die Anwendung verwaltet Seasons, Teams, Rennen, Punkte, Gewinner und Benutzerrollen.
 
 ## Vorschau
 
@@ -10,101 +9,203 @@ zu erfassen, Punkte zu vergeben und Gewinner übersichtlich darzustellen.
 
 ## Features
 
--   Benutzerregistrierung und Login (mit Username, nicht E-Mail)
--   Teamwahl durch Benutzer (ein Team pro Person)
--   Saison-Management inklusive Teilnehmerauswahl
--   Rennen verwalten (Teilnehmer, Punktevergabe)
--   Ranglisten und Punktetabellen
--   Graphische Punkteverläufe wie bei Mario Party
--   Event-Gewinner archivieren (Adminfunktion)
--   Admin-Oberfläche mit strukturierter Sidebar
--   Mobilefreundliches, modernes Design ohne Tailwind im Hauptfrontend
+- Login und Registrierung mit `username`, `realname`, `password`
+- Rollenbasiertes System (`admin`, `user`)
+- Teamwahl pro Season (inkl. Team-Eindeutigkeit innerhalb einer Season)
+- Teamwahl nur für Benutzer, die in der aktuellen Season als Teilnehmer hinterlegt sind
+- Seasons verwalten (anlegen, als aktuell setzen, löschen)
+- Rennen pro Season verwalten und Resultate mit Punkten erfassen
+- Rangliste, Ergebnistabelle und Punkteverlauf auf der Startseite
+- Gewinnerverwaltung (Archiv)
+- Admin-Bereich für Teams, Seasons, Rennen, Resultate, Gewinner und Benutzer
+- Toast-Meldungen in den Admin-Bereichen für Erfolg/Fehler/Hinweise
 
-## Projektstruktur
+## Wichtige Integritätsregeln
 
-```
-marbula-one-app/
-├── backend/                  # Node.js + Express + MongoDB API
-│   ├── models/              # Mongoose-Modelle (User, Team, Race, Winner, usw.)
-│   ├── controllers/         # API-Logik
-│   ├── routes/              # REST-Endpunkte
-│   ├── middleware/          # Authentifizierung usw.
-│   └── server.js            # Einstiegspunkt für das Backend
-│
-├── frontend/                 # React-Client
-│   └── src/
-│       ├── pages/           # Hauptseiten (Home, Teams, Win, Admin-Bereich)
-│       ├── components/      # Navbar, ProtectedRoute usw.
-│       ├── layouts/         # DashboardLayout usw.
-│       └── context/         # Globale Zustände (AuthContext)
-│
-└── README.md                # Diese Datei
-```
+- Ein Team kann in einer Season nur einmal vergeben werden.
+- Benutzer können nicht gelöscht werden, wenn sie bereits Resultate in bestehenden Seasons haben.
+- Der letzte Admin kann nicht gelöscht werden.
+- Ein Admin kann sich nicht selbst löschen.
+- Beim Löschen einer Season werden zugehörige Rennen und Teamzuweisungen mitgelöscht.
+- Wenn die aktuelle Season gelöscht wird, wird automatisch eine andere Season als neue aktuelle Season gesetzt (falls vorhanden).
 
-## Technologien
+## Tech Stack
 
 ### Backend
 
--   Node.js
--   Express.js
--   MongoDB mit Mongoose
--   JWT-Authentifizierung
--   dotenv für Konfiguration
+- Node.js
+- Express 5
+- MongoDB + Mongoose
+- JWT (`jsonwebtoken`)
+- `bcryptjs`
 
 ### Frontend
 
--   React
--   Axios (API-Kommunikation)
--   CSS (ohne Tailwind im Hauptbereich)
--   Recharts (für Punktediagramme)
--   Zustand über React Context
+- React 19
+- React Router
+- Axios
+- Recharts
+- CSS (ohne UI Framework im Hauptfrontend)
+
+## Projektstruktur
+
+```text
+marbula-one-app/
+|-- backend/
+|   |-- config/
+|   |-- controllers/
+|   |-- middleware/
+|   |-- models/
+|   |-- routes/
+|   |-- utils/
+|   `-- server.js
+|-- frontend/
+|   |-- public/
+|   `-- src/
+|       |-- components/
+|       |-- context/
+|       |-- layouts/
+|       |-- pages/
+|       `-- styles/
+|-- screenshots/
+`-- README.md
+```
 
 ## Lokales Setup
 
 ### Voraussetzungen
 
--   Node.js und npm
--   MongoDB Atlas Account (oder lokale Instanz)
+- Node.js + npm
+- MongoDB (Atlas oder lokal)
 
-### Schritte
+### 1) Repository klonen
 
-1.  Projekt klonen git clone
-    https://github.com/dein-benutzername/marbula-one-app.git cd
-    marbula-one-app
+```bash
+git clone <dein-repo-url>
+cd marbula-one-app
+```
 
-2.  Backend installieren cd backend npm install
+### 2) Backend einrichten
 
-3.  Backend .env Datei erstellen
+```bash
+cd backend
+npm install
+```
 
-   ```bash
-MONGO_URI=`<Deine MongoDB-Verbindungszeichenfolge>`{=html}
-JWT_SECRET=`<Geheimer Schlüssel>`{=html}
+`backend/.env` erstellen:
+
+```env
+MONGO_URI=<deine_mongodb_connection_string>
+JWT_SECRET=<dein_geheimes_jwt_secret>
 PORT=5000
 ```
 
-5.  Backend starten npm run dev
+Backend starten:
 
-6.  Frontend installieren cd ../frontend npm install
+```bash
+npm run dev
+```
 
-7.  Frontend starten npm start
+### 3) Frontend einrichten
 
-8.  Aufrufen unter: Frontend: http://localhost:3000 Backend:
-    http://localhost:5000
+In neuem Terminal:
 
-## Benutzerrollen
+```bash
+cd frontend
+npm install
+```
 
-  | Rolle       | Rechte                 |
-| ------------- | --------------------------- |
-| **Admin**  | Teams, Rennen, Saisons verwalten, Punkte erfassen, Gewinner eintragen |
-| **Benutzer**   | Team wählen, Resultate einsehen, Statistiken verfolgen |
+`frontend/.env` erstellen:
 
-## Authentifizierung
+```env
+REACT_APP_API_URL=http://localhost:5000/api
+```
 
--   JWT-Token werden bei Login im localStorage gespeichert.
--   ProtectedRoute.js schützt Seiten vor unbefugtem Zugriff.
+Frontend starten:
 
-## Fragen / Screenshots
+```bash
+npm start
+```
 
-<img src="screenshots/login.png" alt="loginfenster" height="400"/>
-<img src="screenshots/team.png" alt="Teamdetails" height="400"/>
-<img src="screenshots/graph.png" alt="Automatischer Graph für Resultate" height="400"/>
+### 4) App aufrufen
+
+- Frontend: `http://localhost:3000`
+- Backend: `http://localhost:5000`
+
+## Build
+
+```bash
+cd frontend
+npm run build
+```
+
+## Rollen und Rechte
+
+| Rolle   | Rechte                                                                                  |
+| ------- | --------------------------------------------------------------------------------------- |
+| `admin` | Voller Zugriff auf Admin-Seiten (Teams, Seasons, Rennen, Resultate, Gewinner, Benutzer) |
+| `user`  | Team wählen (falls Season-Teilnehmer), Ranglisten/Resultate/Verlauf ansehen             |
+
+## API Übersicht (Kurzform)
+
+### Auth
+
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/auth/me`
+
+### Users
+
+- `POST /api/users` (admin)
+- `GET /api/users` (admin)
+- `GET /api/users/me`
+- `GET /api/users/:id` (admin oder selbst)
+- `PUT /api/users/:id/name` (admin)
+- `PUT /api/users/:id/password` (admin oder selbst)
+- `PUT /api/users/:id/role` (admin)
+- `DELETE /api/users/:id` (admin)
+
+### Seasons
+
+- `GET /api/seasons`
+- `POST /api/seasons` (admin)
+- `DELETE /api/seasons/:id` (admin)
+- `PUT /api/seasons/:id/set-current` (admin)
+- `GET /api/seasons/current`
+
+### Races
+
+- `GET /api/races/season/:seasonId`
+- `POST /api/races/season/:seasonId` (admin)
+- `GET /api/races/:raceId`
+- `PUT /api/races/:raceId/results` (admin)
+- `DELETE /api/races/:id` (admin)
+
+### Teams
+
+- `GET /api/teams`
+- `GET /api/teams/:id`
+- `GET /api/teams/:id/seasons`
+- `POST /api/teams` (admin)
+- `PUT /api/teams/:id` (admin)
+- `DELETE /api/teams/:id` (admin)
+
+### User-Season-Team
+
+- `GET /api/userSeasonTeams?season=<seasonId>`
+- `GET /api/userSeasonTeams/user/:userId`
+- `POST /api/userSeasonTeams`
+- `DELETE /api/userSeasonTeams`
+
+### Winners
+
+- `GET /api/winners`
+- `POST /api/winners`
+- `PUT /api/winners/:id`
+- `DELETE /api/winners/:id`
+
+## Screenshots
+
+![Login](screenshots/login.png)
+![Teamdetail](screenshots/team.png)
+![Punkteverlauf](screenshots/graph.png)
