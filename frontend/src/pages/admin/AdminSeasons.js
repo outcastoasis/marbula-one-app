@@ -96,7 +96,10 @@ export default function AdminSeasons() {
       setEventDate("");
       setParticipants([]);
       setTeams([]);
-      setNotice({ type: "success", text: "Season wurde erfolgreich erstellt." });
+      setNotice({
+        type: "success",
+        text: "Season wurde erfolgreich erstellt.",
+      });
       fetchData();
     } catch (error) {
       console.error("Fehler beim Erstellen der Season:", error);
@@ -116,14 +119,20 @@ export default function AdminSeasons() {
       fetchData();
     } catch (error) {
       console.error("Fehler beim Löschen der Season:", error);
-      setNotice({ type: "error", text: "Season konnte nicht gelöscht werden." });
+      setNotice({
+        type: "error",
+        text: "Season konnte nicht gelöscht werden.",
+      });
     }
   };
 
   const setCurrentSeason = async (seasonId) => {
     try {
       await API.put(`/seasons/${seasonId}/set-current`);
-      setNotice({ type: "success", text: "Aktuelle Season wurde aktualisiert." });
+      setNotice({
+        type: "success",
+        text: "Aktuelle Season wurde aktualisiert.",
+      });
       fetchData();
     } catch (error) {
       console.error("Fehler beim Setzen der aktuellen Season:", error);
@@ -138,12 +147,79 @@ export default function AdminSeasons() {
     <div className="admin-seasons-page">
       <header className="admin-seasons-header">
         <h1>Seasons verwalten</h1>
-        <p>Erstelle Seasons, ordne Teams und Benutzer zu und setze die aktuelle Season.</p>
+        <p>
+          Erstelle Seasons, ordne Teams und Benutzer zu und setze die aktuelle
+          Season.
+        </p>
       </header>
 
       {notice && (
         <p className={`admin-seasons-notice ${notice.type}`}>{notice.text}</p>
       )}
+
+      <section className="admin-seasons-panel">
+        <div className="admin-seasons-panel-head">
+          <h2>Seasons</h2>
+          <span className="admin-seasons-count">
+            {seasons.length} {seasons.length === 1 ? "Eintrag" : "Einträge"}
+          </span>
+        </div>
+
+        {isLoading ? (
+          <p className="admin-seasons-state">Lade Seasons…</p>
+        ) : sortedSeasons.length === 0 ? (
+          <p className="admin-seasons-state">Noch keine Seasons vorhanden.</p>
+        ) : (
+          <div className="admin-seasons-list">
+            {sortedSeasons.map((season) => (
+              <article
+                key={season._id}
+                className={`admin-season-card ${season.isCurrent ? "is-current" : ""}`}
+              >
+                <div className="admin-season-card-main">
+                  <h3>{season.name}</h3>
+                  <div className="admin-season-meta">
+                    <span>
+                      <FontAwesomeIcon icon={faCalendarDays} />
+                      {formatDate(season.eventDate)}
+                    </span>
+                    {season.isCurrent && (
+                      <span className="current-badge">
+                        <FontAwesomeIcon icon={faCheck} /> Aktuell
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="admin-season-actions">
+                  {!season.isCurrent && (
+                    <button
+                      type="button"
+                      className="admin-seasons-action"
+                      onClick={() => setCurrentSeason(season._id)}
+                    >
+                      <FontAwesomeIcon icon={faCheck} /> Als aktuell setzen
+                    </button>
+                  )}
+                  <Link
+                    to={`/admin/seasons/${season._id}/races`}
+                    className="admin-seasons-action link"
+                  >
+                    <FontAwesomeIcon icon={faArrowRightLong} /> Rennen verwalten
+                  </Link>
+                  <button
+                    type="button"
+                    className="admin-seasons-action danger"
+                    onClick={() => deleteSeason(season)}
+                  >
+                    <FontAwesomeIcon icon={faTrashCan} /> Löschen
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
 
       <section className="admin-seasons-panel">
         <div className="admin-seasons-panel-head">
@@ -252,74 +328,14 @@ export default function AdminSeasons() {
         </div>
 
         <div className="admin-seasons-form-actions">
-          <button type="button" className="admin-seasons-button" onClick={addSeason}>
+          <button
+            type="button"
+            className="admin-seasons-button"
+            onClick={addSeason}
+          >
             <FontAwesomeIcon icon={faPlus} /> Season hinzufügen
           </button>
         </div>
-      </section>
-
-      <section className="admin-seasons-panel">
-        <div className="admin-seasons-panel-head">
-          <h2>Seasons</h2>
-          <span className="admin-seasons-count">
-            {seasons.length} {seasons.length === 1 ? "Eintrag" : "Einträge"}
-          </span>
-        </div>
-
-        {isLoading ? (
-          <p className="admin-seasons-state">Lade Seasons…</p>
-        ) : sortedSeasons.length === 0 ? (
-          <p className="admin-seasons-state">Noch keine Seasons vorhanden.</p>
-        ) : (
-          <div className="admin-seasons-list">
-            {sortedSeasons.map((season) => (
-              <article
-                key={season._id}
-                className={`admin-season-card ${season.isCurrent ? "is-current" : ""}`}
-              >
-                <div className="admin-season-card-main">
-                  <h3>{season.name}</h3>
-                  <div className="admin-season-meta">
-                    <span>
-                      <FontAwesomeIcon icon={faCalendarDays} />
-                      {formatDate(season.eventDate)}
-                    </span>
-                    {season.isCurrent && (
-                      <span className="current-badge">
-                        <FontAwesomeIcon icon={faCheck} /> Aktuell
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="admin-season-actions">
-                  {!season.isCurrent && (
-                    <button
-                      type="button"
-                      className="admin-seasons-action"
-                      onClick={() => setCurrentSeason(season._id)}
-                    >
-                      <FontAwesomeIcon icon={faCheck} /> Als aktuell setzen
-                    </button>
-                  )}
-                  <Link
-                    to={`/admin/seasons/${season._id}/races`}
-                    className="admin-seasons-action link"
-                  >
-                    <FontAwesomeIcon icon={faArrowRightLong} /> Rennen verwalten
-                  </Link>
-                  <button
-                    type="button"
-                    className="admin-seasons-action danger"
-                    onClick={() => deleteSeason(season)}
-                  >
-                    <FontAwesomeIcon icon={faTrashCan} /> Löschen
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
       </section>
     </div>
   );
