@@ -6,139 +6,330 @@
   --brand-text: #ffffff;
 }
 
-.admin-teams-container {
-  max-width: 900px;
-  margin: 2rem auto;
-  padding: 0 1rem;
-  color: var(--brand-text);
+.admin-teams-page {
+  width: min(1200px, 100%);
+  margin: 0 auto;
+  padding: clamp(0.85rem, 2vw, 1.5rem);
   box-sizing: border-box;
+  color: var(--brand-text);
 }
 
-.admin-teams-container h2 {
-  font-size: 2rem;
-  margin-bottom: 1.5rem;
-  color: var(--brand-red);
+.admin-teams-header {
+  margin-bottom: 1rem;
   text-align: center;
 }
 
-.team-form {
+.admin-teams-header h1 {
+  margin: 0.5rem auto 0.45rem;
+  max-width: 20ch;
+  color: var(--brand-red);
+  font-size: clamp(1.7rem, 4.5vw, 2.9rem);
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.admin-teams-header p {
+  margin: 0;
+  color: #d4d4d4;
+  font-size: clamp(0.92rem, 2.2vw, 1rem);
+}
+
+.admin-teams-panel {
   background-color: var(--brand-light);
-  padding: 1.5rem;
-  border-radius: 12px;
-  margin-bottom: 2rem;
-  box-shadow: 0 0 10px rgba(255, 30, 30, 0.05);
-  display: flex;
-  flex-direction: column;
+  border: 1px solid var(--brand-border);
+  border-radius: 14px;
+  padding: clamp(0.9rem, 2vw, 1.4rem);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+}
+
+.admin-teams-panel + .admin-teams-panel {
+  margin-top: 1rem;
+}
+
+.admin-teams-panel h2 {
+  margin: 0 0 0.9rem;
+  color: var(--brand-red);
+  font-size: clamp(1.1rem, 2.6vw, 1.45rem);
+}
+
+.team-form-grid,
+.team-edit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.75rem;
 }
 
-.team-form label {
-  font-size: 0.95rem;
-}
-
-.team-form input {
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  border: 1px solid var(--brand-border);
-  background-color: var(--brand-dark);
-  color: var(--brand-text);
-  font-size: 1rem;
-}
-
-.team-form button {
-  background-color: var(--brand-red);
-  color: white;
-  border: none;
-  padding: 0.6rem 1rem;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  width: fit-content;
-}
-
-.team-form button:hover {
-  background-color: #e60000;
-}
-
-.team-list {
+.team-field {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.45rem;
 }
 
-.team-item {
-  display: flex;
-  flex-wrap: wrap;
+.team-field > span {
+  display: inline-flex;
   align-items: center;
-  gap: 1rem;
-  background-color: var(--brand-light);
-  padding: 1rem;
-  border-radius: 12px;
-  box-shadow: 0 0 10px rgba(255, 30, 30, 0.08);
-}
-
-.team-item span {
-  font-weight: 500;
-  font-size: 1rem;
-}
-
-.team-item button {
-  background: none;
-  border: none;
-  color: var(--brand-red);
-  font-size: 1.25rem;
-  cursor: pointer;
-  margin-left: auto;
-}
-
-.team-item button:hover {
-  color: #ff4d4d;
-}
-
-.team-logo-small {
-  height: 30px;
-  border-radius: 4px;
-  background-color: #222;
-}
-
-.team-color-text {
+  gap: 0.45rem;
+  color: #dcdcdc;
   font-size: 0.9rem;
-  color: #bbb;
 }
 
-.edit-fields {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+.team-field-full {
+  grid-column: 1 / -1;
+}
+
+.team-field input,
+.team-textarea,
+.team-edit-input,
+.team-edit-textarea {
   width: 100%;
-  align-items: center;
-}
-
-.team-edit-input {
-  padding: 0.4rem 0.75rem;
-  border-radius: 6px;
+  box-sizing: border-box;
   border: 1px solid var(--brand-border);
-  background-color: var(--brand-dark);
+  border-radius: 10px;
+  background-color: #121212;
   color: var(--brand-text);
   font-size: 0.95rem;
-  flex: 1 1 150px;
-}
-
-.team-actions {
-  display: flex;
-  gap: 0.5rem;
-  margin-left: auto;
+  padding: 0.62rem 0.8rem;
 }
 
 .team-textarea,
 .team-edit-textarea {
-  width: 100%;
-  min-height: 80px;
-  padding: 0.6rem 1rem;
-  border-radius: 8px;
-  border: 1px solid var(--brand-border);
-  background-color: var(--brand-dark);
-  color: var(--brand-text);
-  font-size: 1rem;
+  min-height: 110px;
   resize: vertical;
+  line-height: 1.45;
+}
+
+.team-field input:focus-visible,
+.team-textarea:focus-visible,
+.team-edit-input:focus-visible,
+.team-edit-textarea:focus-visible {
+  outline: 2px solid rgba(255, 30, 30, 0.7);
+  outline-offset: 1px;
+}
+
+.team-form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.team-primary-button,
+.team-ghost-button {
+  border-radius: 10px;
+  padding: 0.55rem 0.85rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition:
+    transform 0.15s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.team-primary-button {
+  border: 1px solid var(--brand-red);
+  background-color: var(--brand-red);
+  color: #fff;
+}
+
+.team-primary-button:hover {
+  background-color: #e10000;
+  border-color: #e10000;
+}
+
+.team-ghost-button {
+  border: 1px solid var(--brand-border);
+  background-color: #141414;
+  color: #f0f0f0;
+}
+
+.team-ghost-button:hover {
+  border-color: #4a4a4a;
+  background-color: #1b1b1b;
+}
+
+.team-ghost-button.danger {
+  color: #ff6a6a;
+  border-color: rgba(255, 106, 106, 0.35);
+}
+
+.team-ghost-button.danger:hover {
+  color: #ff8a8a;
+  border-color: rgba(255, 138, 138, 0.45);
+}
+
+.team-primary-button.compact,
+.team-ghost-button.compact {
+  padding: 0.5rem 0.72rem;
+  font-size: 0.9rem;
+}
+
+.team-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.95rem;
+}
+
+.team-list-header h2 {
+  margin: 0;
+}
+
+.team-count {
+  border: 1px solid var(--brand-border);
+  border-radius: 999px;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.82rem;
+  color: #d3d3d3;
+  background-color: #141414;
+}
+
+.team-empty-state {
+  margin: 0;
+  border: 1px dashed #3a3a3a;
+  border-radius: 12px;
+  background-color: #171717;
+  color: #cacaca;
+  padding: 0.95rem 1rem;
+}
+
+.team-list-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0.95rem;
+}
+
+.team-admin-card {
+  border: 1px solid var(--brand-border);
+  border-left: 4px solid var(--team-color, #525252);
+  border-radius: 14px;
+  padding: 0.95rem;
+  box-sizing: border-box;
+  background:
+    radial-gradient(
+      160% 130% at 15% 0%,
+      var(--team-color-fade, rgba(255, 255, 255, 0.04)) 0%,
+      transparent 55%
+    ),
+    linear-gradient(130deg, #191919 0%, #151515 100%);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.22);
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.team-admin-card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.72rem;
+}
+
+.team-logo-box {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: rgba(255, 255, 255, 0.03);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.team-logo-small {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+}
+
+.team-logo-fallback {
+  color: #c9c9c9;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.team-head-copy h3 {
+  margin: 0 0 0.3rem;
+  color: #ffffff;
+  font-size: 1.03rem;
+  line-height: 1.2;
+}
+
+.team-color-pill {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  background-color: var(--team-color-fade, rgba(255, 255, 255, 0.04));
+  color: #dfdfdf;
+  font-size: 0.8rem;
+  padding: 0.22rem 0.55rem;
+}
+
+.team-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.team-edit-grid .team-actions {
+  grid-column: 1 / -1;
+}
+
+.team-card-action {
+  min-height: 38px;
+  padding-inline: 0.95rem;
+}
+
+.team-primary-button:focus-visible,
+.team-ghost-button:focus-visible {
+  outline: 2px solid var(--brand-red);
+  outline-offset: 2px;
+}
+
+@media (max-width: 760px) {
+  .team-form-grid,
+  .team-edit-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .team-list-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .team-form-actions,
+  .team-edit-grid .team-actions {
+    grid-column: auto;
+  }
+
+  .team-card-action {
+    flex: 1 1 calc(50% - 0.55rem);
+    justify-content: center;
+  }
+}
+
+@media (max-width: 600px) {
+  .admin-teams-page {
+    padding: 0.75rem;
+  }
+
+  .team-admin-card {
+    padding: 0.85rem;
+  }
+
+  .team-logo-box {
+    width: 56px;
+    height: 56px;
+  }
+
+  .team-logo-small {
+    width: 46px;
+    height: 46px;
+  }
 }
