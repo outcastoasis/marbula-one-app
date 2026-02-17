@@ -2,6 +2,7 @@
 
 import asyncHandler from "express-async-handler";
 import UserSeasonTeam from "../models/UserSeasonTeam.js";
+import Season from "../models/Season.js";
 
 const resolveTargetUserId = (req, userIdFromBody) => {
   if (req.user?.role === "admin") {
@@ -32,6 +33,36 @@ const createUserSeasonTeam = asyncHandler(async (req, res) => {
   if (!teamId || !seasonId) {
     res.status(400);
     throw new Error("TeamId und SeasonId sind erforderlich.");
+  }
+
+  const season = await Season.findById(seasonId).select("participants teams");
+  if (!season) {
+    res.status(404);
+    throw new Error("Season nicht gefunden.");
+  }
+
+  const participantIds = (season.participants || [])
+    .map((participant) =>
+      typeof participant === "object" ? participant?._id : participant,
+    )
+    .filter(Boolean)
+    .map((id) => String(id));
+
+  if (!participantIds.includes(String(userId))) {
+    res.status(403);
+    throw new Error(
+      "Du bist in dieser Season nicht als Teilnehmer hinterlegt und kannst kein Team wählen.",
+    );
+  }
+
+  const seasonTeamIds = (season.teams || [])
+    .map((team) => (typeof team === "object" ? team?._id : team))
+    .filter(Boolean)
+    .map((id) => String(id));
+
+  if (!seasonTeamIds.includes(String(teamId))) {
+    res.status(400);
+    throw new Error("Das gewählte Team ist in dieser Season nicht verfügbar.");
   }
 
   const existingUserEntry = await UserSeasonTeam.findOne({

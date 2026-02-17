@@ -219,6 +219,14 @@ export default function Home() {
   };
 
   const myTeam = localUser ? getTeamData(localUser._id) : null;
+  const isCurrentSeasonParticipant =
+    !!season &&
+    !!localUser &&
+    (season.participants || []).some((participant) => {
+      const participantId =
+        typeof participant === "object" ? participant?._id : participant;
+      return participantId === localUser._id;
+    });
 
   return (
     <div className="home-container">
@@ -258,8 +266,10 @@ export default function Home() {
               </div>
               <p className="home-team-name">{myTeam.name}</p>
             </div>
-          ) : (
+          ) : isCurrentSeasonParticipant ? (
             <Link to="/choose-team">Team wählen</Link>
+          ) : (
+            <p>Du bist in dieser Season nicht als Teilnehmer hinterlegt.</p>
           )}
         </section>
 
@@ -336,4 +346,3 @@ export default function Home() {
     </div>
   );
 }
-

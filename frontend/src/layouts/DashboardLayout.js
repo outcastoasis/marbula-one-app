@@ -34,9 +34,23 @@ export default function DashboardLayout({ children }) {
 
     try {
       const currentSeasonRes = await API.get("/seasons/current");
-      const currentSeasonId = currentSeasonRes.data?._id;
+      const currentSeason = currentSeasonRes.data;
+      const currentSeasonId = currentSeason?._id;
 
       if (!currentSeasonId) {
+        setShowChooseTeamLink(false);
+        return;
+      }
+
+      const isSeasonParticipant = (currentSeason?.participants || []).some(
+        (participant) => {
+          const participantId =
+            typeof participant === "object" ? participant?._id : participant;
+          return participantId === user._id;
+        },
+      );
+
+      if (!isSeasonParticipant) {
         setShowChooseTeamLink(false);
         return;
       }

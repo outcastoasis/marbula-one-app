@@ -9,14 +9,16 @@ export default function ChooseTeam() {
   const [takenTeams, setTakenTeams] = useState([]);
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [activeSeason, setActiveSeason] = useState(null);
+  const [isSeasonParticipant, setIsSeasonParticipant] = useState(false);
 
   useEffect(() => {
     const fetchActiveSeason = async () => {
       try {
         const res = await API.get("/seasons/current");
-        setActiveSeason(res.data);
+        setActiveSeason(res.data || null);
       } catch (err) {
         console.error("Fehler beim Laden der aktiven Season", err);
+        setActiveSeason(null);
       }
     };
 
@@ -26,14 +28,34 @@ export default function ChooseTeam() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        if (!activeSeason) {
+        if (!activeSeason || !user?._id) {
+          setIsSeasonParticipant(false);
+          setTeams([]);
+          setTakenTeams([]);
+          setSelectedTeam(null);
+          return;
+        }
+
+        const participantIds = (activeSeason.participants || [])
+          .map((participant) =>
+            typeof participant === "object" ? participant?._id : participant,
+          )
+          .filter(Boolean);
+
+        const canChooseTeam = participantIds.includes(user._id);
+        setIsSeasonParticipant(canChooseTeam);
+
+        if (!canChooseTeam) {
+          setTeams([]);
+          setTakenTeams([]);
+          setSelectedTeam(null);
           return;
         }
 
         setTeams(activeSeason.teams || []);
 
         const res = await API.get(`/userSeasonTeams?season=${activeSeason._id}`);
-        const allAssignments = res.data;
+        const allAssignments = Array.isArray(res.data) ? res.data : [];
 
         setTakenTeams(
           allAssignments
@@ -51,25 +73,31 @@ export default function ChooseTeam() {
               ? assignment.user?._id
               : assignment?.user) === user._id,
         );
-        const selectedTeam =
+
+        const selected =
           typeof mine?.team === "object"
             ? mine.team
             : (activeSeason.teams || []).find((team) => team?._id === mine?.team) ||
               null;
-        setSelectedTeam(selectedTeam);
+        setSelectedTeam(selected);
       } catch (err) {
         console.error("Fehler beim Laden", err);
       }
     };
 
-    if (activeSeason) {
-      fetchData();
-    }
+    fetchData();
   }, [activeSeason, user?._id]);
 
   const selectTeam = async (teamId) => {
     if (!activeSeason) {
       alert("Keine aktive Season gefunden");
+      return;
+    }
+
+    if (!isSeasonParticipant) {
+      alert(
+        "Du bist in der aktuellen Season nicht als Teilnehmer hinterlegt. Teamwahl ist nicht moeglich.",
+      );
       return;
     }
 
@@ -95,17 +123,28 @@ export default function ChooseTeam() {
         {activeSeason?.name ? (
           <>
             {" "}
-            für <strong>{activeSeason.name}</strong>
+            fuer <strong>{activeSeason.name}</strong>
           </>
         ) : (
           " für die aktuelle Season"
         )}
       </p>
 
-      {selectedTeam ? (
+      {!activeSeason ? (
+        <div className="selected-team-box">
+          <p>Aktuell ist keine Season aktiv.</p>
+        </div>
+      ) : !isSeasonParticipant ? (
         <div className="selected-team-box">
           <p>
-            Dein Team für {activeSeason?.name}: <strong>{selectedTeam.name}</strong>
+            Du bist in <strong>{activeSeason.name}</strong> nicht als Teilnehmer
+            hinterlegt.
+          </p>
+        </div>
+      ) : selectedTeam ? (
+        <div className="selected-team-box">
+          <p>
+            Dein Team für {activeSeason.name}: <strong>{selectedTeam.name}</strong>
           </p>
         </div>
       ) : (
