@@ -128,7 +128,7 @@ export default function ChooseTeam() {
         {activeSeason?.name ? (
           <>
             {" "}
-            fuer <strong>{activeSeason.name}</strong>
+            für <strong>{activeSeason.name}</strong>
           </>
         ) : (
           " für die aktuelle Season"

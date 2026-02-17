@@ -9,6 +9,10 @@ import { runWithOptionalTransaction } from "../utils/transaction.js";
 const applySession = (query, session) =>
   session ? query.session(session) : query;
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
+const sanitizeUser = (userDoc) => {
+  const { password: _password, ...safeUser } = userDoc.toObject();
+  return safeUser;
+};
 
 const buildBlockingSeasonList = (racesWithResults) => {
   const blockingSeasonMap = new Map();
@@ -20,10 +24,7 @@ const buildBlockingSeasonList = (racesWithResults) => {
       typeof race?.season === "object" ? race.season?.name : null;
 
     if (seasonId) {
-      blockingSeasonMap.set(
-        String(seasonId),
-        seasonName || "Unbekannte Season",
-      );
+      blockingSeasonMap.set(String(seasonId), seasonName || "Unbekannte Season");
     }
   });
 
@@ -105,6 +106,37 @@ export const getCurrentUser = async (req, res) => {
   res.json(user);
 };
 
+// POST /users
+export const createUser = async (req, res) => {
+  const username =
+    typeof req.body.username === "string" ? req.body.username.trim() : "";
+  const realname =
+    typeof req.body.realname === "string" ? req.body.realname.trim() : "";
+  const password = typeof req.body.password === "string" ? req.body.password : "";
+
+  if (!username || !realname || !password) {
+    return res.status(400).json({
+      message: "Bitte Benutzername, Name und Passwort angeben.",
+    });
+  }
+
+  const userExists = await User.findOne({ username });
+  if (userExists) {
+    return res.status(409).json({ message: "Benutzername existiert bereits." });
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const user = await User.create({
+    username,
+    realname,
+    password: hashedPassword,
+  });
+
+  return res
+    .status(201)
+    .json({ message: "Benutzer wurde erstellt.", user: sanitizeUser(user) });
+};
+
 // GET /users/:id
 export const getSingleUser = async (req, res) => {
   const { id } = req.params;
@@ -124,6 +156,10 @@ export const updateUserPassword = async (req, res) => {
   const { id } = req.params;
   if (!isValidObjectId(id)) {
     return res.status(400).json({ message: "Ungültige Benutzer-ID" });
+  }
+
+  if (typeof req.body.password !== "string" || req.body.password.trim().length === 0) {
+    return res.status(400).json({ message: "Passwort darf nicht leer sein." });
   }
 
   const hashed = await bcrypt.hash(req.body.password, 10);
@@ -153,6 +189,31 @@ export const updateUserRole = async (req, res) => {
   }
 
   res.json({ message: "Rolle aktualisiert" });
+};
+
+// PUT /users/:id/name
+export const updateUserRealname = async (req, res) => {
+  const { id } = req.params;
+  if (!isValidObjectId(id)) {
+    return res.status(400).json({ message: "Ungültige Benutzer-ID" });
+  }
+
+  const realname =
+    typeof req.body.realname === "string" ? req.body.realname.trim() : "";
+  if (!realname) {
+    return res.status(400).json({ message: "Name darf nicht leer sein." });
+  }
+
+  const updated = await User.findByIdAndUpdate(
+    id,
+    { realname },
+    { new: true },
+  ).select("-password");
+  if (!updated) {
+    return res.status(404).json({ message: "Benutzer nicht gefunden" });
+  }
+
+  return res.json({ message: "Name aktualisiert", user: updated });
 };
 
 // DELETE /users/:id

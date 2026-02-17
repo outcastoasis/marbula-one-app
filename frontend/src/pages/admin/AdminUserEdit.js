@@ -17,6 +17,7 @@ export default function AdminUserEdit() {
   const [seasons, setSeasons] = useState([]);
   const [assignments, setAssignments] = useState([]);
   const [password, setPassword] = useState("");
+  const [realname, setRealname] = useState("");
   const [role, setRole] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
@@ -39,6 +40,7 @@ export default function AdminUserEdit() {
           setSeasons(seasonsRes.data);
           setAssignments(assignmentsRes.data);
           setRole(userRes.data.role);
+          setRealname(userRes.data.realname || "");
         }
       } catch (error) {
         console.error("Fehler beim Laden:", error);
@@ -134,6 +136,37 @@ export default function AdminUserEdit() {
     }
   };
 
+  const updateRealname = async () => {
+    const trimmedRealname = realname.trim();
+
+    if (!trimmedRealname) {
+      toast.info("Bitte einen Namen eingeben.");
+      return;
+    }
+
+    if ((user?.realname || "").trim() === trimmedRealname) {
+      toast.info("Der Name ist bereits gesetzt.");
+      return;
+    }
+
+    try {
+      const response = await API.put(`/users/${id}/name`, {
+        realname: trimmedRealname,
+      });
+
+      if (response.data?.user) {
+        setUser(response.data.user);
+        setRealname(response.data.user.realname || "");
+      } else {
+        setUser((prev) => (prev ? { ...prev, realname: trimmedRealname } : prev));
+      }
+
+      toast.success("Name wurde erfolgreich aktualisiert.");
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, "Name konnte nicht aktualisiert werden."));
+    }
+  };
+
   const updatePassword = async () => {
     if (!password.trim()) {
       toast.info("Bitte ein neues Passwort eingeben.");
@@ -207,7 +240,7 @@ export default function AdminUserEdit() {
           Zurück zur Benutzerliste
         </Link>
         <h1>Benutzer bearbeiten</h1>
-        <p>Verwalte Teamzuweisungen, Rolle und Passwort dieses Benutzers.</p>
+        <p>Verwalte Teamzuweisungen, Name, Rolle und Passwort dieses Benutzers.</p>
       </header>
 
       <section className="admin-user-edit-panel admin-user-meta-grid">
@@ -267,6 +300,24 @@ export default function AdminUserEdit() {
       </section>
 
       <div className="admin-user-edit-grid">
+        <section className="admin-user-edit-panel">
+          <h2>Name ändern</h2>
+          <div className="admin-user-form-stack">
+            <label htmlFor="user-realname">Name</label>
+            <input
+              id="user-realname"
+              className="admin-user-control"
+              type="text"
+              placeholder="Vorname Nachname"
+              value={realname}
+              onChange={(event) => setRealname(event.target.value)}
+            />
+            <button type="button" className="admin-button" onClick={updateRealname}>
+              Name speichern
+            </button>
+          </div>
+        </section>
+
         <section className="admin-user-edit-panel">
           <h2>Passwort ändern</h2>
           <div className="admin-user-form-stack">
