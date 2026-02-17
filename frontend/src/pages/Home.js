@@ -86,15 +86,52 @@ export default function Home() {
     fetchData();
   }, [user, login]);
 
-  const getTeamName = (userId) => {
-    const entry = assignments.find(
+  const getUserAssignment = (userId) =>
+    assignments.find(
       (a) =>
         a.user._id === userId &&
         (typeof a.season === "object"
           ? a.season._id === season?._id
           : a.season === season?._id)
     );
+
+  const getTeamName = (userId) => {
+    const entry = getUserAssignment(userId);
     return entry?.team?.name || "-";
+  };
+
+  const getTeamColorSoft = (color) => {
+    if (!color || typeof color !== "string") {
+      return "rgba(255, 30, 30, 0.22)";
+    }
+    return color.startsWith("#") ? `${color}36` : "rgba(255, 30, 30, 0.22)";
+  };
+
+  const getTeamData = (userId) => {
+    const assignment = getUserAssignment(userId);
+    if (!assignment?.team) {
+      return null;
+    }
+
+    const assignedTeamId =
+      typeof assignment.team === "object" ? assignment.team._id : assignment.team;
+
+    const seasonTeam =
+      (season?.teams || []).find((team) => team?._id === assignedTeamId) || null;
+
+    const teamData =
+      (seasonTeam && typeof seasonTeam === "object" && seasonTeam) ||
+      (typeof assignment.team === "object" ? assignment.team : null);
+
+    if (!teamData) {
+      return null;
+    }
+
+    return {
+      name: teamData.name || getTeamName(userId),
+      color: teamData.color || "#ff1e1e",
+      logoUrl: teamData.logoUrl || null,
+    };
   };
 
   const generateColor = (index, total) =>
@@ -176,7 +213,7 @@ export default function Home() {
     );
   };
 
-  const myTeamName = localUser ? getTeamName(localUser._id) : "-";
+  const myTeam = localUser ? getTeamData(localUser._id) : null;
 
   return (
     <div className="home-container">
@@ -187,10 +224,35 @@ export default function Home() {
       </h1>
 
       <div className="sections-grid">
-        <section>
+        <section
+          className={myTeam ? "home-team-section" : undefined}
+          style={
+            myTeam
+              ? {
+                  "--team-color": myTeam.color,
+                  "--team-color-soft": getTeamColorSoft(myTeam.color),
+                }
+              : undefined
+          }
+        >
           <h2>Dein Team</h2>
-          {season && localUser && myTeamName !== "-" ? (
-            <p>{myTeamName}</p>
+          {season && localUser && myTeam ? (
+            <div className="home-team-card">
+              <div className="home-team-logo-wrap" aria-hidden={!myTeam.logoUrl}>
+                {myTeam.logoUrl ? (
+                  <img
+                    src={myTeam.logoUrl}
+                    alt={`${myTeam.name} Logo`}
+                    className="home-team-logo"
+                  />
+                ) : (
+                  <span className="home-team-logo-fallback">
+                    {myTeam.name.charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </div>
+              <p className="home-team-name">{myTeam.name}</p>
+            </div>
           ) : (
             <Link to="/choose-team">Team wählen</Link>
           )}
