@@ -2,6 +2,8 @@ import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import API from "../api";
 import { Link } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import {
   ResponsiveContainer,
   LineChart,
@@ -19,6 +21,7 @@ export default function Home() {
   const [localUser, setLocalUser] = useState(null);
   const [season, setSeason] = useState(null);
   const [participants, setParticipants] = useState([]);
+  const [visibleUserIds, setVisibleUserIds] = useState([]);
   const [assignments, setAssignments] = useState([]);
   const [cumulativeData, setCumulativeData] = useState([]);
   const [activePoint, setActivePoint] = useState(null);
@@ -47,9 +50,10 @@ export default function Home() {
         }
 
         const filtered = (seasonRes.data.participants || []).filter(
-          (participant) => typeof participant === "object" && participant?._id
+          (participant) => typeof participant === "object" && participant?._id,
         );
         setParticipants(filtered);
+        setVisibleUserIds(filtered.map((participant) => participant._id));
 
         const [assignmentRes, racesRes] = await Promise.all([
           API.get(`/userSeasonTeams?season=${seasonId}`),
@@ -86,6 +90,12 @@ export default function Home() {
     fetchData();
   }, [user, login]);
 
+  useEffect(() => {
+    if (activePoint && !visibleUserIds.includes(activePoint.userId)) {
+      setActivePoint(null);
+    }
+  }, [activePoint, visibleUserIds]);
+
   const getUserAssignment = (userId) =>
     assignments.find((assignment) => {
       const assignmentUserId =
@@ -119,10 +129,13 @@ export default function Home() {
     }
 
     const assignedTeamId =
-      typeof assignment.team === "object" ? assignment.team._id : assignment.team;
+      typeof assignment.team === "object"
+        ? assignment.team._id
+        : assignment.team;
 
     const seasonTeam =
-      (season?.teams || []).find((team) => team?._id === assignedTeamId) || null;
+      (season?.teams || []).find((team) => team?._id === assignedTeamId) ||
+      null;
 
     const teamData =
       (seasonTeam && typeof seasonTeam === "object" && seasonTeam) ||
@@ -141,6 +154,18 @@ export default function Home() {
 
   const generateColor = (index, total) =>
     `hsl(${(index * 360) / total}, 70%, 50%)`;
+
+  const visibleParticipants = participants.filter((participant) =>
+    visibleUserIds.includes(participant._id),
+  );
+
+  const toggleVisibleUser = (userId) => {
+    setVisibleUserIds((previous) =>
+      previous.includes(userId)
+        ? previous.filter((id) => id !== userId)
+        : [...previous, userId],
+    );
+  };
 
   const renderTable = (rows, columns) => (
     <div className="scroll-wrapper table-scroll-wrapper">
@@ -332,7 +357,10 @@ export default function Home() {
           <h2>Dein Team</h2>
           {season && localUser && myTeam ? (
             <div className="home-team-card">
-              <div className="home-team-logo-wrap" aria-hidden={!myTeam.logoUrl}>
+              <div
+                className="home-team-logo-wrap"
+                aria-hidden={!myTeam.logoUrl}
+              >
                 {myTeam.logoUrl ? (
                   <img
                     src={myTeam.logoUrl}
@@ -394,6 +422,58 @@ export default function Home() {
 
       <section>
         <h2>Punkteverlauf</h2>
+        <div className="home-chart-filter-row">
+          <details className="home-chart-filter-dropdown">
+            <summary>
+              <span>
+                User filtern ({visibleParticipants.length}/{participants.length}
+                )
+              </span>
+              <FontAwesomeIcon
+                icon={faChevronDown}
+                className="home-chart-filter-icon"
+              />
+            </summary>
+            <div className="home-chart-filter-content">
+              <div className="home-chart-filter-actions">
+                <button
+                  type="button"
+                  className="home-chart-filter-action"
+                  onClick={() =>
+                    setVisibleUserIds(
+                      participants.map((participant) => participant._id),
+                    )
+                  }
+                >
+                  Alle anzeigen
+                </button>
+                <button
+                  type="button"
+                  className="home-chart-filter-action"
+                  onClick={() => setVisibleUserIds([])}
+                >
+                  Alle ausblenden
+                </button>
+              </div>
+
+              <div className="home-chart-filter-list">
+                {participants.map((participant) => (
+                  <label
+                    key={participant._id}
+                    className="home-chart-filter-item"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={visibleUserIds.includes(participant._id)}
+                      onChange={() => toggleVisibleUser(participant._id)}
+                    />
+                    <span>{participant.realname}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </details>
+        </div>
         <div className="scroll-wrapper chart-scroll-wrapper">
           <div className="chart-inner">
             <ResponsiveContainer width="100%" height="100%">
@@ -403,13 +483,16 @@ export default function Home() {
                 <YAxis allowDecimals={false} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
-                {participants.map((p, i) => (
+                {visibleParticipants.map((p, i) => (
                   <Line
                     key={p._id}
                     type="monotone"
                     dataKey={p._id}
                     name={p.realname}
-                    stroke={generateColor(i, participants.length)}
+                    stroke={generateColor(
+                      i,
+                      Math.max(visibleParticipants.length, 1),
+                    )}
                     strokeWidth={2}
                     dot={renderClickableDot(p)}
                     activeDot={{ r: 0 }}
@@ -419,6 +502,11 @@ export default function Home() {
             </ResponsiveContainer>
           </div>
         </div>
+        {visibleParticipants.length === 0 ? (
+          <p className="home-chart-filter-empty">
+            Keine User ausgewählt. Bitte mindestens einen User aktivieren.
+          </p>
+        ) : null}
       </section>
     </div>
   );

@@ -247,6 +247,104 @@
   font-size: 0.8rem;
 }
 
+.home-container .home-chart-filter-row {
+  margin: 0 0 0.7rem;
+}
+
+.home-container .home-chart-filter-dropdown {
+  border: 1px solid #3a3a3a;
+  border-radius: 10px;
+  background: linear-gradient(160deg, #1a1a1a 0%, #141414 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.home-container .home-chart-filter-dropdown > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 0.62rem 0.8rem;
+  color: #f6f6f6;
+  font-size: 0.92rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+
+.home-container .home-chart-filter-dropdown > summary::-webkit-details-marker {
+  display: none;
+}
+
+.home-container .home-chart-filter-icon {
+  color: #ff5e5e;
+  font-size: 0.95rem;
+  line-height: 1;
+  flex-shrink: 0;
+  transform: translateY(-1px) rotate(0deg);
+  transition: transform 0.2s ease;
+}
+
+.home-container .home-chart-filter-dropdown[open] .home-chart-filter-icon {
+  transform: translateY(-1px) rotate(180deg);
+}
+
+.home-container .home-chart-filter-content {
+  border-top: 1px solid #2d2d2d;
+  padding: 0.65rem 0.75rem 0.75rem;
+}
+
+.home-container .home-chart-filter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 0.6rem;
+}
+
+.home-container .home-chart-filter-action {
+  border: 1px solid #494949;
+  border-radius: 8px;
+  background-color: #1f1f1f;
+  color: #efefef;
+  font-size: 0.84rem;
+  padding: 0.4rem 0.62rem;
+  min-height: 34px;
+  cursor: pointer;
+}
+
+.home-container .home-chart-filter-action:hover {
+  border-color: #ff4f4f;
+}
+
+.home-container .home-chart-filter-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.45rem 0.7rem;
+}
+
+.home-container .home-chart-filter-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #ececec;
+  font-size: 0.9rem;
+  border: 1px solid #2f2f2f;
+  border-radius: 8px;
+  background-color: #191919;
+  padding: 0.42rem 0.52rem;
+}
+
+.home-container .home-chart-filter-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #ff3b3b;
+}
+
+.home-container .home-chart-filter-empty {
+  margin: 0.65rem 0 0;
+  color: #d0d0d0;
+  font-size: 0.88rem;
+}
+
 .home-container .home-chart-tooltip-dot {
   width: 8px;
   height: 8px;
@@ -309,5 +407,42 @@
   .home-container .home-team-logo-wrap {
     width: 52px;
     height: 52px;
+  }
+
+  .home-container .home-chart-filter-dropdown > summary {
+    padding: 0.68rem 0.78rem;
+    font-size: 0.91rem;
+  }
+
+  .home-container .home-chart-filter-content {
+    padding: 0.65rem 0.65rem 0.7rem;
+  }
+
+  .home-container .home-chart-filter-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.45rem;
+  }
+
+  .home-container .home-chart-filter-action {
+    width: 100%;
+    min-height: 38px;
+    font-size: 0.85rem;
+  }
+
+  .home-container .home-chart-filter-list {
+    grid-template-columns: 1fr;
+    gap: 0.42rem;
+  }
+
+  .home-container .home-chart-filter-item {
+    min-height: 38px;
+    font-size: 0.9rem;
+    padding: 0.48rem 0.55rem;
+  }
+
+  .home-container .home-chart-filter-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
   }
 }
