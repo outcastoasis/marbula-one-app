@@ -68,7 +68,7 @@ export default function Teams() {
 
       {teams.length === 0 ? (
         <section className="teams-empty-card">
-          <p>Noch keine Teams fuer diese Season gefunden.</p>
+          <p>Noch keine Teams für diese Season gefunden.</p>
         </section>
       ) : (
         <div className="teams-grid">

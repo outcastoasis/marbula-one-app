@@ -8,13 +8,14 @@ import {
   setCurrentSeason,
   getCurrentSeason,
 } from "../controllers/seasonController.js";
+import { protect, requireAdmin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 router.get("/", getAllSeasons);
-router.post("/", createSeason);
-router.delete("/:id", deleteSeason);
-router.put("/:id/set-current", setCurrentSeason);
+router.post("/", protect, requireAdmin, createSeason);
+router.delete("/:id", protect, requireAdmin, deleteSeason);
+router.put("/:id/set-current", protect, requireAdmin, setCurrentSeason);
 router.get("/current", getCurrentSeason);
 
 export default router;

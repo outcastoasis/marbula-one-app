@@ -35,11 +35,8 @@ export default function Home() {
         const seasonRes = await API.get("/seasons/current");
         setSeason(seasonRes.data);
 
-        const usersRes = await API.get("/users");
-        const filtered = usersRes.data.filter((u) =>
-          seasonRes.data.participants.some((p) =>
-            typeof p === "object" ? p._id === u._id : p === u._id
-          )
+        const filtered = (seasonRes.data.participants || []).filter(
+          (participant) => typeof participant === "object" && participant?._id
         );
         setParticipants(filtered);
 

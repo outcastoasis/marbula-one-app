@@ -6,13 +6,14 @@ import {
   updateRaceResults,
   getRaceById,
 } from "../controllers/raceController.js";
+import { protect, requireAdmin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 router.get("/season/:seasonId", getRacesBySeason);
-router.post("/season/:seasonId", createRaceForSeason);
-router.delete("/:id", deleteRace);
+router.post("/season/:seasonId", protect, requireAdmin, createRaceForSeason);
+router.delete("/:id", protect, requireAdmin, deleteRace);
 router.get("/:raceId", getRaceById);
-router.put("/:raceId/results", updateRaceResults);
+router.put("/:raceId/results", protect, requireAdmin, updateRaceResults);
 
 export default router;
