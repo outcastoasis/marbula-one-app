@@ -177,6 +177,12 @@
   object-fit: contain;
 }
 
+.header-logo-link {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+}
+
 .dashboard-main {
   margin-top: var(--dashboard-header-height);
   padding: 0;
@@ -190,7 +196,8 @@
 .season-toggle:focus-visible,
 .logout-button:focus-visible,
 .dashboard-menu-toggle:focus-visible,
-.sidebar-close:focus-visible {
+.sidebar-close:focus-visible,
+.header-logo-link:focus-visible {
   outline: 2px solid var(--brand-red);
   outline-offset: 2px;
 }

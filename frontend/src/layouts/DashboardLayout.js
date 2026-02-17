@@ -172,7 +172,9 @@ export default function DashboardLayout({ children }) {
           >
             <FontAwesomeIcon icon={sidebarOpen ? faXmark : faBars} size="lg" />
           </button>
-          <img src={navbarLogo} alt="Marbula One" className="header-logo" />
+          <Link to="/" className="header-logo-link" aria-label="Zur Startseite">
+            <img src={navbarLogo} alt="Marbula One" className="header-logo" />
+          </Link>
         </div>
       </header>
 
