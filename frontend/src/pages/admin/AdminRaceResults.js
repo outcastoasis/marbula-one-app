@@ -35,16 +35,20 @@ export default function AdminRaceResults() {
       setRace(raceData);
 
       const seasonId =
-        typeof raceData.season === "object" ? raceData.season?._id : raceData.season;
+        typeof raceData.season === "object"
+          ? raceData.season?._id
+          : raceData.season;
 
-      const [seasonsRes, usersRes, teamsRes, assignmentsRes] = await Promise.all([
-        API.get("/seasons"),
-        API.get("/users"),
-        API.get("/teams"),
-        API.get(`/userSeasonTeams?season=${seasonId}`),
-      ]);
+      const [seasonsRes, usersRes, teamsRes, assignmentsRes] =
+        await Promise.all([
+          API.get("/seasons"),
+          API.get("/users"),
+          API.get("/teams"),
+          API.get(`/userSeasonTeams?season=${seasonId}`),
+        ]);
 
-      const foundSeason = seasonsRes.data.find((entry) => entry._id === seasonId) || null;
+      const foundSeason =
+        seasonsRes.data.find((entry) => entry._id === seasonId) || null;
       setSeason(foundSeason);
 
       const participantIds = (foundSeason?.participants || []).map((entry) =>
@@ -62,7 +66,9 @@ export default function AdminRaceResults() {
 
       setParticipants(filteredParticipants);
 
-      const teamsById = new Map(teamsRes.data.map((team) => [team._id, team.name]));
+      const teamsById = new Map(
+        teamsRes.data.map((team) => [team._id, team.name]),
+      );
       const teamByUserId = {};
 
       (assignmentsRes.data || []).forEach((assignment) => {
@@ -145,7 +151,10 @@ export default function AdminRaceResults() {
       setNotice({ type: "success", text: "Ergebnisse wurden gespeichert." });
     } catch (error) {
       console.error("Fehler beim Speichern:", error);
-      setNotice({ type: "error", text: "Ergebnisse konnten nicht gespeichert werden." });
+      setNotice({
+        type: "error",
+        text: "Ergebnisse konnten nicht gespeichert werden.",
+      });
     } finally {
       setIsSaving(false);
     }
@@ -163,21 +172,21 @@ export default function AdminRaceResults() {
           </Link>
         )}
         <h1>Punktevergabe</h1>
-        <p>
+        <p className="admin-race-results-meta admin-race-results-meta-line">
           {race ? (
             <>
-              Rennen <strong>{race.name}</strong>
+              <span className="admin-race-results-meta-item">
+                Rennen:&nbsp;<strong>{race.name}</strong>
+              </span>
               {season && (
-                <>
-                  {" "}
-                  · Season <strong>{season.name}</strong>
-                </>
+                <span className="admin-race-results-meta-item">
+                  Saison:&nbsp;<strong>{season.name}</strong>
+                </span>
               )}
               {season?.eventDate && (
-                <>
-                  {" "}
-                  · Event-Datum: {formatDate(season.eventDate)}
-                </>
+                <span className="admin-race-results-meta-item">
+                  Event-Datum:&nbsp;<strong>{formatDate(season.eventDate)}</strong>
+                </span>
               )}
             </>
           ) : (
@@ -187,7 +196,9 @@ export default function AdminRaceResults() {
       </header>
 
       {notice && (
-        <p className={`admin-race-results-notice ${notice.type}`}>{notice.text}</p>
+        <p className={`admin-race-results-notice ${notice.type}`}>
+          {notice.text}
+        </p>
       )}
 
       <section className="admin-race-results-panel">
@@ -213,7 +224,9 @@ export default function AdminRaceResults() {
                 <div className="admin-race-result-meta">
                   <h3>{user.displayName}</h3>
                   {user.realname && user.username && (
-                    <p className="admin-race-result-username">@{user.username}</p>
+                    <p className="admin-race-result-username">
+                      @{user.username}
+                    </p>
                   )}
                   <span className={user.teamName ? "" : "is-muted"}>
                     <FontAwesomeIcon icon={faFlagCheckered} />
@@ -232,7 +245,9 @@ export default function AdminRaceResults() {
                   <input
                     type="number"
                     value={user.points}
-                    onChange={(event) => handleChange(user._id, event.target.value)}
+                    onChange={(event) =>
+                      handleChange(user._id, event.target.value)
+                    }
                     min="0"
                   />
                 </label>
