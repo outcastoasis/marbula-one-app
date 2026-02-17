@@ -6,104 +6,268 @@
   --brand-text: #ffffff;
 }
 
-.admin-user-edit {
-  max-width: 600px;
-  margin: 2rem auto;
-  padding: 2rem;
-  border-radius: 12px;
-  background-color: var(--brand-light);
+.admin-user-edit-page {
+  width: min(1200px, 100%);
+  margin: 0 auto;
+  padding: clamp(0.85rem, 2vw, 1.5rem);
+  box-sizing: border-box;
   color: var(--brand-text);
-  box-shadow: 0 0 10px rgba(255, 30, 30, 0.05);
 }
 
-.admin-user-edit h2 {
-  margin-bottom: 1.5rem;
-  font-size: 2rem;
-  color: var(--brand-red);
+.admin-user-edit-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1rem;
   text-align: center;
 }
 
-.admin-user-edit p {
-  margin-bottom: 1rem;
-  font-size: 1rem;
+.admin-user-back-link {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--brand-border);
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  color: #d8d8d8;
+  text-decoration: none;
+  font-size: 0.85rem;
+  background-color: #141414;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease;
 }
 
-.form-group {
-  margin-bottom: 1.5rem;
+.admin-user-back-link:hover {
+  border-color: rgba(255, 30, 30, 0.45);
+  color: #ffffff;
+}
+
+.admin-user-edit-header h1 {
+  margin: 0.55rem auto 0.45rem;
+  max-width: 20ch;
+  color: var(--brand-red);
+  font-size: clamp(1.7rem, 4.5vw, 2.9rem);
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.admin-user-edit-header p {
+  margin: 0;
+  color: #d4d4d4;
+  font-size: clamp(0.92rem, 2.2vw, 1rem);
+}
+
+.admin-user-notice {
+  margin: 0 0 1rem;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  padding: 0.75rem 0.9rem;
+  font-size: 0.9rem;
+}
+
+.admin-user-notice.success {
+  border-color: rgba(76, 175, 80, 0.5);
+  background-color: rgba(76, 175, 80, 0.12);
+  color: #d2f3d3;
+}
+
+.admin-user-notice.error {
+  border-color: rgba(255, 82, 82, 0.45);
+  background-color: rgba(255, 82, 82, 0.12);
+  color: #ffd7d7;
+}
+
+.admin-user-edit-panel {
+  background-color: var(--brand-light);
+  border: 1px solid var(--brand-border);
+  border-radius: 14px;
+  padding: clamp(0.9rem, 2vw, 1.4rem);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+}
+
+.admin-user-edit-page > .admin-user-edit-panel + .admin-user-edit-panel {
+  margin-top: 1rem;
+}
+
+.admin-user-edit-panel h2 {
+  margin: 0 0 0.9rem;
+  color: var(--brand-red);
+  font-size: clamp(1.1rem, 2.6vw, 1.45rem);
+}
+
+.admin-user-edit-state {
+  margin: 0;
+  border: 1px dashed #3a3a3a;
+  border-radius: 12px;
+  background-color: #171717;
+  color: #cacaca;
+  padding: 0.95rem 1rem;
+}
+
+.admin-user-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.admin-user-meta-card {
+  border: 1px solid var(--brand-border);
+  border-radius: 12px;
+  background: linear-gradient(140deg, #1a1a1a 0%, #141414 100%);
+  padding: 0.75rem 0.85rem;
   display: flex;
   flex-direction: column;
+  gap: 0.25rem;
 }
 
-.form-group label {
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: var(--brand-text);
+.admin-user-meta-card span {
+  color: #bdbdbd;
+  font-size: 0.83rem;
 }
 
-.form-group input,
-.form-group select {
-  padding: 0.6rem 0.8rem;
+.admin-user-meta-card strong {
+  color: #ffffff;
+  font-size: 1.02rem;
+  line-height: 1.3;
+}
+
+.season-assignment-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0.8rem;
+}
+
+.season-assignment-card {
   border: 1px solid var(--brand-border);
-  border-radius: 8px;
-  background-color: var(--brand-dark);
-  color: var(--brand-text);
-  font-size: 1rem;
+  border-radius: 12px;
+  background-color: #141414;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
 }
 
-.form-group button {
-  margin-top: 0.8rem;
-  padding: 0.6rem 1rem;
-  border: none;
-  border-radius: 8px;
+.season-assignment-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.season-assignment-head strong {
+  font-size: 0.95rem;
+  color: #f2f2f2;
+}
+
+.admin-user-edit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.admin-user-form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.admin-user-form-stack label {
+  color: #dcdcdc;
+  font-size: 0.9rem;
+}
+
+.admin-user-control {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--brand-border);
+  border-radius: 10px;
+  background-color: #121212;
+  color: var(--brand-text);
+  font-size: 0.95rem;
+  padding: 0.62rem 0.8rem;
+}
+
+.admin-user-control:focus-visible {
+  outline: 2px solid rgba(255, 30, 30, 0.7);
+  outline-offset: 1px;
+}
+
+.admin-button {
+  border: 1px solid var(--brand-red);
+  border-radius: 10px;
   background-color: var(--brand-red);
-  color: var(--brand-text);
-  font-weight: bold;
+  color: #fff;
+  font-size: 0.92rem;
+  font-weight: 600;
+  padding: 0.55rem 0.85rem;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  min-height: 38px;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
 }
 
-.form-group button:hover {
-  background-color: #e60000;
+.admin-button:hover {
+  background-color: #e10000;
+  border-color: #e10000;
+}
+
+.admin-button.ghost {
+  border-color: var(--brand-border);
+  background-color: #171717;
+  color: #f2f2f2;
+}
+
+.admin-button.ghost:hover {
+  border-color: #4a4a4a;
+  background-color: #1b1b1b;
 }
 
 .danger-zone {
-  border-top: 1px solid var(--brand-border);
-  padding-top: 1.5rem;
-  margin-top: 2rem;
+  margin-top: 1rem;
 }
 
-.delete-button {
-  background-color: var(--brand-red);
+.danger-zone p {
+  margin: 0 0 0.75rem;
+  color: #d2d2d2;
+  font-size: 0.9rem;
 }
 
-.delete-button:hover {
-  background-color: #cc0000;
+.admin-button.danger {
+  border-color: rgba(255, 82, 82, 0.35);
+  background-color: rgba(255, 82, 82, 0.18);
+  color: #ffb6b6;
 }
 
-.season-assignment {
-  margin-bottom: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
+.admin-button.danger:hover {
+  border-color: rgba(255, 106, 106, 0.5);
+  background-color: rgba(255, 82, 82, 0.28);
+  color: #ffd0d0;
 }
 
-.season-assignment strong {
-  font-weight: 600;
-  color: var(--brand-text);
+.admin-button:focus-visible,
+.admin-user-back-link:focus-visible {
+  outline: 2px solid var(--brand-red);
+  outline-offset: 2px;
 }
 
-.season-assignment select {
-  padding: 0.6rem 0.8rem;
-  border: 1px solid var(--brand-border);
-  border-radius: 8px;
-  background-color: var(--brand-dark);
-  color: var(--brand-text);
-  font-size: 1rem;
+@media (max-width: 900px) {
+  .admin-user-meta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-user-edit-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
-.form-group .season-assignment {
-  padding: 0.8rem;
-  background-color: var(--brand-dark);
-  border-radius: 10px;
-  border: 1px solid var(--brand-border);
+@media (max-width: 600px) {
+  .admin-user-edit-page {
+    padding: 0.75rem;
+  }
+
+  .season-assignment-list {
+    grid-template-columns: 1fr;
+  }
 }

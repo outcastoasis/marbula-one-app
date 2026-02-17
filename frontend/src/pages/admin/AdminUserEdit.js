@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import API from "../../api";
 import "../../styles/AdminUserEdit.css";
 
@@ -12,149 +12,257 @@ export default function AdminUserEdit() {
   const [assignments, setAssignments] = useState([]);
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [notice, setNotice] = useState(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [userRes, teamsRes, seasonsRes, assignmentsRes] =
-          await Promise.all([
-            API.get(`/users/${id}`),
-            API.get("/teams"),
-            API.get("/seasons"),
-            API.get(`/userSeasonTeams/user/${id}`),
-          ]);
+    let ignore = false;
 
-        setUser(userRes.data);
-        setTeams(teamsRes.data);
-        setSeasons(seasonsRes.data);
-        setAssignments(assignmentsRes.data);
-        setRole(userRes.data.role);
-      } catch (err) {
-        console.error("Fehler beim Laden:", err);
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const [userRes, teamsRes, seasonsRes, assignmentsRes] = await Promise.all([
+          API.get(`/users/${id}`),
+          API.get("/teams"),
+          API.get("/seasons"),
+          API.get(`/userSeasonTeams/user/${id}`),
+        ]);
+
+        if (!ignore) {
+          setUser(userRes.data);
+          setTeams(teamsRes.data);
+          setSeasons(seasonsRes.data);
+          setAssignments(assignmentsRes.data);
+          setRole(userRes.data.role);
+        }
+      } catch (error) {
+        console.error("Fehler beim Laden:", error);
+        if (!ignore) {
+          setNotice({ type: "error", text: "Daten konnten nicht geladen werden." });
+        }
+      } finally {
+        if (!ignore) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchData();
+    return () => {
+      ignore = true;
+    };
   }, [id]);
+
+  const assignmentBySeasonId = useMemo(() => {
+    const map = new Map();
+    assignments.forEach((assignment) => {
+      const seasonId =
+        typeof assignment.season === "object"
+          ? assignment.season?._id
+          : assignment.season;
+      if (seasonId) {
+        map.set(seasonId, assignment);
+      }
+    });
+    return map;
+  }, [assignments]);
+
+  const refreshAssignments = async () => {
+    const updated = await API.get(`/userSeasonTeams/user/${id}`);
+    setAssignments(updated.data);
+  };
 
   const updateAssignment = async (seasonId, teamId) => {
     try {
       if (!teamId) {
-        await API.delete(`/userSeasonTeams`, {
+        await API.delete("/userSeasonTeams", {
           data: { userId: id, seasonId },
         });
+        setNotice({ type: "success", text: "Teamzuweisung wurde entfernt." });
       } else {
         await API.post("/userSeasonTeams", {
           userId: id,
           seasonId,
           teamId,
         });
+        setNotice({ type: "success", text: "Teamzuweisung wurde gespeichert." });
       }
 
-      const updated = await API.get(`/userSeasonTeams/user/${id}`);
-      setAssignments(updated.data);
-    } catch (err) {
+      await refreshAssignments();
+    } catch (error) {
       const message =
-        err.response?.data?.message ||
-        (err.response?.status === 400
-          ? "Ungültige Anfrage – ist das Team schon vergeben?"
-          : "Fehler beim Speichern/Löschen");
-
-      alert(message);
+        error.response?.data?.message ||
+        (error.response?.status === 400
+          ? "Ungültige Anfrage. Ist das Team schon vergeben?"
+          : "Fehler beim Speichern oder Löschen.");
+      setNotice({ type: "error", text: message });
     }
   };
 
   const updatePassword = async () => {
-    if (!password) return alert("Kein Passwort eingegeben.");
-    await API.put(`/users/${id}/password`, { password });
-    alert("Passwort geändert");
-    setPassword("");
+    if (!password.trim()) {
+      setNotice({ type: "error", text: "Bitte ein neues Passwort eingeben." });
+      return;
+    }
+
+    try {
+      await API.put(`/users/${id}/password`, { password });
+      setPassword("");
+      setNotice({ type: "success", text: "Passwort wurde erfolgreich geändert." });
+    } catch (error) {
+      setNotice({ type: "error", text: "Passwort konnte nicht geändert werden." });
+    }
   };
 
   const updateRole = async () => {
-    await API.put(`/users/${id}/role`, { role });
-    alert("Rolle aktualisiert");
+    try {
+      await API.put(`/users/${id}/role`, { role });
+      setUser((prev) => (prev ? { ...prev, role } : prev));
+      setNotice({ type: "success", text: "Rolle wurde erfolgreich aktualisiert." });
+    } catch (error) {
+      setNotice({ type: "error", text: "Rolle konnte nicht aktualisiert werden." });
+    }
   };
 
   const deleteUser = async () => {
-    const confirm = window.confirm(
-      "Willst du diesen Benutzer wirklich löschen?"
-    );
-    if (!confirm) return;
+    const confirmed = window.confirm("Willst du diesen Benutzer wirklich löschen?");
+    if (!confirmed) return;
 
-    await API.delete(`/users/${id}`);
-    alert("Benutzer gelöscht");
-    navigate("/admin/users");
+    try {
+      await API.delete(`/users/${id}`);
+      navigate("/admin/users");
+    } catch (error) {
+      setNotice({ type: "error", text: "Benutzer konnte nicht gelöscht werden." });
+    }
   };
 
-  if (!user) return <p>Lade Daten…</p>;
+  if (isLoading) {
+    return (
+      <div className="admin-user-edit-page">
+        <p className="admin-user-edit-state">Lade Daten…</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="admin-user-edit-page">
+        <p className="admin-user-edit-state">Benutzer wurde nicht gefunden.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="admin-user-edit">
-      <h2>Benutzer bearbeiten</h2>
-      <p>
-        <strong>Benutzername:</strong> {user.username}
-      </p>
-      <p>
-        <strong>Vollständiger Name:</strong> {user.realname}
-      </p>
+    <div className="admin-user-edit-page">
+      <header className="admin-user-edit-header">
+        <Link to="/admin/users" className="admin-user-back-link">
+          Zurück zur Benutzerliste
+        </Link>
+        <h1>Benutzer bearbeiten</h1>
+        <p>Verwalte Teamzuweisungen, Rolle und Passwort dieses Benutzers.</p>
+      </header>
 
-      <div className="form-group">
-        <label>Teams pro Season</label>
-        {seasons.map((season) => {
-          const selected = assignments.find((a) => a.season._id === season._id);
-          return (
-            <div key={season._id} className="season-assignment">
-              <strong>{season.name}</strong>
-              <select
-                value={selected?.team?._id || ""}
-                onChange={(e) => updateAssignment(season._id, e.target.value)}
-              >
-                <option value="">— Team wählen —</option>
-                {teams.map((t) => (
-                  <option key={t._id} value={t._id}>
-                    {t.name}
-                  </option>
-                ))}
-              </select>
-              {selected?.team && (
-                <button
-                  className="delete-button"
-                  onClick={() => updateAssignment(season._id, null)}
+      {notice && <p className={`admin-user-notice ${notice.type}`}>{notice.text}</p>}
+
+      <section className="admin-user-edit-panel admin-user-meta-grid">
+        <article className="admin-user-meta-card">
+          <span>Benutzername</span>
+          <strong>{user.username}</strong>
+        </article>
+        <article className="admin-user-meta-card">
+          <span>Vollständiger Name</span>
+          <strong>{user.realname || "—"}</strong>
+        </article>
+        <article className="admin-user-meta-card">
+          <span>Aktuelle Rolle</span>
+          <strong>{role === "admin" ? "Admin" : "User"}</strong>
+        </article>
+      </section>
+
+      <section className="admin-user-edit-panel">
+        <h2>Teams pro Season</h2>
+        <div className="season-assignment-list">
+          {seasons.map((season) => {
+            const selected = assignmentBySeasonId.get(season._id);
+
+            return (
+              <article key={season._id} className="season-assignment-card">
+                <div className="season-assignment-head">
+                  <strong>{season.name}</strong>
+                </div>
+                <select
+                  className="admin-user-control"
+                  value={selected?.team?._id || ""}
+                  onChange={(event) => updateAssignment(season._id, event.target.value)}
                 >
-                  Team entfernen
-                </button>
-              )}
-            </div>
-          );
-        })}
+                  <option value="">— Team wählen —</option>
+                  {teams.map((team) => (
+                    <option key={team._id} value={team._id}>
+                      {team.name}
+                    </option>
+                  ))}
+                </select>
+                {selected?.team && (
+                  <button
+                    type="button"
+                    className="admin-button ghost"
+                    onClick={() => updateAssignment(season._id, null)}
+                  >
+                    Team entfernen
+                  </button>
+                )}
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <div className="admin-user-edit-grid">
+        <section className="admin-user-edit-panel">
+          <h2>Passwort ändern</h2>
+          <div className="admin-user-form-stack">
+            <label htmlFor="new-password">Neues Passwort</label>
+            <input
+              id="new-password"
+              className="admin-user-control"
+              type="password"
+              placeholder="Neues Passwort"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+            <button type="button" className="admin-button" onClick={updatePassword}>
+              Passwort speichern
+            </button>
+          </div>
+        </section>
+
+        <section className="admin-user-edit-panel">
+          <h2>Rolle</h2>
+          <div className="admin-user-form-stack">
+            <label htmlFor="user-role">Rolle auswählen</label>
+            <select
+              id="user-role"
+              className="admin-user-control"
+              value={role}
+              onChange={(event) => setRole(event.target.value)}
+            >
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
+            <button type="button" className="admin-button" onClick={updateRole}>
+              Rolle aktualisieren
+            </button>
+          </div>
+        </section>
       </div>
 
-      <div className="form-group">
-        <label>Passwort ändern</label>
-        <input
-          type="password"
-          placeholder="Neues Passwort"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button onClick={updatePassword}>Passwort speichern</button>
-      </div>
-
-      <div className="form-group">
-        <label>Rolle</label>
-        <select value={role} onChange={(e) => setRole(e.target.value)}>
-          <option value="user">User</option>
-          <option value="admin">Admin</option>
-        </select>
-        <button onClick={updateRole}>Rolle aktualisieren</button>
-      </div>
-
-      <div className="form-group danger-zone">
-        <button onClick={deleteUser} className="delete-button">
+      <section className="admin-user-edit-panel danger-zone">
+        <h2>Gefahrenbereich</h2>
+        <p>Dieser Vorgang entfernt den Benutzer dauerhaft.</p>
+        <button type="button" className="admin-button danger" onClick={deleteUser}>
           Benutzer löschen
         </button>
-      </div>
+      </section>
     </div>
   );
 }

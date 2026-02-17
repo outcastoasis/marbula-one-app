@@ -6,59 +6,287 @@
   --brand-text: #ffffff;
 }
 
-.admin-users-container {
-  max-width: 1100px;
-  margin: 2rem auto;
-  padding: 0 1rem;
-  color: var(--brand-text);
+.admin-users-page {
+  width: min(1200px, 100%);
+  margin: 0 auto;
+  padding: clamp(0.85rem, 2vw, 1.5rem);
   box-sizing: border-box;
+  color: var(--brand-text);
 }
 
-.admin-users-container h2 {
-  font-size: 2rem;
-  margin-bottom: 1.5rem;
-  color: var(--brand-red);
+.admin-users-header {
+  margin-bottom: 1rem;
   text-align: center;
 }
 
-.table-wrapper {
+.admin-users-header h1 {
+  margin: 0.5rem auto 0.45rem;
+  max-width: 20ch;
+  color: var(--brand-red);
+  font-size: clamp(1.7rem, 4.5vw, 2.9rem);
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.admin-users-header p {
+  margin: 0;
+  color: #d4d4d4;
+  font-size: clamp(0.92rem, 2.2vw, 1rem);
+}
+
+.admin-users-panel {
+  background-color: var(--brand-light);
+  border: 1px solid var(--brand-border);
+  border-radius: 14px;
+  padding: clamp(0.9rem, 2vw, 1.4rem);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+}
+
+.admin-users-panel + .admin-users-panel {
+  margin-top: 1rem;
+}
+
+.admin-users-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.admin-users-stat-card {
+  border: 1px solid var(--brand-border);
+  border-radius: 12px;
+  background: linear-gradient(140deg, #1a1a1a 0%, #141414 100%);
+  padding: 0.75rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.admin-users-stat-card span {
+  color: #bdbdbd;
+  font-size: 0.83rem;
+}
+
+.admin-users-stat-card strong {
+  color: #ffffff;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.admin-users-table-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.95rem;
+}
+
+.admin-users-table-head h2 {
+  margin: 0;
+  color: var(--brand-red);
+  font-size: clamp(1.1rem, 2.6vw, 1.45rem);
+}
+
+.admin-users-count {
+  border: 1px solid var(--brand-border);
+  border-radius: 999px;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.82rem;
+  color: #d3d3d3;
+  background-color: #141414;
+}
+
+.admin-users-state {
+  margin: 0;
+  border: 1px dashed #3a3a3a;
+  border-radius: 12px;
+  background-color: #171717;
+  color: #cacaca;
+  padding: 0.95rem 1rem;
+}
+
+.admin-users-table-wrapper {
   overflow-x: auto;
   border: 1px solid var(--brand-border);
   border-radius: 12px;
-  box-shadow: 0 0 10px rgba(255, 30, 30, 0.05);
+  background-color: #141414;
 }
 
 .admin-users-table {
   width: 100%;
-  border-collapse: collapse;
-  min-width: 640px;
-  background-color: var(--brand-light);
-  color: var(--brand-text);
+  min-width: 700px;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 .admin-users-table th,
 .admin-users-table td {
-  padding: 0.75rem;
-  border-bottom: 1px solid var(--brand-border);
+  padding: 0.72rem 0.8rem;
+  border-bottom: 1px solid #2e2e2e;
   text-align: left;
+  font-size: 0.93rem;
 }
 
 .admin-users-table th {
-  background-color: var(--brand-red);
-  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: #222222;
+  color: var(--brand-red);
+  font-weight: 700;
+}
+
+.admin-users-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.admin-users-table tbody tr:hover td {
+  background-color: #181818;
+}
+
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.78rem;
   font-weight: 600;
 }
 
-.admin-users-table tr:hover {
-  background-color: var(--brand-dark);
+.role-badge.is-admin {
+  border-color: rgba(255, 30, 30, 0.35);
+  color: #ff8b8b;
+  background-color: rgba(255, 30, 30, 0.15);
 }
 
-.admin-users-table a {
-  color: #ff4d4d;
+.role-badge.is-user {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #d9d9d9;
+  background-color: rgba(255, 255, 255, 0.07);
+}
+
+.admin-users-action-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  border: 1px solid rgba(255, 70, 70, 0.65);
+  border-radius: 8px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 30, 30, 0.2) 0%,
+    rgba(255, 30, 30, 0.08) 100%
+  );
+  color: #ffffff;
+  font-size: 0.83rem;
+  font-weight: 700;
   text-decoration: none;
-  font-weight: bold;
+  padding: 0.1rem 0.58rem;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 30, 30, 0.15),
+    0 4px 10px rgba(0, 0, 0, 0.26);
+  transition:
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
-.admin-users-table a:hover {
-  color: #ff7f7f;
+.admin-users-action-link:hover {
+  border-color: rgba(255, 120, 120, 0.9);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 50, 50, 0.28) 0%,
+    rgba(255, 50, 50, 0.14) 100%
+  );
+  color: #ffffff;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 80, 80, 0.24),
+    0 6px 12px rgba(0, 0, 0, 0.28);
+}
+
+.admin-users-action-link:focus-visible {
+  outline: 2px solid var(--brand-red);
+  outline-offset: 2px;
+}
+
+@media (max-width: 760px) {
+  .admin-users-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+
+  .admin-users-stat-card {
+    padding: 0.55rem 0.6rem;
+    border-radius: 10px;
+  }
+
+  .admin-users-stat-card span {
+    font-size: 0.72rem;
+  }
+
+  .admin-users-stat-card strong {
+    font-size: 1.1rem;
+  }
+
+  .admin-users-table-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .admin-users-action-link {
+    min-height: 28px;
+    padding: 0.1rem 0.5rem;
+    font-size: 0.8rem;
+    border-radius: 7px;
+  }
+
+  .admin-users-table {
+    min-width: 100%;
+  }
+
+  .admin-users-table thead {
+    display: none;
+  }
+
+  .admin-users-table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.7rem;
+  }
+
+  .admin-users-table tr {
+    display: grid;
+    gap: 0.55rem;
+    border: 1px solid #2d2d2d;
+    border-radius: 12px;
+    padding: 0.75rem;
+    background-color: #171717;
+  }
+
+  .admin-users-table td {
+    border-bottom: 0;
+    background: transparent;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    font-size: 0.9rem;
+  }
+
+  .admin-users-table td::before {
+    content: attr(data-label);
+    color: #a8a8a8;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .admin-users-page {
+    padding: 0.75rem;
+  }
 }
