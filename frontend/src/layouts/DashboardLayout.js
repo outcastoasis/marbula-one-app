@@ -21,6 +21,8 @@ export default function DashboardLayout({ children }) {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [seasons, setSeasons] = useState([]);
+  const [racesBySeason, setRacesBySeason] = useState({});
+  const [loadingRacesSeasonId, setLoadingRacesSeasonId] = useState(null);
   const [expandedSeason, setExpandedSeason] = useState(null);
   const [showChooseTeamLink, setShowChooseTeamLink] = useState(false);
 
@@ -70,21 +72,13 @@ export default function DashboardLayout({ children }) {
     const fetchSeasons = async () => {
       if (user?.role !== "admin") {
         setSeasons([]);
+        setRacesBySeason({});
         return;
       }
 
       try {
         const res = await API.get("/seasons");
-        const allSeasons = res.data;
-
-        const seasonsWithRaces = await Promise.all(
-          allSeasons.map(async (season) => {
-            const racesRes = await API.get(`/races/season/${season._id}`);
-            return { ...season, races: racesRes.data };
-          }),
-        );
-
-        setSeasons(seasonsWithRaces);
+        setSeasons(Array.isArray(res.data) ? res.data : []);
       } catch (error) {
         console.error("Fehler beim Laden der Seasons:", error);
       }
@@ -114,6 +108,37 @@ export default function DashboardLayout({ children }) {
       );
     };
   }, [checkCurrentSeasonAssignment]);
+
+  const handleSeasonToggle = useCallback(
+    async (seasonId) => {
+      const isExpanded = expandedSeason === seasonId;
+      if (isExpanded) {
+        setExpandedSeason(null);
+        return;
+      }
+
+      setExpandedSeason(seasonId);
+
+      if (racesBySeason[seasonId] !== undefined) {
+        return;
+      }
+
+      setLoadingRacesSeasonId(seasonId);
+      try {
+        const racesRes = await API.get(`/races/season/${seasonId}`);
+        const races = Array.isArray(racesRes.data) ? racesRes.data : [];
+        setRacesBySeason((prev) => ({ ...prev, [seasonId]: races }));
+      } catch (error) {
+        console.error(`Fehler beim Laden der Rennen für Season ${seasonId}:`, error);
+        setRacesBySeason((prev) => ({ ...prev, [seasonId]: [] }));
+      } finally {
+        setLoadingRacesSeasonId((prev) =>
+          prev === seasonId ? null : prev,
+        );
+      }
+    },
+    [expandedSeason, racesBySeason],
+  );
 
   const closeSidebar = () => setSidebarOpen(false);
 
@@ -170,6 +195,8 @@ export default function DashboardLayout({ children }) {
 
               {seasons.map((season) => {
                 const isExpanded = expandedSeason === season._id;
+                const seasonRaces = racesBySeason[season._id] || [];
+                const isLoadingRaces = loadingRacesSeasonId === season._id;
 
                 return (
                   <div key={season._id} className="season-group">
@@ -178,11 +205,7 @@ export default function DashboardLayout({ children }) {
                       className="season-toggle"
                       aria-expanded={isExpanded}
                       aria-controls={`season-races-${season._id}`}
-                      onClick={() =>
-                        setExpandedSeason((prev) =>
-                          prev === season._id ? null : season._id,
-                        )
-                      }
+                      onClick={() => handleSeasonToggle(season._id)}
                     >
                       <span>{season.name}</span>
                       <FontAwesomeIcon
@@ -195,15 +218,21 @@ export default function DashboardLayout({ children }) {
                         id={`season-races-${season._id}`}
                         className="race-links"
                       >
-                        {season.races.map((race) => (
-                          <Link
-                            key={race._id}
-                            to={`/admin/races/${race._id}/results`}
-                            onClick={closeSidebar}
-                          >
-                            {race.name}
-                          </Link>
-                        ))}
+                        {isLoadingRaces ? (
+                          <span>Lade Rennen...</span>
+                        ) : seasonRaces.length > 0 ? (
+                          seasonRaces.map((race) => (
+                            <Link
+                              key={race._id}
+                              to={`/admin/races/${race._id}/results`}
+                              onClick={closeSidebar}
+                            >
+                              {race.name}
+                            </Link>
+                          ))
+                        ) : (
+                          <span>Keine Rennen vorhanden</span>
+                        )}
                       </div>
                     )}
                   </div>

@@ -26,26 +26,38 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const userRes = await API.get("/users/me");
+        const [userRes, seasonRes] = await Promise.all([
+          API.get("/users/me"),
+          API.get("/seasons/current"),
+        ]);
+
         if (!user || user._id !== userRes.data._id) {
           login(userRes.data);
         }
         setLocalUser(userRes.data);
 
-        const seasonRes = await API.get("/seasons/current");
         setSeason(seasonRes.data);
+        const seasonId = seasonRes.data?._id;
+
+        if (!seasonId) {
+          setParticipants([]);
+          setAssignments([]);
+          setCumulativeData([]);
+          return;
+        }
 
         const filtered = (seasonRes.data.participants || []).filter(
           (participant) => typeof participant === "object" && participant?._id
         );
         setParticipants(filtered);
 
-        const assignmentRes = await API.get(
-          `/userSeasonTeams?season=${seasonRes.data._id}`
-        );
+        const [assignmentRes, racesRes] = await Promise.all([
+          API.get(`/userSeasonTeams?season=${seasonId}`),
+          API.get(`/races/season/${seasonId}`),
+        ]);
+
         setAssignments(assignmentRes.data);
 
-        const racesRes = await API.get(`/races/season/${seasonRes.data._id}`);
         const races = racesRes.data;
 
         const cumulative = {};
