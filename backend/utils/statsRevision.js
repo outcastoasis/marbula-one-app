@@ -17,7 +17,7 @@ export const getCurrentStatsRevision = async () => {
 export const bumpStatsRevision = async () => {
   const doc = await StatsRevision.findOneAndUpdate(
     { key: GLOBAL_STATS_REVISION_KEY },
-    { $inc: { value: 1 }, $setOnInsert: { value: 1 } },
+    { $inc: { value: 1 } },
     { new: true, upsert: true },
   );
   return doc.value;

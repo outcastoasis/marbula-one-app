@@ -313,6 +313,16 @@
   font-weight: 600;
 }
 
+.completed-badge {
+  border: 1px solid rgba(255, 193, 7, 0.35);
+  border-radius: 999px;
+  background-color: rgba(255, 193, 7, 0.12);
+  color: #ffe49a;
+  padding: 0.18rem 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
 .admin-season-actions {
   display: flex;
   align-items: center;

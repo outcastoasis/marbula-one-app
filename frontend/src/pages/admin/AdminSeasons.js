@@ -6,6 +6,8 @@ import {
   faCalendarDays,
   faCheck,
   faFlagCheckered,
+  faLock,
+  faLockOpen,
   faPlus,
   faTrashCan,
   faUsers,
@@ -163,13 +165,40 @@ export default function AdminSeasons() {
     }
   };
 
+  const setCompletedStatus = async (seasonId, nextCompleted) => {
+    try {
+      await API.put(`/seasons/${seasonId}/set-completed`, {
+        isCompleted: nextCompleted,
+      });
+
+      const refreshed = await fetchData({ showErrorToast: false });
+      if (!refreshed) {
+        toast.info(
+          "Season-Status wurde geändert, aber die Liste konnte nicht aktualisiert werden.",
+        );
+        return;
+      }
+
+      toast.success(
+        nextCompleted
+          ? "Season wurde als abgeschlossen markiert."
+          : "Season wurde wieder geöffnet.",
+      );
+    } catch (error) {
+      console.error("Fehler beim Aktualisieren des Season-Status:", error);
+      toast.error(
+        getApiErrorMessage(error, "Season-Status konnte nicht geändert werden."),
+      );
+    }
+  };
+
   return (
     <div className="admin-seasons-page">
       <header className="admin-seasons-header">
         <h1>Seasons verwalten</h1>
         <p>
           Erstelle Seasons, ordne Teams und Benutzer zu und setze die aktuelle
-          Season.
+          Season. Schließe eine Season ab, damit sie in den Stats erscheint.
         </p>
       </header>
 
@@ -204,6 +233,11 @@ export default function AdminSeasons() {
                         <FontAwesomeIcon icon={faCheck} /> Aktuell
                       </span>
                     )}
+                    {season.isCompleted && (
+                      <span className="completed-badge">
+                        <FontAwesomeIcon icon={faLock} /> Abgeschlossen
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -223,6 +257,18 @@ export default function AdminSeasons() {
                   >
                     <FontAwesomeIcon icon={faArrowRightLong} /> Rennen verwalten
                   </Link>
+                  <button
+                    type="button"
+                    className="admin-seasons-action"
+                    onClick={() =>
+                      setCompletedStatus(season._id, !season.isCompleted)
+                    }
+                  >
+                    <FontAwesomeIcon
+                      icon={season.isCompleted ? faLockOpen : faLock}
+                    />
+                    {season.isCompleted ? "Wieder öffnen" : "Abschließen"}
+                  </button>
                   <button
                     type="button"
                     className="admin-seasons-action danger"

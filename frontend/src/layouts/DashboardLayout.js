@@ -3,6 +3,7 @@ import { useCallback, useContext, useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBars,
+  faChartLine,
   faChevronDown,
   faChevronUp,
   faFlagCheckered,
@@ -187,6 +188,9 @@ export default function DashboardLayout({ children }) {
           </Link>
           <Link to="/winners" onClick={closeSidebar}>
             <FontAwesomeIcon icon={faTrophy} /> Sieger-Archiv
+          </Link>
+          <Link to="/stats" onClick={closeSidebar}>
+            <FontAwesomeIcon icon={faChartLine} /> Stats
           </Link>
           {user && showChooseTeamLink && (
             <Link to="/choose-team" onClick={closeSidebar}>
