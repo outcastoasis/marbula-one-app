@@ -29,7 +29,7 @@ export default function ToastContainer({ toasts, onDismiss }) {
             <button
               type="button"
               className="toast-close"
-              aria-label="Toast schließen"
+              aria-label="Toast schliessen"
               onClick={() => onDismiss(toast.id)}
             >
               x

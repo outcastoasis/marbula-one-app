@@ -198,7 +198,7 @@ export default function AdminSeasons() {
         <h1>Seasons verwalten</h1>
         <p>
           Erstelle Seasons, ordne Teams und Benutzer zu und setze die aktuelle
-          Season. Schließe eine Season ab, damit sie in den Stats erscheint.
+          Season. Schliesse eine Season ab, damit sie in den Stats erscheint.
         </p>
       </header>
 
@@ -267,7 +267,7 @@ export default function AdminSeasons() {
                     <FontAwesomeIcon
                       icon={season.isCompleted ? faLockOpen : faLock}
                     />
-                    {season.isCompleted ? "Wieder öffnen" : "Abschließen"}
+                    {season.isCompleted ? "Wieder öffnen" : "Abschliessen"}
                   </button>
                   <button
                     type="button"

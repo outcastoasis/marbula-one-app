@@ -18,6 +18,8 @@ const emptyOverall = {
 };
 
 const asArray = (value) => (Array.isArray(value) ? value : []);
+const toSafeNumber = (value) =>
+  typeof value === "number" && Number.isFinite(value) ? value : 0;
 
 const getDisplayName = (user) => {
   const realname =
@@ -41,11 +43,19 @@ const formatRaceLabel = (race, includeSeason = false) => {
 
   const seasonPrefix =
     includeSeason && race.seasonName ? `${race.seasonName} - ` : "";
-  const points =
-    typeof race.points === "number" && Number.isFinite(race.points)
-      ? race.points
-      : "-";
+  const points = toSafeNumber(race.points);
   return `${seasonPrefix}${race.raceName || "-"} (${points})`;
+};
+
+const normalizeBars = (entries) => {
+  const values = entries.map((entry) => toSafeNumber(entry.value));
+  const maxValue = Math.max(...values, 0);
+
+  return entries.map((entry) => ({
+    ...entry,
+    value: toSafeNumber(entry.value),
+    percent: maxValue > 0 ? (toSafeNumber(entry.value) / maxValue) * 100 : 0,
+  }));
 };
 
 export default function Stats() {
@@ -196,6 +206,94 @@ export default function Stats() {
     );
   }, [seasonStats]);
 
+  const ownBarsConfig = useMemo(() => {
+    if (seasonFilter !== "all") {
+      const selectedSeason = seasonStats.find(
+        (season) => season?.seasonId === seasonFilter,
+      );
+
+      if (!selectedSeason) {
+        return {
+          title: "Punkte pro Rennen",
+          entries: [],
+          emptyMessage: "Keine Daten für diese Season gefunden.",
+        };
+      }
+
+      if (selectedSeason.participationStatus !== "participated") {
+        return {
+          title: "Punkte pro Rennen",
+          entries: [],
+          emptyMessage: "Nicht teilgenommen in dieser Season.",
+        };
+      }
+
+      const entries = asArray(selectedSeason.races).map((race) => ({
+        key: race.raceId || race.raceName,
+        label: race.raceName,
+        value: toSafeNumber(race.points),
+      }));
+
+      return {
+        title: `${selectedSeason.seasonName}: Punkte pro Rennen`,
+        entries: normalizeBars(entries),
+        emptyMessage: "Keine Rennen vorhanden.",
+      };
+    }
+
+    const entries = seasonStats
+      .filter((season) => season?.participationStatus === "participated")
+      .map((season) => ({
+        key: season.seasonId,
+        label: season.seasonName,
+        value: toSafeNumber(season.totalPoints),
+      }));
+
+    return {
+      title: "Gesamtpunkte pro Season",
+      entries: normalizeBars(entries),
+      emptyMessage: "Keine teilgenommenen Seasons vorhanden.",
+    };
+  }, [seasonFilter, seasonStats]);
+
+  const compareBars = useMemo(() => {
+    if (selectedCompareIds.length === 0) {
+      return [];
+    }
+
+    const baseName = getDisplayName(baseUserEntry || user);
+    const entries = [
+      {
+        key: baseUserEntry?._id || "me",
+        label: `${baseName} (Du)`,
+        value: toSafeNumber(overall.totalPoints),
+        isBase: true,
+      },
+      ...comparisons.map((entry) => {
+        const compareOverall = entry?.stats?.overall || emptyOverall;
+        const notParticipated =
+          toSafeNumber(compareOverall.participatedSeasonsCount) === 0;
+
+        return {
+          key: entry._id,
+          label: getDisplayName(entry),
+          value: toSafeNumber(compareOverall.totalPoints),
+          isBase: false,
+          note: notParticipated ? "Nicht teilgenommen" : "",
+        };
+      }),
+    ];
+
+    const sorted = [...entries].sort((a, b) => b.value - a.value);
+    return normalizeBars(sorted);
+  }, [
+    selectedCompareIds,
+    comparisons,
+    baseUserEntry,
+    user,
+    overall.totalPoints,
+  ]);
+
   const toggleCompare = (compareId) => {
     setSelectedCompareIds((previous) => {
       if (previous.includes(compareId)) {
@@ -237,7 +335,7 @@ export default function Stats() {
           <div className="stats-field">
             <span>Vergleich (optional, max. {MAX_COMPARE_USERS})</span>
             {isLoadingCandidates ? (
-              <p className="stats-inline-state">Vergleichs-User werden geladen…</p>
+              <p className="stats-inline-state">Vergleichs-User werden geladen...</p>
             ) : compareCandidates.length === 0 ? (
               <p className="stats-inline-state">
                 Keine Vergleichs-User in abgeschlossenen Seasons gefunden.
@@ -301,9 +399,67 @@ export default function Stats() {
       </section>
 
       <section className="stats-panel">
+        <h2>Grafische Darstellung</h2>
+        <div className="stats-chart-grid">
+          <article className="stats-chart-card">
+            <h3>{ownBarsConfig.title}</h3>
+            {ownBarsConfig.entries.length === 0 ? (
+              <p className="stats-inline-state">{ownBarsConfig.emptyMessage}</p>
+            ) : (
+              <div className="stats-bar-list">
+                {ownBarsConfig.entries.map((entry) => (
+                  <div key={entry.key} className="stats-bar-row">
+                    <span className="stats-bar-label">{entry.label}</span>
+                    <div className="stats-bar-track">
+                      <div
+                        className="stats-bar-fill"
+                        style={{ width: `${entry.percent}%` }}
+                      />
+                    </div>
+                    <strong className="stats-bar-value">{entry.value}</strong>
+                  </div>
+                ))}
+              </div>
+            )}
+          </article>
+
+          <article className="stats-chart-card">
+            <h3>Vergleich Gesamtpunkte</h3>
+            {selectedCompareIds.length === 0 ? (
+              <p className="stats-inline-state">
+                Wähle im Filter einen oder mehrere User für den Vergleich.
+              </p>
+            ) : compareBars.length === 0 ? (
+              <p className="stats-inline-state">Keine Vergleichsdaten verfügbar.</p>
+            ) : (
+              <div className="stats-bar-list">
+                {compareBars.map((entry) => (
+                  <div key={entry.key} className="stats-bar-row">
+                    <span className="stats-bar-label">
+                      {entry.label}
+                      {entry.note ? (
+                        <em className="stats-bar-note"> ({entry.note})</em>
+                      ) : null}
+                    </span>
+                    <div className="stats-bar-track">
+                      <div
+                        className={`stats-bar-fill ${entry.isBase ? "is-base" : ""}`}
+                        style={{ width: `${entry.percent}%` }}
+                      />
+                    </div>
+                    <strong className="stats-bar-value">{entry.value}</strong>
+                  </div>
+                ))}
+              </div>
+            )}
+          </article>
+        </div>
+      </section>
+
+      <section className="stats-panel">
         <h2>Season Übersicht</h2>
         {isLoadingStats ? (
-          <p className="stats-inline-state">Stats werden geladen…</p>
+          <p className="stats-inline-state">Stats werden geladen...</p>
         ) : seasonStats.length === 0 ? (
           <p className="stats-inline-state">
             Keine abgeschlossenen Seasons für Stats verfügbar.
@@ -402,53 +558,6 @@ export default function Stats() {
               </table>
             </div>
           </>
-        )}
-      </section>
-
-      <section className="stats-panel">
-        <h2>Vergleich</h2>
-        {selectedCompareIds.length === 0 ? (
-          <p className="stats-inline-state">
-            Wähle im Filter einen oder mehrere User für den Vergleich.
-          </p>
-        ) : comparisons.length === 0 ? (
-          <p className="stats-inline-state">Keine Vergleichsdaten verfügbar.</p>
-        ) : (
-          <div className="stats-compare-grid">
-            {comparisons.map((entry) => {
-              const compareOverall = entry?.stats?.overall || emptyOverall;
-              const noParticipation =
-                (compareOverall.participatedSeasonsCount ?? 0) === 0;
-
-              return (
-                <article key={entry._id} className="stats-compare-card">
-                  <h3>{getDisplayName(entry)}</h3>
-                  {noParticipation ? (
-                    <p className="stats-inline-state">
-                      Nicht teilgenommen im aktuellen Filter.
-                    </p>
-                  ) : (
-                    <div className="stats-compare-values">
-                      <p>
-                        Punkte: <strong>{compareOverall.totalPoints ?? 0}</strong>
-                      </p>
-                      <p>
-                        Podien: <strong>{compareOverall.podiumCount ?? 0}</strong>
-                      </p>
-                      <p>
-                        Top-3-Rate:{" "}
-                        <strong>{formatPercent(compareOverall.top3Rate)}</strong>
-                      </p>
-                      <p>
-                        Gewonnene Seasons:{" "}
-                        <strong>{compareOverall.seasonsWon ?? 0}</strong>
-                      </p>
-                    </div>
-                  )}
-                </article>
-              );
-            })}
-          </div>
         )}
       </section>
     </div>
