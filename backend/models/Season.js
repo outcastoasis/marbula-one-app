@@ -12,6 +12,7 @@ const seasonSchema = new mongoose.Schema({
     },
   ],
   isCurrent: { type: Boolean, default: false }, // ← hinzugefügt
+  isCompleted: { type: Boolean, default: false },
   teams: [{ type: mongoose.Schema.Types.ObjectId, ref: "Team" }],
 });
 

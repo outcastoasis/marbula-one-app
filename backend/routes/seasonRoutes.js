@@ -7,6 +7,7 @@ import {
   deleteSeason,
   setCurrentSeason,
   getCurrentSeason,
+  setSeasonCompleted,
 } from "../controllers/seasonController.js";
 import { protect, requireAdmin } from "../middleware/authMiddleware.js";
 
@@ -16,6 +17,7 @@ router.get("/", getAllSeasons);
 router.post("/", protect, requireAdmin, createSeason);
 router.delete("/:id", protect, requireAdmin, deleteSeason);
 router.put("/:id/set-current", protect, requireAdmin, setCurrentSeason);
+router.put("/:id/set-completed", protect, requireAdmin, setSeasonCompleted);
 router.get("/current", getCurrentSeason);
 
 export default router;

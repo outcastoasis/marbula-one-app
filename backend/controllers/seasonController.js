@@ -5,6 +5,7 @@ import Season from "../models/Season.js";
 import UserSeasonTeam from "../models/UserSeasonTeam.js";
 import Race from "../models/Race.js";
 import { runWithOptionalTransaction } from "../utils/transaction.js";
+import { bumpStatsRevision } from "../utils/statsRevision.js";
 
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -60,15 +61,32 @@ export const getAllSeasons = async (req, res) => {
 };
 
 export const createSeason = async (req, res) => {
-  const { name, eventDate, participants, teams } = req.body;
+  const {
+    name,
+    eventDate,
+    participants,
+    teams,
+    isCompleted = false,
+  } = req.body;
+  const hasIsCompleted = Object.prototype.hasOwnProperty.call(
+    req.body || {},
+    "isCompleted",
+  );
+  if (hasIsCompleted && typeof isCompleted !== "boolean") {
+    return res.status(400).json({
+      message: "isCompleted muss als Boolean übergeben werden.",
+    });
+  }
 
   const season = await Season.create({
     name,
     eventDate,
     participants,
     teams,
+    isCompleted,
   });
 
+  await bumpStatsRevision();
   res.status(201).json(season);
 };
 
@@ -77,6 +95,9 @@ export const deleteSeason = async (req, res) => {
     const result = await runWithOptionalTransaction((session) =>
       deleteSeasonWithDependencies(req.params.id, session),
     );
+    if (result.status === 200) {
+      await bumpStatsRevision();
+    }
     return res.status(result.status).json(result.body);
   } catch (error) {
     console.error("Fehler beim Löschen der Season:", error);
@@ -99,6 +120,7 @@ export const setCurrentSeason = async (req, res) => {
     await Season.updateMany({}, { isCurrent: false });
     season.isCurrent = true;
     await season.save();
+    await bumpStatsRevision();
 
     res.status(200).json({ message: "Aktuelle Season gesetzt" });
   } catch (err) {
@@ -106,6 +128,50 @@ export const setCurrentSeason = async (req, res) => {
     res
       .status(500)
       .json({ message: "Fehler beim Setzen der aktuellen Season" });
+  }
+};
+
+export const setSeasonCompleted = async (req, res) => {
+  try {
+    const seasonId = req.params.id;
+    if (!isValidObjectId(seasonId)) {
+      return res.status(400).json({ message: "Ungültige Season-ID" });
+    }
+
+    const hasIsCompleted = Object.prototype.hasOwnProperty.call(
+      req.body || {},
+      "isCompleted",
+    );
+    const isCompleted = hasIsCompleted ? req.body.isCompleted : true;
+
+    if (typeof isCompleted !== "boolean") {
+      return res.status(400).json({
+        message: "isCompleted muss als Boolean übergeben werden.",
+      });
+    }
+
+    const season = await Season.findByIdAndUpdate(
+      seasonId,
+      { isCompleted },
+      { new: true },
+    );
+
+    if (!season) {
+      return res.status(404).json({ message: "Season nicht gefunden" });
+    }
+
+    await bumpStatsRevision();
+    return res.status(200).json({
+      message: isCompleted
+        ? "Season als abgeschlossen markiert."
+        : "Season wieder geöffnet.",
+      season,
+    });
+  } catch (error) {
+    console.error("Fehler beim Aktualisieren des Season-Status:", error);
+    return res.status(500).json({
+      message: "Fehler beim Aktualisieren des Season-Status",
+    });
   }
 };
 

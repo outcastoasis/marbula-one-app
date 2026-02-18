@@ -189,6 +189,7 @@ npm run build
 - `POST /api/seasons` (admin)
 - `DELETE /api/seasons/:id` (admin)
 - `PUT /api/seasons/:id/set-current` (admin)
+- `PUT /api/seasons/:id/set-completed` (admin)
 - `GET /api/seasons/current`
 
 ### Races
@@ -221,6 +222,11 @@ npm run build
 - `POST /api/winners`
 - `PUT /api/winners/:id`
 - `DELETE /api/winners/:id`
+
+### Stats
+
+- `GET /api/stats/me?completedOnly=true&seasonId=all&compare=<userId,userId>`
+- `GET /api/stats/users/:userId?completedOnly=true&seasonId=all&compare=<userId,userId>` (admin oder selbst)
 
 ## Screenshots
 
