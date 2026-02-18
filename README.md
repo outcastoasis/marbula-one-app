@@ -20,6 +20,24 @@ Die Anwendung verwaltet Seasons, Teams, Rennen, Punkte, Gewinner und Benutzerrol
 - Admin-Bereich für Teams, Seasons, Rennen, Resultate, Gewinner und Benutzer
 - Toast-Meldungen in den Admin-Bereichen für Erfolg/Fehler/Hinweise
 
+## Geplante Erweiterungen
+
+- `/stats` (Persönliche Statistikseite)
+  Eigene Entwicklung pro Rennen, bestes/schlechtestes Rennen, Durchschnittspunkte, Rank-Change.
+  Passt perfekt zu den vorhandenen Race-/Result-Daten.
+- `/predictions` (Tippspiel vor jedem Rennen)
+  User tippen Top 3 oder Sieger/letzter Platz, Extra-Punkte für richtige Tipps.
+  Macht das Event deutlich interaktiver, auch zwischen den Renntagen.
+- Live-Event-Modus auf Home
+  Grosse, auto-refreshende Rangliste + "nächstes Rennen / aktueller Stand".
+  Ideal für Eventtage auf TV/Beamer.
+- `/history` (Season-Archiv & Vergleiche)
+  Vergleich von Seasons und Usern über Jahre (z. B. "meiste Siege all-time", "konstantester Spieler").
+  Erhöht die Langzeitmotivation.
+- Benachrichtigungen
+  In-App (optional mit E-Mail/Push): Teamwahl offen, Rennen erfasst, neue Ergebnisse online.
+  Reduziert "ich hab's verpasst".
+
 ## Wichtige Integritätsregeln
 
 - Ein Team kann in einer Season nur einmal vergeben werden.
