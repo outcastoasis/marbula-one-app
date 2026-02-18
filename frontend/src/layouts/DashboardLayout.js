@@ -155,6 +155,10 @@ export default function DashboardLayout({ children }) {
   );
 
   const closeSidebar = () => setSidebarOpen(false);
+  const displayName =
+    typeof user?.realname === "string" && user.realname.trim()
+      ? user.realname.trim()
+      : user?.username;
 
   return (
     <div className="dashboard-layout">
@@ -258,7 +262,7 @@ export default function DashboardLayout({ children }) {
 
         {user && (
           <div className="sidebar-user-section">
-            <p>Hallo, {user.username}</p>
+            <p>Hallo, {displayName}</p>
             <button
               type="button"
               className="logout-button"
