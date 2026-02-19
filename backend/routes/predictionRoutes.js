@@ -1,0 +1,59 @@
+import express from "express";
+import {
+  createAdminRound,
+  getAdminRoundById,
+  getAdminRounds,
+  getMyPredictions,
+  getRoundById,
+  getRounds,
+  patchAdminOverrideScore,
+  patchAdminRoundStatus,
+  postAdminPublishRound,
+  postAdminRescoreFromRace,
+  postAdminScoreRound,
+  putMyEntry,
+} from "../controllers/predictionController.js";
+import { protect, requireAdmin } from "../middleware/authMiddleware.js";
+
+const router = express.Router();
+
+router.get("/rounds", protect, getRounds);
+router.get("/rounds/:roundId", protect, getRoundById);
+router.put("/rounds/:roundId/entry", protect, putMyEntry);
+router.get("/me", protect, getMyPredictions);
+
+router.get("/admin/rounds", protect, requireAdmin, getAdminRounds);
+router.post("/admin/rounds", protect, requireAdmin, createAdminRound);
+router.get("/admin/rounds/:roundId", protect, requireAdmin, getAdminRoundById);
+router.patch(
+  "/admin/rounds/:roundId/status",
+  protect,
+  requireAdmin,
+  patchAdminRoundStatus,
+);
+router.post(
+  "/admin/rounds/:roundId/score",
+  protect,
+  requireAdmin,
+  postAdminScoreRound,
+);
+router.post(
+  "/admin/rounds/:roundId/publish",
+  protect,
+  requireAdmin,
+  postAdminPublishRound,
+);
+router.patch(
+  "/admin/rounds/:roundId/scores/:userId/override",
+  protect,
+  requireAdmin,
+  patchAdminOverrideScore,
+);
+router.post(
+  "/admin/rounds/:roundId/rescore-from-race",
+  protect,
+  requireAdmin,
+  postAdminRescoreFromRace,
+);
+
+export default router;

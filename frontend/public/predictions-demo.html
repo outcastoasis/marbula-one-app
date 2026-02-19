@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Predictions - User Demo</title>
+    <style>
+      :root {
+        --bg: #0b0b0c;
+        --panel: #171719;
+        --panel-soft: #141416;
+        --border: #2a2a2f;
+        --text: #ffffff;
+        --muted: #c9c9cf;
+        --brand: #ff1e1e;
+        --ok: #32d77b;
+        --warn: #ffc247;
+        --blue: #8ab4ff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family:
+          "Segoe UI",
+          Inter,
+          system-ui,
+          -apple-system,
+          sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(
+            1200px 500px at 95% -10%,
+            rgba(255, 30, 30, 0.14),
+            transparent
+          ),
+          radial-gradient(
+            900px 320px at -10% 10%,
+            rgba(255, 194, 71, 0.08),
+            transparent
+          ),
+          var(--bg);
+      }
+
+      .page {
+        width: min(1200px, 100%);
+        margin: 0 auto;
+        padding: clamp(14px, 2vw, 24px);
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 14px;
+      }
+
+      .header h1 {
+        margin: 8px 0 6px;
+        color: var(--brand);
+        font-size: clamp(34px, 5vw, 52px);
+        line-height: 1.08;
+      }
+
+      .header p {
+        margin: 0;
+        color: #d5d5db;
+        font-size: 16px;
+      }
+
+      .panel {
+        border: 1px solid var(--border);
+        border-radius: 15px;
+        background: linear-gradient(160deg, #19191c, #131316);
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
+        padding: clamp(12px, 1.8vw, 18px);
+      }
+
+      .panel + .panel {
+        margin-top: 11px;
+      }
+
+      .panel h2 {
+        margin: 0 0 10px;
+        color: var(--brand);
+        font-size: clamp(20px, 2.2vw, 27px);
+      }
+
+      .grid-two {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 11px;
+      }
+
+      .filters {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 9px;
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .field label {
+        font-size: 12px;
+        color: #d7d7dd;
+      }
+
+      .field select,
+      .field input {
+        width: 100%;
+        border: 1px solid #34343b;
+        border-radius: 10px;
+        background: #0f1012;
+        color: #fff;
+        padding: 9px 10px;
+        font-size: 14px;
+      }
+
+      .top-row {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 12px;
+        color: #e1e1e6;
+        background: #121215;
+      }
+
+      .chip.open {
+        border-color: rgba(50, 215, 123, 0.58);
+        background: rgba(50, 215, 123, 0.15);
+        color: #baffd8;
+      }
+
+      .chip.locked {
+        border-color: rgba(255, 194, 71, 0.58);
+        background: rgba(255, 194, 71, 0.15);
+        color: #ffe8b8;
+      }
+
+      .chip.published {
+        border-color: rgba(138, 180, 255, 0.58);
+        background: rgba(138, 180, 255, 0.15);
+        color: #dbe8ff;
+      }
+
+      .subline {
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .card {
+        border: 1px solid #303036;
+        border-radius: 12px;
+        background: var(--panel-soft);
+        padding: 10px;
+      }
+
+      .card h3 {
+        margin: 0 0 7px;
+        font-size: 17px;
+      }
+
+      .picks {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 8px;
+      }
+
+      .hint {
+        margin: 8px 0 0;
+        color: #c8c8d0;
+        font-size: 12px;
+      }
+
+      .actions {
+        margin-top: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+      }
+
+      .btn {
+        border: 1px solid #383840;
+        border-radius: 10px;
+        background: #17181c;
+        color: #f2f2f7;
+        padding: 9px 12px;
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .btn.primary {
+        border-color: var(--brand);
+        background: var(--brand);
+        color: #fff;
+      }
+
+      .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .kpi {
+        border: 1px solid #313139;
+        border-radius: 10px;
+        background: #121216;
+        padding: 9px;
+      }
+
+      .kpi p {
+        margin: 0 0 4px;
+        color: #cdced6;
+        font-size: 12px;
+      }
+
+      .kpi strong {
+        font-size: 19px;
+      }
+
+      .list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .list-item {
+        border: 1px solid #323239;
+        border-radius: 10px;
+        padding: 9px 10px;
+        background: #111114;
+      }
+
+      .list-item strong {
+        display: block;
+        margin-bottom: 3px;
+        font-size: 14px;
+      }
+
+      .list-item span {
+        color: #cbccd4;
+        font-size: 12px;
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+      }
+
+      table {
+        width: max-content;
+        min-width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        border: 1px solid #33333a;
+        text-align: left;
+        padding: 8px 9px;
+        font-size: 13px;
+        white-space: nowrap;
+      }
+
+      th {
+        color: var(--brand);
+        background: #212125;
+      }
+
+      td {
+        background: #17171b;
+      }
+
+      .legend {
+        margin-top: 8px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .legend-item {
+        border: 1px solid #363640;
+        border-radius: 999px;
+        background: #121216;
+        color: #d4d4dc;
+        padding: 4px 10px;
+        font-size: 12px;
+      }
+
+      .footer-note {
+        margin: 8px 0 0;
+        color: #c7c8d0;
+        font-size: 12px;
+      }
+
+      @media (max-width: 1000px) {
+        .grid-two {
+          grid-template-columns: 1fr;
+        }
+
+        .filters {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .picks,
+        .kpi-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .actions .btn {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header class="header">
+        <h1>Predictions</h1>
+        <p>So sieht die Seite aus Sicht eines normalen Users aus.</p>
+      </header>
+
+      <section class="panel">
+        <h2>Rundenfilter</h2>
+        <div class="filters">
+          <div class="field">
+            <label>Season</label>
+            <select>
+              <option>Season 6</option>
+              <option>Season 5</option>
+              <option>Alle abgeschlossenen</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Rennen</label>
+            <select>
+              <option>GP7 Limelight Harbour</option>
+              <option>GP6 Crystal Drift</option>
+              <option>GP5 Marble Rapids</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Prediction-Status</label>
+            <select>
+              <option>Alle</option>
+              <option>open</option>
+              <option>locked</option>
+              <option>published</option>
+            </select>
+          </div>
+        </div>
+        <p class="subline">
+          Ausgewählt: <strong>Season 6 / GP7 Limelight Harbour</strong>
+        </p>
+      </section>
+
+      <div class="grid-two">
+        <section class="panel">
+          <div class="top-row">
+            <h2 style="margin: 0">Aktuelle Prediction</h2>
+            <div class="chip-row">
+              <span class="chip open">Status: open</span>
+              <span class="chip">Dein Tipp: abgegeben</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Season 6 - GP7 Limelight Harbour</h3>
+            <p class="subline">
+              Lock wird am Eventabend manuell durch Admin ausgelöst.
+            </p>
+
+            <div class="picks">
+              <div class="field">
+                <label>P1</label>
+                <select>
+                  <option>Team Solar</option>
+                  <option>Team Blitz</option>
+                  <option>Team Apex</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>P2</label>
+                <select>
+                  <option>Team Blitz</option>
+                  <option>Team Solar</option>
+                  <option>Team Apex</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>P3</label>
+                <select>
+                  <option>Team Apex</option>
+                  <option>Team Blaze</option>
+                  <option>Team Drift</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Letzter Platz</label>
+                <select>
+                  <option>Team Drift</option>
+                  <option>Team Wave</option>
+                  <option>Team Nova</option>
+                </select>
+              </div>
+              <div class="field" style="grid-column: 1 / -1">
+                <label>Tie-Breaker (Siegerpunkte)</label>
+                <input type="number" value="13" />
+              </div>
+            </div>
+
+            <p class="hint">
+              Ein Team darf nur einmal in deinem Tipp vorkommen. Nach Lock ist
+              die Runde nur noch lesbar.
+            </p>
+            <div class="actions">
+              <button class="btn">Als Entwurf speichern</button>
+              <button class="btn primary">Tip aktualisieren</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Meine Prediction Stats</h2>
+          <div class="kpi-grid">
+            <article class="kpi">
+              <p>Gesamtpunkte Predictions</p>
+              <strong>82</strong>
+            </article>
+            <article class="kpi">
+              <p>Aktueller Prediction-Rang</p>
+              <strong>2</strong>
+            </article>
+            <article class="kpi">
+              <p>Exakte Top3-Treffer</p>
+              <strong>6</strong>
+            </article>
+            <article class="kpi">
+              <p>Trefferquote Top3</p>
+              <strong>58.3%</strong>
+            </article>
+          </div>
+        </section>
+      </div>
+
+      <section class="panel">
+        <h2>Rundenuebersicht</h2>
+        <div class="list">
+          <article class="list-item">
+            <strong>GP7 Limelight Harbour</strong>
+            <span>Status: open | Dein Tipp: abgegeben | Editieren möglich</span>
+          </article>
+          <article class="list-item">
+            <strong>GP6 Crystal Drift</strong>
+            <span
+              >Status: locked | Dein Tipp: abgegeben | Wartet auf Scoring</span
+            >
+          </article>
+          <article class="list-item">
+            <strong>GP5 Marble Rapids</strong>
+            <span>Status: published | Deine Punkte: 14 | Rundenrang: 3</span>
+          </article>
+        </div>
+        <div class="legend">
+          <span class="legend-item">open = Tipp bearbeitbar</span>
+          <span class="legend-item">locked = keine änderung</span>
+          <span class="legend-item">published = finale Punkte sichtbar</span>
+        </div>
+      </section>
+
+      <div class="grid-two">
+        <section class="panel">
+          <h2>Prediction Rangliste (Season)</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Rang</th>
+                  <th>User</th>
+                  <th>Punkte</th>
+                  <th>Exakte Picks</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1</td>
+                  <td>Lea</td>
+                  <td>91</td>
+                  <td>9</td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td>Du</td>
+                  <td>82</td>
+                  <td>6</td>
+                </tr>
+                <tr>
+                  <td>3</td>
+                  <td>Nico</td>
+                  <td>78</td>
+                  <td>5</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Mein Verlauf</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Rennen</th>
+                  <th>Status</th>
+                  <th>Punkte</th>
+                  <th>Rang Runde</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>GP5 Marble Rapids</td>
+                  <td>published</td>
+                  <td>14</td>
+                  <td>3</td>
+                </tr>
+                <tr>
+                  <td>GP4 Gravity Ring</td>
+                  <td>published</td>
+                  <td>18</td>
+                  <td>1</td>
+                </tr>
+                <tr>
+                  <td>GP3 Neon Loop</td>
+                  <td>published</td>
+                  <td>11</td>
+                  <td>6</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <section class="panel">
+        <h2>Scoring-Regeln (sichtbar fuer User)</h2>
+        <div class="list">
+          <article class="list-item">
+            <strong>Exakte Position P1/P2/P3</strong>
+            <span>6 Punkte pro exakt richtiger Position</span>
+          </article>
+          <article class="list-item">
+            <strong>Team in Top3, aber falsche Position</strong>
+            <span>3 Punkte</span>
+          </article>
+          <article class="list-item">
+            <strong>Letzter Platz exakt + Tie-Breaker</strong>
+            <span
+              >4 Punkte fuer letzten Platz, Tie-Breaker bis 3 Punkte nach
+              Nähe</span
+            >
+          </article>
+        </div>
+        <p class="footer-note">
+          Hinweis: Die offiziellen Prediction-Punkte erscheinen erst, wenn die
+          Runde auf
+          <strong>published</strong> steht.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>
