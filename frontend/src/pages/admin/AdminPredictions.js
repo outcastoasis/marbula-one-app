@@ -403,11 +403,10 @@ export default function AdminPredictions() {
           </span>
           {scoringConfig.tieBreakerEnabled ? (
             <span className="admin-predictions-rule-chip">
-              Tie-Breaker: exakt +{formatPoints(scoringConfig.tieBreakerExactPoints)} oder
-              anteilig bis {formatPoints(scoringConfig.tieBreakerProximityWindow)} Abstand
+              Siegerpunkte-Tipp (Punkte des Siegerteams): exakt +{formatPoints(scoringConfig.tieBreakerExactPoints)} oder anteilig bis {formatPoints(scoringConfig.tieBreakerProximityWindow)} Abstand
             </span>
           ) : (
-            <span className="admin-predictions-rule-chip">Tie-Breaker deaktiviert</span>
+            <span className="admin-predictions-rule-chip">Siegerpunkte-Tipp deaktiviert</span>
           )}
         </div>
       </section>
@@ -800,7 +799,7 @@ export default function AdminPredictions() {
                 <p>P3: {getDisplayName(selectedScore?.predicted?.p3)}</p>
                 <p>Last: {getDisplayName(selectedScore?.predicted?.lastPlace)}</p>
                 <p>
-                  Tie:{" "}
+                  Siegerpunkte-Tipp:{" "}
                   {selectedScore?.predicted?.tieBreaker === null ||
                   selectedScore?.predicted?.tieBreaker === undefined
                     ? "-"
@@ -815,7 +814,7 @@ export default function AdminPredictions() {
                 <p>P3: {getDisplayName(selectedScore?.actual?.p3)}</p>
                 <p>Last: {getDisplayName(selectedScore?.actual?.lastPlace)}</p>
                 <p>
-                  Tie:{" "}
+                  Siegerpunkte-Tipp:{" "}
                   {selectedScore?.actual?.tieBreaker === null ||
                   selectedScore?.actual?.tieBreaker === undefined
                     ? "-"
@@ -867,7 +866,7 @@ export default function AdminPredictions() {
                 <th>P2</th>
                 <th>P3</th>
                 <th>Last</th>
-                <th>Tie</th>
+                <th>Siegerpunkte-Tipp</th>
                 <th>Submitted</th>
               </tr>
             </thead>

@@ -49,19 +49,16 @@
   color: #ffd7d7;
 }
 
-.predictions-rule-line {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+.predictions-rules-compact {
+  margin: 0;
+  padding-left: 1rem;
+  display: grid;
+  gap: 0.34rem;
 }
 
-.predictions-rule-chip {
-  border: 1px solid #363636;
-  border-radius: 999px;
-  background-color: #141414;
-  color: #dfdfdf;
-  padding: 0.34rem 0.6rem;
-  font-size: 0.8rem;
+.predictions-rules-compact li {
+  color: #d8d8d8;
+  font-size: 0.86rem;
 }
 
 .predictions-filters {
@@ -238,7 +235,7 @@
 
 .predictions-score-summary {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.65rem;
 }
 

@@ -91,6 +91,38 @@ const normalizeScoringConfig = (config) => ({
   tieBreakerProximityWindow: Number(config?.tieBreakerProximityWindow ?? 10),
 });
 
+const BREAKDOWN_LABELS = {
+  exact_p1: "P1 exakt getroffen",
+  exact_p2: "P2 exakt getroffen",
+  exact_p3: "P3 exakt getroffen",
+  top3_any_position_p1: "P1 in Top 3",
+  top3_any_position_p2: "P2 in Top 3",
+  top3_any_position_p3: "P3 in Top 3",
+  exact_last_place: "Letzter Platz exakt",
+  tie_breaker_exact: "Siegerpunkte-Tipp exakt",
+  tie_breaker_proximity: "Siegerpunkte-Tipp nah dran",
+};
+
+const isTechnicalToken = (value) =>
+  typeof value === "string" && /^[a-z0-9_]+$/i.test(value.trim());
+
+const getBreakdownLabel = (row) => {
+  const label = typeof row?.label === "string" ? row.label.trim() : "";
+  const code = typeof row?.code === "string" ? row.code.trim() : "";
+
+  if (label && !isTechnicalToken(label)) return label;
+  if (label && BREAKDOWN_LABELS[label]) return BREAKDOWN_LABELS[label];
+  if (code && BREAKDOWN_LABELS[code]) return BREAKDOWN_LABELS[code];
+  if (label) return "Treffer";
+  return "Scoring-Treffer";
+};
+
+const getBreakdownDetails = (row) => {
+  const details = typeof row?.details === "string" ? row.details.trim() : "";
+  if (!details || isTechnicalToken(details)) return "-";
+  return details;
+};
+
 export default function Predictions() {
   const toast = useToast();
   const [isLoading, setIsLoading] = useState(true);
@@ -135,6 +167,22 @@ export default function Predictions() {
     () => normalizeScoringConfig(selectedRound?.scoringConfig || {}),
     [selectedRound?.scoringConfig],
   );
+
+  const scoringRuleItems = useMemo(() => {
+    const rules = [
+      `P1, P2, P3 exakt: +${formatPoints(scoringConfig.exactPositionPoints)} pro Treffer`,
+      `Top 3 richtig, aber falsche Position: +${formatPoints(scoringConfig.top3AnyPositionPoints)}`,
+      `Letzter Platz exakt: +${formatPoints(scoringConfig.exactLastPlacePoints)}`,
+    ];
+    if (scoringConfig.tieBreakerEnabled) {
+      rules.push(
+        `Siegerpunkte-Tipp: exakt +${formatPoints(scoringConfig.tieBreakerExactPoints)}, sonst anteilig bis ${formatPoints(scoringConfig.tieBreakerProximityWindow)} Abstand`,
+      );
+    } else {
+      rules.push("Siegerpunkte-Tipp ist in dieser Runde deaktiviert.");
+    }
+    return rules;
+  }, [scoringConfig]);
 
   const roundTeamOptions = useMemo(() => {
     const seasonId = getId(selectedRound?.season?._id || selectedRound?.season);
@@ -289,7 +337,7 @@ export default function Predictions() {
         await refreshListAndHistory();
       } catch (loadError) {
         console.error("Fehler beim Laden der Rundenliste:", loadError);
-        setError(getApiErrorMessage(loadError, "Prediction-Runden konnten nicht geladen werden."));
+        setError(getApiErrorMessage(loadError, "Tippspiel-Runden konnten nicht geladen werden."));
       } finally {
         setIsLoading(false);
       }
@@ -320,7 +368,7 @@ export default function Predictions() {
       return "Ein Team darf im Tipp nur einmal vorkommen.";
     }
     if (entryForm.tieBreaker !== "" && toNumberOrNull(entryForm.tieBreaker) === null) {
-      return "Tie-Breaker muss eine gültige Zahl sein.";
+      return "Siegerpunkte-Tipp muss eine gültige Zahl sein.";
     }
     return "";
   };
@@ -346,12 +394,12 @@ export default function Predictions() {
             entryForm.tieBreaker === "" ? null : Number(entryForm.tieBreaker),
         },
       });
-      toast.success("Prediction gespeichert.");
+      toast.success("Tipp gespeichert.");
       await refreshAll();
     } catch (saveError) {
-      console.error("Fehler beim Speichern der Prediction:", saveError);
+      console.error("Fehler beim Speichern des Tipps:", saveError);
       toast.error(
-        getApiErrorMessage(saveError, "Prediction konnte nicht gespeichert werden."),
+        getApiErrorMessage(saveError, "Tipp konnte nicht gespeichert werden."),
       );
     } finally {
       setIsSavingEntry(false);
@@ -361,34 +409,17 @@ export default function Predictions() {
   return (
     <div className="predictions-page">
       <header className="predictions-header">
-        <h1>Predictions</h1>
-        <p>Tippe Top 3, letzter Platz und optional Tie-Breaker pro Runde.</p>
+        <h1>Tippspiele</h1>
+        <p>Tippe Top 3, letzter Platz und optional Siegerpunkte-Tipp pro Runde.</p>
       </header>
 
       <section className="predictions-panel">
-        <h2>Scoring auf einen Blick</h2>
-        <div className="predictions-rule-line">
-          <span className="predictions-rule-chip">
-            Exakte Position: +{formatPoints(scoringConfig.exactPositionPoints)}
-          </span>
-          <span className="predictions-rule-chip">
-            Top3 falsche Position: +{formatPoints(scoringConfig.top3AnyPositionPoints)}
-          </span>
-          <span className="predictions-rule-chip">
-            Letzter Platz exakt: +{formatPoints(scoringConfig.exactLastPlacePoints)}
-          </span>
-          {scoringConfig.tieBreakerEnabled ? (
-            <span className="predictions-rule-chip">
-              Tie-Breaker: exakt +{formatPoints(scoringConfig.tieBreakerExactPoints)}, sonst
-              anteilig bis {formatPoints(scoringConfig.tieBreakerProximityWindow)} Abstand
-            </span>
-          ) : (
-            <span className="predictions-rule-chip">Tie-Breaker deaktiviert</span>
-          )}
-        </div>
-        <p className="predictions-subline">
-          Gesamtpunkte = Summe aller Treffer in der Breakdown-Liste.
-        </p>
+        <h2>Punkteverteilung kurz erklärt</h2>
+        <ul className="predictions-rules-compact">
+          {scoringRuleItems.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
       </section>
 
       <section className="predictions-panel">
@@ -482,7 +513,7 @@ export default function Predictions() {
                     </div>
                     <span>{getDisplayName(round.season)}</span>
                     <span>
-                      Mein Score:{" "}
+                      Mein Punktestand:{" "}
                       {round?.myScore?.total === undefined || round?.myScore?.total === null
                         ? "-"
                         : formatPoints(round.myScore.total)}
@@ -597,7 +628,7 @@ export default function Predictions() {
                 </label>
 
                 <label className="predictions-field predictions-field-wide">
-                  <span>Tie-Breaker (optional)</span>
+                  <span>Siegerpunkte-Tipp (optional)</span>
                   <input
                     type="number"
                     disabled={!canEditEntry}
@@ -616,7 +647,7 @@ export default function Predictions() {
                   onClick={handleSaveEntry}
                   disabled={!canEditEntry || isSavingEntry}
                 >
-                  {isSavingEntry ? "Speichern..." : "Prediction speichern"}
+                  {isSavingEntry ? "Speichern..." : "Tipp speichern"}
                 </button>
                 {!canEditEntry ? (
                   <span className="predictions-inline-note">
@@ -633,7 +664,7 @@ export default function Predictions() {
         <h2>Punkteberechnung dieser Runde</h2>
         {!myScore ? (
           <p className="predictions-inline-state">
-            Noch kein Score vorhanden. Sobald gescored wurde, siehst du hier die Berechnung.
+            Noch kein Punktestand vorhanden. Sobald geprüft wurde, siehst du hier die Berechnung.
           </p>
         ) : (
           <>
@@ -643,16 +674,12 @@ export default function Predictions() {
                 <strong>{formatPoints(myScore.total)}</strong>
               </article>
               <article>
-                <p>Summe Breakdown</p>
+                <p>Trefferpunkte</p>
                 <strong>{formatPoints(sumBreakdown)}</strong>
               </article>
               <article>
                 <p>Rundenrang</p>
                 <strong>{roundDetails?.myPlacement ?? "-"}</strong>
-              </article>
-              <article>
-                <p>Trigger</p>
-                <strong>{myScore?.generatedFrom?.trigger || "-"}</strong>
               </article>
             </div>
 
@@ -664,7 +691,7 @@ export default function Predictions() {
                 <p>P3: {resolveTeamName(myScore?.predicted?.p3)}</p>
                 <p>Last: {resolveTeamName(myScore?.predicted?.lastPlace)}</p>
                 <p>
-                  Tie:{" "}
+                  Siegerpunkte-Tipp:{" "}
                   {myScore?.predicted?.tieBreaker === null ||
                   myScore?.predicted?.tieBreaker === undefined
                     ? "-"
@@ -679,7 +706,7 @@ export default function Predictions() {
                 <p>P3: {resolveTeamName(myScore?.actual?.p3)}</p>
                 <p>Last: {resolveTeamName(myScore?.actual?.lastPlace)}</p>
                 <p>
-                  Tie:{" "}
+                  Siegerpunkte-Tipp:{" "}
                   {myScore?.actual?.tieBreaker === null ||
                   myScore?.actual?.tieBreaker === undefined
                     ? "-"
@@ -692,24 +719,22 @@ export default function Predictions() {
               <table className="predictions-table">
                 <thead>
                   <tr>
-                    <th>Regel</th>
-                    <th>Label</th>
+                    <th>Treffer</th>
                     <th>Punkte</th>
-                    <th>Details</th>
+                    <th>Hinweis</th>
                   </tr>
                 </thead>
                 <tbody>
                   {breakdownRows.length === 0 ? (
                     <tr>
-                      <td colSpan={4}>Keine Treffereinträge in der Breakdown-Liste.</td>
+                      <td colSpan={3}>Keine Treffereinträge in der Breakdown-Liste.</td>
                     </tr>
                   ) : (
                     breakdownRows.map((row, index) => (
                       <tr key={`${row.code || "row"}-${index}`}>
-                        <td>{row.code || "-"}</td>
-                        <td>{row.label || "-"}</td>
+                        <td>{getBreakdownLabel(row)}</td>
                         <td>{formatPoints(row.points)}</td>
-                        <td>{row.details || "-"}</td>
+                        <td>{getBreakdownDetails(row)}</td>
                       </tr>
                     ))
                   )}
@@ -721,7 +746,7 @@ export default function Predictions() {
       </section>
 
       <section className="predictions-panel">
-        <h2>Meine Prediction-History</h2>
+        <h2>Meine Tippspiel-History</h2>
         <div className="predictions-kpi-grid">
           <article className="predictions-kpi">
             <p>Runden mit Score</p>
@@ -757,7 +782,7 @@ export default function Predictions() {
             <tbody>
               {asArray(historyPayload?.rows).length === 0 ? (
                 <tr>
-                  <td colSpan={5}>Noch keine Prediction-History vorhanden.</td>
+                  <td colSpan={5}>Noch keine Tippspiel-History vorhanden.</td>
                 </tr>
               ) : (
                 asArray(historyPayload.rows).map((row) => (
