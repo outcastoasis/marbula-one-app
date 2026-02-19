@@ -206,7 +206,10 @@ export default function Stats() {
       setCompareCandidatesAll(allCandidates);
       setCompareCandidatesBySeason(bySeason);
     } catch (loadError) {
-      console.error("Fehler beim Laden der Stats-Filterdaten:", loadError);
+      console.error(
+        "Fehler beim Laden der Statistiken-Filterdaten:",
+        loadError,
+      );
       setCompareCandidatesAll([]);
       setCompareCandidatesBySeason({});
       setSelectedCompareIds([]);
@@ -231,7 +234,10 @@ export default function Stats() {
       });
       setGlobalOverview(response?.data?.overview || emptyOverview);
     } catch (loadError) {
-      console.error("Fehler beim Laden der allgemeinen Stats:", loadError);
+      console.error(
+        "Fehler beim Laden der allgemeinen Statistiken:",
+        loadError,
+      );
       setGlobalOverview(emptyOverview);
     } finally {
       setIsLoadingOverview(false);
@@ -294,7 +300,8 @@ export default function Stats() {
       console.error("Fehler beim Laden der Stats:", loadError);
       setStatsResponse(null);
       setError(
-        loadError?.response?.data?.message || "Stats konnten nicht geladen werden.",
+        loadError?.response?.data?.message ||
+          "Statistiken konnten nicht geladen werden.",
       );
     } finally {
       setIsLoadingStats(false);
@@ -317,8 +324,9 @@ export default function Stats() {
     }
 
     return (
-      seasonStats.find((season) => season?.participationStatus === "participated") ||
-      seasonStats[0]
+      seasonStats.find(
+        (season) => season?.participationStatus === "participated",
+      ) || seasonStats[0]
     );
   }, [seasonStats]);
 
@@ -526,7 +534,9 @@ export default function Stats() {
             <div key={entry.key} className="stats-bar-row">
               <span className="stats-bar-label">
                 {entry.label}
-                {entry.note ? <em className="stats-bar-note"> ({entry.note})</em> : null}
+                {entry.note ? (
+                  <em className="stats-bar-note"> ({entry.note})</em>
+                ) : null}
               </span>
               <div className="stats-bar-track">
                 <div
@@ -534,7 +544,9 @@ export default function Stats() {
                   style={{ width: `${entry.percent}%` }}
                 />
               </div>
-              <strong className="stats-bar-value">{formatValue(entry.value)}</strong>
+              <strong className="stats-bar-value">
+                {formatValue(entry.value)}
+              </strong>
             </div>
           ))}
         </div>
@@ -575,26 +587,36 @@ export default function Stats() {
         </section>
 
         <section className="stats-panel stats-global-panel">
-          <h2>Allgemeine Stats</h2>
+          <h2>Allgemeine Statistiken</h2>
           {isLoadingOverview ? (
-            <p className="stats-inline-state">Allgemeine Stats werden geladen...</p>
+            <p className="stats-inline-state">
+              Allgemeine Statistiken werden geladen...
+            </p>
           ) : (
             <div className="stats-global-grid">
               <article className="stats-global-item">
                 <p>Abgeschlossene Seasons gesamt</p>
-                <strong>{toSafeNumber(globalOverview.completedSeasonsCount)}</strong>
+                <strong>
+                  {toSafeNumber(globalOverview.completedSeasonsCount)}
+                </strong>
               </article>
               <article className="stats-global-item">
                 <p>Ø Spieleranzahl pro Season</p>
-                <strong>{formatNumber(globalOverview.avgPlayersPerSeason, 2)}</strong>
+                <strong>
+                  {formatNumber(globalOverview.avgPlayersPerSeason, 2)}
+                </strong>
               </article>
               <article className="stats-global-item">
                 <p>Spieler mit meisten Punkten</p>
-                <strong>{formatOverviewPlayer(globalOverview.mostPointsPlayer)}</strong>
+                <strong>
+                  {formatOverviewPlayer(globalOverview.mostPointsPlayer)}
+                </strong>
               </article>
               <article className="stats-global-item">
                 <p>Spieler mit wenigsten Punkten</p>
-                <strong>{formatOverviewPlayer(globalOverview.leastPointsPlayer)}</strong>
+                <strong>
+                  {formatOverviewPlayer(globalOverview.leastPointsPlayer)}
+                </strong>
               </article>
             </div>
           )}
@@ -608,7 +630,7 @@ export default function Stats() {
       ) : null}
 
       <section className="stats-panel stats-order-key">
-        <h2>Persönliche Stats</h2>
+        <h2>Persönliche Statistiken</h2>
         <div className="stats-kpi-grid">
           <article className="stats-kpi">
             <p>Gesamtpunkte</p>
@@ -677,12 +699,14 @@ export default function Stats() {
       </section>
 
       <section className="stats-panel stats-order-compare">
-        <h2>Vergleichs-Stats</h2>
+        <h2>Vergleichs-Statistiken</h2>
         <div className="stats-compare-controls">
           <div className="stats-field">
             <span>User-Auswahl (max. {MAX_COMPARE_USERS})</span>
             {isLoadingCandidates ? (
-              <p className="stats-inline-state">Vergleichs-User werden geladen...</p>
+              <p className="stats-inline-state">
+                Vergleichs-User werden geladen...
+              </p>
             ) : availableCompareCandidates.length === 0 ? (
               <p className="stats-inline-state">
                 Keine Vergleichs-User für diesen Season-Filter gefunden.
@@ -730,10 +754,10 @@ export default function Stats() {
       <section className="stats-panel stats-order-season-overview">
         <h2>Season Übersicht</h2>
         {isLoadingStats ? (
-          <p className="stats-inline-state">Stats werden geladen...</p>
+          <p className="stats-inline-state">Statistiken werden geladen...</p>
         ) : seasonStats.length === 0 ? (
           <p className="stats-inline-state">
-            Keine abgeschlossenen Seasons für Stats verfügbar.
+            Keine abgeschlossenen Seasons für Statistiken verfügbar.
           </p>
         ) : (
           <div className="stats-table-wrap">
