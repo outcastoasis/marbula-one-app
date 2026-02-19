@@ -290,17 +290,23 @@
 
 .admin-season-meta {
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.55rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
   color: #bcbcbc;
   font-size: 0.84rem;
 }
 
-.admin-season-meta > span {
+.admin-season-date {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+}
+
+.admin-season-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
 }
 
 .current-badge {
@@ -385,8 +391,26 @@
     flex-direction: column;
   }
 
+  .admin-season-card-main {
+    width: 100%;
+    text-align: center;
+  }
+
+  .admin-season-meta {
+    align-items: center;
+  }
+
+  .admin-season-date {
+    justify-content: center;
+  }
+
   .admin-season-actions {
     width: 100%;
+  }
+
+  .admin-season-badges {
+    width: 100%;
+    justify-content: center;
   }
 
   .admin-seasons-action {

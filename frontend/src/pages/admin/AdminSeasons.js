@@ -224,20 +224,24 @@ export default function AdminSeasons() {
                 <div className="admin-season-card-main">
                   <h3>{season.name}</h3>
                   <div className="admin-season-meta">
-                    <span>
+                    <span className="admin-season-date">
                       <FontAwesomeIcon icon={faCalendarDays} />
                       {formatDate(season.eventDate)}
                     </span>
-                    {season.isCurrent && (
-                      <span className="current-badge">
-                        <FontAwesomeIcon icon={faCheck} /> Aktuell
-                      </span>
-                    )}
-                    {season.isCompleted && (
-                      <span className="completed-badge">
-                        <FontAwesomeIcon icon={faLock} /> Abgeschlossen
-                      </span>
-                    )}
+                    {season.isCurrent || season.isCompleted ? (
+                      <div className="admin-season-badges">
+                        {season.isCurrent && (
+                          <span className="current-badge">
+                            <FontAwesomeIcon icon={faCheck} /> Aktuell
+                          </span>
+                        )}
+                        {season.isCompleted && (
+                          <span className="completed-badge">
+                            <FontAwesomeIcon icon={faLock} /> Abgeschlossen
+                          </span>
+                        )}
+                      </div>
+                    ) : null}
                   </div>
                 </div>
 
