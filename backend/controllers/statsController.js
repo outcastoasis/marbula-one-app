@@ -1,7 +1,10 @@
 import asyncHandler from "express-async-handler";
 import mongoose from "mongoose";
 import User from "../models/User.js";
-import { getUserStatsPayload } from "../services/statsService.js";
+import {
+  getGlobalStatsOverview,
+  getUserStatsPayload,
+} from "../services/statsService.js";
 
 const MAX_COMPARE_USERS = 5;
 
@@ -105,3 +108,21 @@ const getStatsResponse = asyncHandler(async (req, res) => {
 
 export const getMyStats = getStatsResponse;
 export const getUserStatsById = getStatsResponse;
+
+export const getStatsOverview = asyncHandler(async (req, res) => {
+  const requestedCompletedOnly = parseBoolean(req.query.completedOnly, true);
+  if (requestedCompletedOnly !== true) {
+    return res.status(400).json({
+      message: "Die allgemeine Stats-Ãœbersicht ist nur fÃ¼r abgeschlossene Seasons verfÃ¼gbar.",
+    });
+  }
+
+  const overview = await getGlobalStatsOverview({ completedOnly: true });
+  return res.json({
+    meta: {
+      completedOnly: true,
+      generatedAt: new Date().toISOString(),
+    },
+    overview,
+  });
+});

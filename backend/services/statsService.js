@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Race from "../models/Race.js";
 import Season from "../models/Season.js";
+import User from "../models/User.js";
 import UserStatsCache from "../models/UserStatsCache.js";
 import { getCurrentStatsRevision } from "../utils/statsRevision.js";
 
@@ -10,6 +11,14 @@ const toIdString = (value) => {
   if (value instanceof mongoose.Types.ObjectId) return value.toString();
   if (typeof value === "object" && value._id) return toIdString(value._id);
   return String(value);
+};
+
+const roundTo = (value, digits = 4) => {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return 0;
+  }
+  const factor = 10 ** digits;
+  return Math.round(value * factor) / factor;
 };
 
 const sortByObjectIdAsc = (a, b) =>
@@ -179,10 +188,15 @@ const buildOverallStats = (seasonStats) => {
     totalPoints: 0,
     podiumCount: 0,
     top3Rate: 0,
+    avgPointsPerRace: 0,
+    avgSeasonEndRank: null,
     seasonsWon: 0,
     bestRace: null,
     worstRace: null,
   };
+
+  let finalRankSum = 0;
+  let finalRankCount = 0;
 
   includedSeasons.forEach((season) => {
     totals.raceCount += season.raceCount || 0;
@@ -213,12 +227,21 @@ const buildOverallStats = (seasonStats) => {
         totals.worstRace = candidate;
       }
     }
+
+    if (typeof season.finalRank === "number" && Number.isFinite(season.finalRank)) {
+      finalRankSum += season.finalRank;
+      finalRankCount += 1;
+    }
   });
 
   totals.top3Rate =
     totals.raceCount > 0
-      ? Number((totals.podiumCount / totals.raceCount).toFixed(4))
+      ? roundTo(totals.podiumCount / totals.raceCount)
       : 0;
+  totals.avgPointsPerRace =
+    totals.raceCount > 0 ? roundTo(totals.totalPoints / totals.raceCount) : 0;
+  totals.avgSeasonEndRank =
+    finalRankCount > 0 ? roundTo(finalRankSum / finalRankCount) : null;
 
   return totals;
 };
@@ -289,14 +312,24 @@ const computeUserStatsPayload = async ({ userId, completedOnly }) => {
   };
 };
 
-const withSeasonFilter = (statsPayload, seasonId) => {
-  if (!seasonId || seasonId === "all") {
-    return statsPayload;
-  }
+const sortByDisplayName = (a, b) =>
+  a.displayName.localeCompare(b.displayName, "de-CH");
 
-  const filteredSeasons = statsPayload.seasons.filter(
-    (season) => season.seasonId === seasonId,
-  );
+const buildDisplayName = (userDoc) => {
+  const realname =
+    typeof userDoc?.realname === "string" ? userDoc.realname.trim() : "";
+  if (realname) return realname;
+  const username =
+    typeof userDoc?.username === "string" ? userDoc.username.trim() : "";
+  return username || "Unbekannt";
+};
+
+const withSeasonFilter = (statsPayload, seasonId) => {
+  const seasons = Array.isArray(statsPayload?.seasons) ? statsPayload.seasons : [];
+  const filteredSeasons =
+    !seasonId || seasonId === "all"
+      ? seasons
+      : seasons.filter((season) => season.seasonId === seasonId);
 
   return {
     ...statsPayload,
@@ -346,5 +379,116 @@ export const getUserStatsPayload = async ({
     revision,
     cacheHit: false,
     stats: withSeasonFilter(payload, seasonId),
+  };
+};
+
+export const getGlobalStatsOverview = async ({ completedOnly = true } = {}) => {
+  const seasonQuery = completedOnly ? { isCompleted: true } : {};
+  const seasonDocs = await Season.find(seasonQuery).select("participants").lean();
+
+  const completedSeasonsCount = seasonDocs.length;
+  const participantIdSet = new Set();
+  let participantAssignmentsTotal = 0;
+
+  seasonDocs.forEach((season) => {
+    const participantIds = Array.isArray(season?.participants)
+      ? season.participants.map(toIdString).filter(Boolean)
+      : [];
+    participantAssignmentsTotal += participantIds.length;
+    participantIds.forEach((participantId) => participantIdSet.add(participantId));
+  });
+
+  const participantIds = [...participantIdSet];
+  const avgPlayersPerSeason =
+    completedSeasonsCount > 0
+      ? roundTo(participantAssignmentsTotal / completedSeasonsCount, 2)
+      : 0;
+
+  if (participantIds.length === 0) {
+    return {
+      completedOnly,
+      completedSeasonsCount,
+      avgPlayersPerSeason,
+      mostPointsPlayer: null,
+      leastPointsPlayer: null,
+    };
+  }
+
+  const objectParticipantIds = participantIds
+    .filter((id) => mongoose.Types.ObjectId.isValid(id))
+    .map((id) => new mongoose.Types.ObjectId(id));
+
+  if (objectParticipantIds.length === 0) {
+    return {
+      completedOnly,
+      completedSeasonsCount,
+      avgPlayersPerSeason,
+      mostPointsPlayer: null,
+      leastPointsPlayer: null,
+    };
+  }
+
+  const totalsAggregation = await Race.aggregate([
+    { $match: { season: { $in: seasonDocs.map((season) => season._id) } } },
+    { $unwind: "$results" },
+    {
+      $group: {
+        _id: "$results.user",
+        totalPoints: { $sum: { $ifNull: ["$results.pointsEarned", 0] } },
+      },
+    },
+  ]);
+
+  const totalsMap = new Map();
+  totalsAggregation.forEach((entry) => {
+    if (!entry?._id) return;
+    totalsMap.set(toIdString(entry._id), Number(entry.totalPoints) || 0);
+  });
+
+  const userDocs = await User.find({ _id: { $in: objectParticipantIds } })
+    .select("username realname")
+    .lean();
+
+  const normalizedPlayers = userDocs
+    .map((userDoc) => {
+      const userId = toIdString(userDoc?._id);
+      return {
+        userId,
+        displayName: buildDisplayName(userDoc),
+        totalPoints: totalsMap.get(userId) || 0,
+      };
+    })
+    .sort(sortByDisplayName);
+
+  if (normalizedPlayers.length === 0) {
+    return {
+      completedOnly,
+      completedSeasonsCount,
+      avgPlayersPerSeason,
+      mostPointsPlayer: null,
+      leastPointsPlayer: null,
+    };
+  }
+
+  const mostPointsPlayer = [...normalizedPlayers].sort((a, b) => {
+    if (b.totalPoints !== a.totalPoints) {
+      return b.totalPoints - a.totalPoints;
+    }
+    return sortByDisplayName(a, b);
+  })[0];
+
+  const leastPointsPlayer = [...normalizedPlayers].sort((a, b) => {
+    if (a.totalPoints !== b.totalPoints) {
+      return a.totalPoints - b.totalPoints;
+    }
+    return sortByDisplayName(a, b);
+  })[0];
+
+  return {
+    completedOnly,
+    completedSeasonsCount,
+    avgPlayersPerSeason,
+    mostPointsPlayer,
+    leastPointsPlayer,
   };
 };
