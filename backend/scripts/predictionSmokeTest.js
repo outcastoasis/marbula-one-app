@@ -145,7 +145,7 @@ const resolveUserId = async ({ userArg, season }) => {
   return assignments[0].user;
 };
 
-const resolvePicks = (season, tieBreakerDefault) => {
+const resolvePicks = (season) => {
   const explicitPicks = {
     p1: season?._explicitPicks?.p1 || null,
     p2: season?._explicitPicks?.p2 || null,
@@ -170,10 +170,7 @@ const resolvePicks = (season, tieBreakerDefault) => {
         "Explizite Picks müssen unterschiedliche Teams enthalten.",
       );
     }
-    return {
-      ...explicitPicks,
-      tieBreaker: tieBreakerDefault,
-    };
+    return explicitPicks;
   }
 
   const teamIds = (season.teams || [])
@@ -190,7 +187,6 @@ const resolvePicks = (season, tieBreakerDefault) => {
     p2: teamIds[1],
     p3: teamIds[2],
     lastPlace: teamIds[3],
-    tieBreaker: tieBreakerDefault,
   };
 };
 
@@ -307,7 +303,7 @@ const main = async () => {
         (result) => Number(result?.pointsEarned) || 0,
       ),
     );
-    const picks = resolvePicks(season, raceTopPoints);
+    const picks = resolvePicks(season);
     const isDryRun = args.dryRun === true || args.dryRun === "true";
 
     console.log(

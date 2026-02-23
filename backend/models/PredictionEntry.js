@@ -8,7 +8,6 @@ const picksSchema = new Schema(
     p2: { type: Schema.Types.ObjectId, ref: "Team", required: true },
     p3: { type: Schema.Types.ObjectId, ref: "Team", required: true },
     lastPlace: { type: Schema.Types.ObjectId, ref: "Team", required: true },
-    tieBreaker: { type: Number, default: null },
   },
   { _id: false },
 );

@@ -16,7 +16,6 @@ const DEFAULT_ENTRY_FORM = {
   p2: "",
   p3: "",
   lastPlace: "",
-  tieBreaker: "",
 };
 
 const DEFAULT_HISTORY = {
@@ -53,11 +52,6 @@ const getDisplayName = (entity) => {
   return "-";
 };
 
-const toNumberOrNull = (value) => {
-  const num = Number(value);
-  return Number.isFinite(num) ? num : null;
-};
-
 const formatDateTime = (value) => {
   if (!value) return "-";
   const date = new Date(value);
@@ -86,9 +80,6 @@ const normalizeScoringConfig = (config) => ({
   exactPositionPoints: Number(config?.exactPositionPoints ?? 6),
   top3AnyPositionPoints: Number(config?.top3AnyPositionPoints ?? 3),
   exactLastPlacePoints: Number(config?.exactLastPlacePoints ?? 4),
-  tieBreakerEnabled: config?.tieBreakerEnabled !== false,
-  tieBreakerExactPoints: Number(config?.tieBreakerExactPoints ?? 3),
-  tieBreakerProximityWindow: Number(config?.tieBreakerProximityWindow ?? 10),
 });
 
 const BREAKDOWN_LABELS = {
@@ -99,8 +90,6 @@ const BREAKDOWN_LABELS = {
   top3_any_position_p2: "P2 in Top 3",
   top3_any_position_p3: "P3 in Top 3",
   exact_last_place: "Letzter Platz exakt",
-  tie_breaker_exact: "Siegerpunkte-Tipp exakt",
-  tie_breaker_proximity: "Siegerpunkte-Tipp nah dran",
 };
 
 const isTechnicalToken = (value) =>
@@ -188,19 +177,11 @@ export default function Predictions() {
   }, [seasonAssignmentsBySeasonId]);
 
   const scoringRuleItems = useMemo(() => {
-    const rules = [
+    return [
       `P1, P2, P3 exakt: +${formatPoints(scoringConfig.exactPositionPoints)} pro Treffer`,
       `Top 3 richtig, aber falsche Position: +${formatPoints(scoringConfig.top3AnyPositionPoints)}`,
       `Letzter Platz exakt: +${formatPoints(scoringConfig.exactLastPlacePoints)}`,
     ];
-    if (scoringConfig.tieBreakerEnabled) {
-      rules.push(
-        `Siegerpunkte-Tipp: exakt +${formatPoints(scoringConfig.tieBreakerExactPoints)}, sonst anteilig bis ${formatPoints(scoringConfig.tieBreakerProximityWindow)} Abstand`,
-      );
-    } else {
-      rules.push("Siegerpunkte-Tipp ist in dieser Runde deaktiviert.");
-    }
-    return rules;
   }, [scoringConfig]);
 
   const roundTeamOptions = useMemo(() => {
@@ -269,10 +250,6 @@ export default function Predictions() {
       p2: getId(picks.p2),
       p3: getId(picks.p3),
       lastPlace: getId(picks.lastPlace),
-      tieBreaker:
-        picks.tieBreaker === null || picks.tieBreaker === undefined
-          ? ""
-          : String(picks.tieBreaker),
     });
   }, []);
 
@@ -429,9 +406,6 @@ export default function Predictions() {
     if (new Set(values).size !== values.length) {
       return "Ein Team darf im Tipp nur einmal vorkommen.";
     }
-    if (entryForm.tieBreaker !== "" && toNumberOrNull(entryForm.tieBreaker) === null) {
-      return "Siegerpunkte-Tipp muss eine gültige Zahl sein.";
-    }
     return "";
   };
 
@@ -452,8 +426,6 @@ export default function Predictions() {
           p2: entryForm.p2,
           p3: entryForm.p3,
           lastPlace: entryForm.lastPlace,
-          tieBreaker:
-            entryForm.tieBreaker === "" ? null : Number(entryForm.tieBreaker),
         },
       });
       toast.success("Tipp gespeichert.");
@@ -472,7 +444,7 @@ export default function Predictions() {
     <div className="predictions-page">
       <header className="predictions-header">
         <h1>Tippspiele</h1>
-        <p>Tippe Top 3, letzter Platz und optional Siegerpunkte-Tipp pro Runde.</p>
+        <p>Tippe Top 3 und letzter Platz pro Runde.</p>
       </header>
 
       <section className="predictions-panel">
@@ -689,17 +661,6 @@ export default function Predictions() {
                   </select>
                 </label>
 
-                <label className="predictions-field predictions-field-wide">
-                  <span>Siegerpunkte-Tipp (optional)</span>
-                  <input
-                    type="number"
-                    disabled={!canEditEntry}
-                    value={entryForm.tieBreaker}
-                    onChange={(event) =>
-                      setEntryForm((prev) => ({ ...prev, tieBreaker: event.target.value }))
-                    }
-                  />
-                </label>
               </div>
 
               <div className="predictions-actions">
@@ -752,13 +713,6 @@ export default function Predictions() {
                 <p>P2: {resolveTeamName(myScore?.predicted?.p2)}</p>
                 <p>P3: {resolveTeamName(myScore?.predicted?.p3)}</p>
                 <p>Last: {resolveTeamName(myScore?.predicted?.lastPlace)}</p>
-                <p>
-                  Siegerpunkte-Tipp:{" "}
-                  {myScore?.predicted?.tieBreaker === null ||
-                  myScore?.predicted?.tieBreaker === undefined
-                    ? "-"
-                    : myScore.predicted.tieBreaker}
-                </p>
               </div>
 
               <div className="predictions-snapshot-card">
@@ -767,13 +721,6 @@ export default function Predictions() {
                 <p>P2: {resolveTeamName(myScore?.actual?.p2)}</p>
                 <p>P3: {resolveTeamName(myScore?.actual?.p3)}</p>
                 <p>Last: {resolveTeamName(myScore?.actual?.lastPlace)}</p>
-                <p>
-                  Siegerpunkte-Tipp:{" "}
-                  {myScore?.actual?.tieBreaker === null ||
-                  myScore?.actual?.tieBreaker === undefined
-                    ? "-"
-                    : myScore.actual.tieBreaker}
-                </p>
               </div>
             </div>
 

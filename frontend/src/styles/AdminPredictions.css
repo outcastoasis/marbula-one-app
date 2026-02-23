@@ -43,6 +43,18 @@
   font-size: clamp(1.1rem, 2.6vw, 1.45rem);
 }
 
+.admin-predictions-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  margin-bottom: 0.75rem;
+}
+
+.admin-predictions-panel-head h2 {
+  margin: 0;
+}
+
 .admin-predictions-panel-error {
   border-color: rgba(255, 82, 82, 0.45);
   background-color: rgba(255, 82, 82, 0.1);
@@ -68,7 +80,9 @@
   margin-top: 0.95rem;
 }
 
-.admin-predictions-top-grid .admin-predictions-panel + .admin-predictions-panel {
+.admin-predictions-top-grid
+  .admin-predictions-panel
+  + .admin-predictions-panel {
   margin-top: 0;
 }
 
@@ -131,6 +145,17 @@
   background-color: #ff1e1e;
 }
 
+.admin-predictions-button.soft-danger {
+  border-color: rgba(255, 82, 82, 0.45);
+  background-color: rgba(255, 82, 82, 0.12);
+  color: #ffd7d7;
+}
+
+.admin-predictions-button.soft-danger:hover:not(:disabled) {
+  background-color: rgba(255, 82, 82, 0.2);
+  border-color: rgba(255, 82, 82, 0.6);
+}
+
 .admin-predictions-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -154,6 +179,29 @@
 .admin-predictions-round-list {
   display: grid;
   gap: 0.55rem;
+  max-height: 22rem;
+  overflow-y: auto;
+  padding-right: 0.15rem;
+  scrollbar-color: #4a4a4a #151515;
+}
+
+.admin-predictions-round-list::-webkit-scrollbar {
+  width: 10px;
+}
+
+.admin-predictions-round-list::-webkit-scrollbar-track {
+  background: #151515;
+  border-radius: 999px;
+}
+
+.admin-predictions-round-list::-webkit-scrollbar-thumb {
+  background: #4a4a4a;
+  border-radius: 999px;
+  border: 2px solid #151515;
+}
+
+.admin-predictions-round-list::-webkit-scrollbar-thumb:hover {
+  background: #616161;
 }
 
 .admin-predictions-round-item {
@@ -262,7 +310,9 @@
   font-size: 0.84rem;
 }
 
-.admin-predictions-inline-forms .admin-predictions-card > .admin-predictions-button {
+.admin-predictions-inline-forms
+  .admin-predictions-card
+  > .admin-predictions-button {
   margin-top: 0.6rem;
 }
 

@@ -134,7 +134,6 @@ const buildPicks = ({ args, seasonPayload }) => {
       p2: args.p2,
       p3: args.p3,
       lastPlace: args.lastPlace,
-      tieBreaker: Number(args.tieBreaker ?? 10),
     };
   }
 
@@ -155,7 +154,6 @@ const buildPicks = ({ args, seasonPayload }) => {
     p2: teamIds[1],
     p3: teamIds[2],
     lastPlace: teamIds[3],
-    tieBreaker: Number(args.tieBreaker ?? 10),
   };
 };
 
@@ -202,9 +200,6 @@ const main = async () => {
     console.log("  --season <id>             Season-ID (optional)");
     console.log("  --race <id>               Race-ID (optional)");
     console.log("  --p1/p2/p3/lastPlace <id> Explizite Team-Picks (optional)");
-    console.log(
-      "  --tieBreaker <n>          Tie-Breaker (optional, Default 10)",
-    );
     console.log("  --dryRun true             Nur Login + Read-Checks");
     console.log("");
     console.log(

@@ -33,7 +33,8 @@ const getId = (value) => {
 
 const getDisplayName = (entity) => {
   if (!entity || typeof entity !== "object") return "-";
-  if (typeof entity.name === "string" && entity.name.trim()) return entity.name.trim();
+  if (typeof entity.name === "string" && entity.name.trim())
+    return entity.name.trim();
   if (typeof entity.realname === "string" && entity.realname.trim()) {
     return entity.realname.trim();
   }
@@ -47,10 +48,13 @@ const formatDateTime = (value) => {
   if (!value) return "-";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "-";
-  return `${date.toLocaleDateString("de-CH")} ${date.toLocaleTimeString("de-CH", {
-    hour: "2-digit",
-    minute: "2-digit",
-  })}`;
+  return `${date.toLocaleDateString("de-CH")} ${date.toLocaleTimeString(
+    "de-CH",
+    {
+      hour: "2-digit",
+      minute: "2-digit",
+    },
+  )}`;
 };
 
 const formatPoints = (value) => {
@@ -71,9 +75,6 @@ const normalizeScoringConfig = (config) => ({
   exactPositionPoints: Number(config?.exactPositionPoints ?? 6),
   top3AnyPositionPoints: Number(config?.top3AnyPositionPoints ?? 3),
   exactLastPlacePoints: Number(config?.exactLastPlacePoints ?? 4),
-  tieBreakerEnabled: config?.tieBreakerEnabled !== false,
-  tieBreakerExactPoints: Number(config?.tieBreakerExactPoints ?? 3),
-  tieBreakerProximityWindow: Number(config?.tieBreakerProximityWindow ?? 10),
 });
 
 export default function AdminPredictions() {
@@ -110,7 +111,10 @@ export default function AdminPredictions() {
 
   const selectedRound = useMemo(() => {
     if (roundDetails?.round?._id) return roundDetails.round;
-    return rounds.find((round) => String(round._id) === String(selectedRoundId)) || null;
+    return (
+      rounds.find((round) => String(round._id) === String(selectedRoundId)) ||
+      null
+    );
   }, [roundDetails, rounds, selectedRoundId]);
 
   const scoringConfig = useMemo(
@@ -118,19 +122,11 @@ export default function AdminPredictions() {
     [selectedRound?.scoringConfig],
   );
   const scoringRuleItems = useMemo(() => {
-    const rules = [
+    return [
       `P1, P2, P3 exakt: +${formatPoints(scoringConfig.exactPositionPoints)} pro Treffer`,
       `Top 3 richtig, aber falsche Position: +${formatPoints(scoringConfig.top3AnyPositionPoints)}`,
       `Letzter Platz exakt: +${formatPoints(scoringConfig.exactLastPlacePoints)}`,
     ];
-    if (scoringConfig.tieBreakerEnabled) {
-      rules.push(
-        `Siegerpunkte-Tipp: exakt +${formatPoints(scoringConfig.tieBreakerExactPoints)}, sonst anteilig bis ${formatPoints(scoringConfig.tieBreakerProximityWindow)} Abstand`,
-      );
-    } else {
-      rules.push("Siegerpunkte-Tipp ist in dieser Runde deaktiviert.");
-    }
-    return rules;
   }, [scoringConfig]);
 
   const availableRaceFilters = useMemo(() => {
@@ -209,7 +205,9 @@ export default function AdminPredictions() {
       setRoundDetails(null);
       return;
     }
-    const detailsRes = await API.get(`/predictions/admin/rounds/${selectedRoundId}`);
+    const detailsRes = await API.get(
+      `/predictions/admin/rounds/${selectedRoundId}`,
+    );
     const details = detailsRes.data || null;
     setRoundDetails(details);
 
@@ -249,7 +247,12 @@ export default function AdminPredictions() {
         await loadSeasons();
       } catch (loadError) {
         console.error("Fehler beim Laden der Seasons:", loadError);
-        setError(getApiErrorMessage(loadError, "Seasons konnten nicht geladen werden."));
+        setError(
+          getApiErrorMessage(
+            loadError,
+            "Seasons konnten nicht geladen werden.",
+          ),
+        );
       } finally {
         setIsLoading(false);
       }
@@ -265,7 +268,9 @@ export default function AdminPredictions() {
         await loadRounds();
       } catch (loadError) {
         console.error("Fehler beim Laden der Runden:", loadError);
-        setError(getApiErrorMessage(loadError, "Runden konnten nicht geladen werden."));
+        setError(
+          getApiErrorMessage(loadError, "Runden konnten nicht geladen werden."),
+        );
       } finally {
         setIsLoading(false);
       }
@@ -280,7 +285,10 @@ export default function AdminPredictions() {
       } catch (loadError) {
         console.error("Fehler beim Laden der Round-Details:", loadError);
         toast.error(
-          getApiErrorMessage(loadError, "Round-Details konnten nicht geladen werden."),
+          getApiErrorMessage(
+            loadError,
+            "Round-Details konnten nicht geladen werden.",
+          ),
         );
       }
     };
@@ -293,7 +301,9 @@ export default function AdminPredictions() {
         await loadRacesForCreateSeason(createForm.seasonId);
       } catch (loadError) {
         console.error("Fehler beim Laden der Rennen:", loadError);
-        toast.error(getApiErrorMessage(loadError, "Rennen konnten nicht geladen werden."));
+        toast.error(
+          getApiErrorMessage(loadError, "Rennen konnten nicht geladen werden."),
+        );
       }
     };
     run();
@@ -319,7 +329,10 @@ export default function AdminPredictions() {
     } catch (createError) {
       console.error("Fehler beim Erstellen der Round:", createError);
       toast.error(
-        getApiErrorMessage(createError, "Prediction-Run konnte nicht erstellt werden."),
+        getApiErrorMessage(
+          createError,
+          "Prediction-Run konnte nicht erstellt werden.",
+        ),
       );
     } finally {
       setIsBusy(false);
@@ -343,7 +356,9 @@ export default function AdminPredictions() {
       await refreshRoundsAndDetails();
     } catch (transitionError) {
       console.error("Fehler beim Statuswechsel:", transitionError);
-      toast.error(getApiErrorMessage(transitionError, "Statuswechsel fehlgeschlagen."));
+      toast.error(
+        getApiErrorMessage(transitionError, "Statuswechsel fehlgeschlagen."),
+      );
     } finally {
       setIsBusy(false);
     }
@@ -359,6 +374,35 @@ export default function AdminPredictions() {
     } catch (actionError) {
       console.error(errorMessage, actionError);
       toast.error(getApiErrorMessage(actionError, errorMessage));
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  const handleDeleteRound = async () => {
+    if (!selectedRoundId || !selectedRound) return;
+
+    const raceName = getDisplayName(selectedRound.race);
+    const confirmed = window.confirm(
+      `Prediction-Run für "${raceName}" wirklich löschen?\n\nAlle Tipps und Scores dieser Runde werden entfernt.`,
+    );
+    if (!confirmed) return;
+
+    setIsBusy(true);
+    try {
+      await API.delete(`/predictions/admin/rounds/${selectedRoundId}`);
+      toast.success("Prediction-Run gelöscht.");
+      setRoundDetails(null);
+      setSelectedRoundId("");
+      await loadRounds();
+    } catch (deleteError) {
+      console.error("Fehler beim Löschen der Round:", deleteError);
+      toast.error(
+        getApiErrorMessage(
+          deleteError,
+          "Prediction-Run konnte nicht gelöscht werden.",
+        ),
+      );
     } finally {
       setIsBusy(false);
     }
@@ -393,7 +437,9 @@ export default function AdminPredictions() {
       await refreshRoundsAndDetails();
     } catch (overrideError) {
       console.error("Fehler beim Override:", overrideError);
-      toast.error(getApiErrorMessage(overrideError, "Override fehlgeschlagen."));
+      toast.error(
+        getApiErrorMessage(overrideError, "Override fehlgeschlagen."),
+      );
     } finally {
       setIsBusy(false);
     }
@@ -404,7 +450,9 @@ export default function AdminPredictions() {
 
     setIsBusy(true);
     try {
-      await API.delete(`/predictions/admin/rounds/${selectedRoundId}/scores/${userId}/override`);
+      await API.delete(
+        `/predictions/admin/rounds/${selectedRoundId}/scores/${userId}/override`,
+      );
       toast.success(
         `Override f${userLabel ? `ür ${userLabel}` : ""} entfernt und neu berechnet.`,
       );
@@ -412,7 +460,10 @@ export default function AdminPredictions() {
     } catch (clearError) {
       console.error("Fehler beim Entfernen des Overrides:", clearError);
       toast.error(
-        getApiErrorMessage(clearError, "Override konnte nicht entfernt werden."),
+        getApiErrorMessage(
+          clearError,
+          "Override konnte nicht entfernt werden.",
+        ),
       );
     } finally {
       setIsBusy(false);
@@ -424,12 +475,15 @@ export default function AdminPredictions() {
   return (
     <div className="admin-predictions-page">
       <header className="admin-predictions-header">
-        <h1>Predictions Admin</h1>
-        <p>Runden steuern, Scoring ausführen und Punkte transparent kontrollieren.</p>
+        <h1>Tippspiele verwalten</h1>
+        <p>
+          Runden steuern, Scoring ausführen und Punkte transparent
+          kontrollieren.
+        </p>
       </header>
 
       <section className="admin-predictions-panel">
-        <h2>Scoring-Regeln</h2>
+        <h2>Punkteverteilungs-Regeln</h2>
         <ul className="admin-predictions-rules-compact">
           {scoringRuleItems.map((item) => (
             <li key={item}>{item}</li>
@@ -439,7 +493,7 @@ export default function AdminPredictions() {
 
       <div className="admin-predictions-top-grid">
         <section className="admin-predictions-panel">
-          <h2>Neue Round</h2>
+          <h2>Neue Runde</h2>
           <div className="admin-predictions-create-grid">
             <label className="admin-predictions-field">
               <span>Season</span>
@@ -462,7 +516,10 @@ export default function AdminPredictions() {
               <select
                 value={createForm.raceId}
                 onChange={(event) =>
-                  setCreateForm((prev) => ({ ...prev, raceId: event.target.value }))
+                  setCreateForm((prev) => ({
+                    ...prev,
+                    raceId: event.target.value,
+                  }))
                 }
                 disabled={!createForm.seasonId}
               >
@@ -480,7 +537,7 @@ export default function AdminPredictions() {
               onClick={handleCreateRound}
               disabled={isBusy}
             >
-              Round erstellen
+              Runde erstellen
             </button>
           </div>
         </section>
@@ -513,7 +570,10 @@ export default function AdminPredictions() {
               <select
                 value={filters.raceId}
                 onChange={(event) =>
-                  setFilters((prev) => ({ ...prev, raceId: event.target.value }))
+                  setFilters((prev) => ({
+                    ...prev,
+                    raceId: event.target.value,
+                  }))
                 }
               >
                 <option value="">Alle</option>
@@ -529,7 +589,10 @@ export default function AdminPredictions() {
               <select
                 value={filters.status}
                 onChange={(event) =>
-                  setFilters((prev) => ({ ...prev, status: event.target.value }))
+                  setFilters((prev) => ({
+                    ...prev,
+                    status: event.target.value,
+                  }))
                 }
               >
                 {STATUS_FILTER_OPTIONS.map((option) => (
@@ -551,11 +614,25 @@ export default function AdminPredictions() {
 
       <div className="admin-predictions-grid">
         <section className="admin-predictions-panel">
-          <h2>Rounds</h2>
+          <div className="admin-predictions-panel-head">
+            <h2>Runden</h2>
+            {selectedRound ? (
+              <button
+                type="button"
+                className="admin-predictions-button soft-danger"
+                onClick={handleDeleteRound}
+                disabled={isBusy}
+              >
+                Runde löschen
+              </button>
+            ) : null}
+          </div>
           {isLoading ? (
-            <p className="admin-predictions-inline-state">Lade Rounds...</p>
+            <p className="admin-predictions-inline-state">Lade Runden...</p>
           ) : rounds.length === 0 ? (
-            <p className="admin-predictions-inline-state">Keine Rounds vorhanden.</p>
+            <p className="admin-predictions-inline-state">
+              Keine Runden vorhanden.
+            </p>
           ) : (
             <div className="admin-predictions-round-list">
               {rounds.map((round) => {
@@ -582,7 +659,7 @@ export default function AdminPredictions() {
                     </div>
                     <span>{getDisplayName(round.season)}</span>
                     <span>
-                      Entries: {round?.metrics?.entries ?? 0} | Scores: {" "}
+                      Entries: {round?.metrics?.entries ?? 0} | Scores:{" "}
                       {round?.metrics?.scores ?? 0}
                     </span>
                     {round.requiresReview ? (
@@ -598,14 +675,17 @@ export default function AdminPredictions() {
         </section>
 
         <section className="admin-predictions-panel">
-          <h2>Round-Steuerung</h2>
+          <h2>Runden-Steuerung</h2>
           {!selectedRound ? (
-            <p className="admin-predictions-inline-state">Wähle eine Round aus.</p>
+            <p className="admin-predictions-inline-state">
+              Wähle eine Runde aus.
+            </p>
           ) : (
             <>
               <div className="admin-predictions-meta-grid">
                 <p>
-                  <strong>Season:</strong> {getDisplayName(selectedRound.season)}
+                  <strong>Season:</strong>{" "}
+                  {getDisplayName(selectedRound.season)}
                 </p>
                 <p>
                   <strong>Rennen:</strong> {getDisplayName(selectedRound.race)}
@@ -717,7 +797,7 @@ export default function AdminPredictions() {
                 </div>
 
                 <div className="admin-predictions-card">
-                  <h3>Score Override</h3>
+                  <h3>Punktestand Override</h3>
                   <label className="admin-predictions-field">
                     <span>User</span>
                     <select
@@ -732,13 +812,14 @@ export default function AdminPredictions() {
                       <option value="">Bitte wählen</option>
                       {scoreRows.map((score) => (
                         <option key={score._id} value={getId(score.userId)}>
-                          {getDisplayName(score.userId)} (aktuell {formatPoints(score.total)})
+                          {getDisplayName(score.userId)} (aktuell{" "}
+                          {formatPoints(score.total)})
                         </option>
                       ))}
                     </select>
                   </label>
                   <label className="admin-predictions-field">
-                    <span>Neuer Total-Score</span>
+                    <span>Neuer Total-Punktestand</span>
                     <input
                       type="number"
                       value={overrideForm.total}
@@ -751,7 +832,7 @@ export default function AdminPredictions() {
                     />
                   </label>
                   <label className="admin-predictions-field">
-                    <span>Reason (Pflicht)</span>
+                    <span>Grund (Pflicht)</span>
                     <input
                       type="text"
                       value={overrideForm.reason}
@@ -837,13 +918,15 @@ export default function AdminPredictions() {
       </section>
 
       <section className="admin-predictions-panel">
-        <h2>Score-Inspektor</h2>
+        <h2>Punktestand-Inspektor</h2>
         {scoreRows.length === 0 ? (
-          <p className="admin-predictions-inline-state">Keine Scores vorhanden.</p>
+          <p className="admin-predictions-inline-state">
+            Keine Scores vorhanden.
+          </p>
         ) : (
           <>
             <label className="admin-predictions-field admin-predictions-inspector-select">
-              <span>Score für User anzeigen</span>
+              <span>Punktestand für User anzeigen</span>
               <select
                 value={getId(selectedScore?.userId)}
                 onChange={(event) => setInspectorUserId(event.target.value)}
@@ -867,7 +950,9 @@ export default function AdminPredictions() {
               </article>
               <article>
                 <p>Generated</p>
-                <strong>{formatDateTime(selectedScore?.generatedFrom?.generatedAt)}</strong>
+                <strong>
+                  {formatDateTime(selectedScore?.generatedFrom?.generatedAt)}
+                </strong>
               </article>
               <article>
                 <p>Trigger</p>
@@ -882,10 +967,12 @@ export default function AdminPredictions() {
                   <strong>Grund:</strong> {selectedScore?.overrideReason || "-"}
                 </p>
                 <p>
-                  <strong>Von:</strong> {getDisplayName(selectedScore?.overrideBy)}
+                  <strong>Von:</strong>{" "}
+                  {getDisplayName(selectedScore?.overrideBy)}
                 </p>
                 <p>
-                  <strong>Zeit:</strong> {formatDateTime(selectedScore?.overrideAt)}
+                  <strong>Zeit:</strong>{" "}
+                  {formatDateTime(selectedScore?.overrideAt)}
                 </p>
                 <button
                   type="button"
@@ -909,13 +996,8 @@ export default function AdminPredictions() {
                 <p>P1: {getDisplayName(selectedScore?.predicted?.p1)}</p>
                 <p>P2: {getDisplayName(selectedScore?.predicted?.p2)}</p>
                 <p>P3: {getDisplayName(selectedScore?.predicted?.p3)}</p>
-                <p>Last: {getDisplayName(selectedScore?.predicted?.lastPlace)}</p>
                 <p>
-                  Siegerpunkte-Tipp:{" "}
-                  {selectedScore?.predicted?.tieBreaker === null ||
-                  selectedScore?.predicted?.tieBreaker === undefined
-                    ? "-"
-                    : selectedScore.predicted.tieBreaker}
+                  Last: {getDisplayName(selectedScore?.predicted?.lastPlace)}
                 </p>
               </div>
 
@@ -925,13 +1007,6 @@ export default function AdminPredictions() {
                 <p>P2: {getDisplayName(selectedScore?.actual?.p2)}</p>
                 <p>P3: {getDisplayName(selectedScore?.actual?.p3)}</p>
                 <p>Last: {getDisplayName(selectedScore?.actual?.lastPlace)}</p>
-                <p>
-                  Siegerpunkte-Tipp:{" "}
-                  {selectedScore?.actual?.tieBreaker === null ||
-                  selectedScore?.actual?.tieBreaker === undefined
-                    ? "-"
-                    : selectedScore.actual.tieBreaker}
-                </p>
               </div>
             </div>
 
@@ -978,14 +1053,13 @@ export default function AdminPredictions() {
                 <th>P2</th>
                 <th>P3</th>
                 <th>Last</th>
-                <th>Siegerpunkte-Tipp</th>
                 <th>Submitted</th>
               </tr>
             </thead>
             <tbody>
               {entryRows.length === 0 ? (
                 <tr>
-                  <td colSpan={7}>Keine Entries vorhanden.</td>
+                  <td colSpan={6}>Keine Entries vorhanden.</td>
                 </tr>
               ) : (
                 entryRows.map((entry) => (
@@ -995,12 +1069,6 @@ export default function AdminPredictions() {
                     <td>{getDisplayName(entry?.picks?.p2)}</td>
                     <td>{getDisplayName(entry?.picks?.p3)}</td>
                     <td>{getDisplayName(entry?.picks?.lastPlace)}</td>
-                    <td>
-                      {entry?.picks?.tieBreaker === null ||
-                      entry?.picks?.tieBreaker === undefined
-                        ? "-"
-                        : entry.picks.tieBreaker}
-                    </td>
                     <td>{formatDateTime(entry.submittedAt)}</td>
                   </tr>
                 ))
@@ -1011,7 +1079,7 @@ export default function AdminPredictions() {
       </section>
 
       <section className="admin-predictions-panel">
-        <h2>Scores</h2>
+        <h2>Punkteverteilung</h2>
         <div className="admin-predictions-table-wrap">
           <table className="admin-predictions-table">
             <thead>

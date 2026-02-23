@@ -63,9 +63,6 @@ const predictionRoundSchema = new Schema(
       exactPositionPoints: { type: Number, default: 6 },
       top3AnyPositionPoints: { type: Number, default: 3 },
       exactLastPlacePoints: { type: Number, default: 4 },
-      tieBreakerEnabled: { type: Boolean, default: true },
-      tieBreakerExactPoints: { type: Number, default: 3 },
-      tieBreakerProximityWindow: { type: Number, default: 10 },
     },
     createdBy: {
       type: Schema.Types.ObjectId,

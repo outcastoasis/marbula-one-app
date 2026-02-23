@@ -4,6 +4,7 @@ import {
   PredictionServiceError,
   clearUserScoreOverride,
   createRound,
+  deletePredictionRound,
   getRoundDetailsForAdmin,
   getRoundDetailsForUser,
   getUserPredictionHistory,
@@ -211,4 +212,15 @@ export const postAdminRescoreFromRace = withPredictionHandler(
     return res.json(result);
   },
   "Fehler beim Re-Scoring aus Race-Ergebnissen.",
+);
+
+export const deleteAdminRound = withPredictionHandler(
+  async (req, res) => {
+    const result = await deletePredictionRound({
+      roundId: req.params.roundId,
+      deletedBy: req.user?._id,
+    });
+    return res.json(result);
+  },
+  "Fehler beim Löschen der Prediction-Runde.",
 );

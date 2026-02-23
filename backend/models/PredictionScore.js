@@ -8,7 +8,6 @@ const snapshotSchema = new Schema(
     p2: { type: Schema.Types.ObjectId, ref: "Team", default: null },
     p3: { type: Schema.Types.ObjectId, ref: "Team", default: null },
     lastPlace: { type: Schema.Types.ObjectId, ref: "Team", default: null },
-    tieBreaker: { type: Number, default: null },
   },
   { _id: false },
 );

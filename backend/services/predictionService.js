@@ -140,18 +140,7 @@ const validatePicks = ({ picks, seasonTeamIds }) => {
     }
   }
 
-  let tieBreaker = null;
-  if (picks.tieBreaker !== undefined && picks.tieBreaker !== null) {
-    tieBreaker = Number(picks.tieBreaker);
-    if (!Number.isFinite(tieBreaker)) {
-      throw new PredictionServiceError("Tie-Breaker muss eine Zahl sein.", 400);
-    }
-  }
-
-  return {
-    ...normalizedPicks,
-    tieBreaker,
-  };
+  return normalizedPicks;
 };
 
 const buildActualSnapshot = ({ seasonParticipants, userToTeamMap, race }) => {
@@ -177,14 +166,11 @@ const buildActualSnapshot = ({ seasonParticipants, userToTeamMap, race }) => {
   const top3 = rankingRows.slice(0, 3).map((row) => row.teamId);
   const lastPlace =
     rankingRows.length > 0 ? rankingRows[rankingRows.length - 1].teamId : null;
-  const tieBreaker = rankingRows.length > 0 ? rankingRows[0].points : null;
-
   return {
     p1: top3[0] || null,
     p2: top3[1] || null,
     p3: top3[2] || null,
     lastPlace,
-    tieBreaker,
     top3Set: new Set(top3.filter(Boolean)),
   };
 };
@@ -202,9 +188,6 @@ export const calculateRoundScore = ({ entry, actual, config }) => {
     exactPositionPoints: Number(config?.exactPositionPoints ?? 6),
     top3AnyPositionPoints: Number(config?.top3AnyPositionPoints ?? 3),
     exactLastPlacePoints: Number(config?.exactLastPlacePoints ?? 4),
-    tieBreakerEnabled: config?.tieBreakerEnabled !== false,
-    tieBreakerExactPoints: Number(config?.tieBreakerExactPoints ?? 3),
-    tieBreakerProximityWindow: Number(config?.tieBreakerProximityWindow ?? 10),
   };
 
   const predicted = {
@@ -212,10 +195,6 @@ export const calculateRoundScore = ({ entry, actual, config }) => {
     p2: toObjectIdOrNull(entry?.picks?.p2),
     p3: toObjectIdOrNull(entry?.picks?.p3),
     lastPlace: toObjectIdOrNull(entry?.picks?.lastPlace),
-    tieBreaker:
-      entry?.picks?.tieBreaker === null || entry?.picks?.tieBreaker === undefined
-        ? null
-        : Number(entry.picks.tieBreaker),
   };
 
   if (!entry) {
@@ -271,34 +250,6 @@ export const calculateRoundScore = ({ entry, actual, config }) => {
       "Letzter Platz exakt",
       scoringConfig.exactLastPlacePoints,
     );
-  }
-
-  if (
-    scoringConfig.tieBreakerEnabled &&
-    Number.isFinite(predicted.tieBreaker) &&
-    Number.isFinite(actual.tieBreaker)
-  ) {
-    const difference = Math.abs(predicted.tieBreaker - actual.tieBreaker);
-    if (difference === 0) {
-      addBreakdown(
-        "tie_breaker_exact",
-        "Tie-Breaker exakt",
-        scoringConfig.tieBreakerExactPoints,
-      );
-    } else if (
-      scoringConfig.tieBreakerProximityWindow > 0 &&
-      difference <= scoringConfig.tieBreakerProximityWindow
-    ) {
-      const ratio =
-        1 - difference / Math.max(1, scoringConfig.tieBreakerProximityWindow);
-      const proximityPoints = scoringConfig.tieBreakerExactPoints * ratio;
-      addBreakdown(
-        "tie_breaker_proximity",
-        "Tie-Breaker nahe dran",
-        proximityPoints,
-        `Abweichung: ${roundToTwoDecimals(difference)}`,
-      );
-    }
   }
 
   return {
@@ -845,7 +796,6 @@ export const scoreRoundFromRaceResults = async ({
               p2: toObjectIdOrNull(actual.p2),
               p3: toObjectIdOrNull(actual.p3),
               lastPlace: toObjectIdOrNull(actual.lastPlace),
-              tieBreaker: actual.tieBreaker,
             },
             generatedFrom: {
               raceId: race._id,
@@ -1243,6 +1193,35 @@ export const getUserPredictionHistory = async ({ userId, seasonId = null }) => {
       publishedPoints: roundToTwoDecimals(publishedPoints),
     },
   };
+};
+
+export const deletePredictionRound = async ({ roundId, deletedBy = null, session = null }) => {
+  const normalizedRoundId = ensureObjectId(roundId, "Round-ID");
+  if (deletedBy) {
+    ensureObjectId(deletedBy, "Benutzer-ID");
+  }
+
+  const roundQuery = PredictionRound.findById(normalizedRoundId).select("_id");
+  if (session) roundQuery.session(session);
+  const round = await roundQuery;
+  if (!round) {
+    throw new PredictionServiceError("Prediction-Runde nicht gefunden.", 404);
+  }
+
+  await PredictionEntry.deleteMany(
+    { roundId: normalizedRoundId },
+    buildWriteOptions(session),
+  );
+  await PredictionScore.deleteMany(
+    { roundId: normalizedRoundId },
+    buildWriteOptions(session),
+  );
+  await PredictionRound.deleteOne(
+    { _id: normalizedRoundId },
+    buildWriteOptions(session),
+  );
+
+  return { deleted: true, roundId: normalizedRoundId.toString() };
 };
 
 export const deletePredictionDataForSeason = async ({ seasonId, session = null }) => {

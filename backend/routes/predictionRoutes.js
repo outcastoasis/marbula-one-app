@@ -1,6 +1,7 @@
 import express from "express";
 import {
   createAdminRound,
+  deleteAdminRound,
   getAdminRoundById,
   getAdminRounds,
   getMyPredictions,
@@ -61,6 +62,12 @@ router.post(
   protect,
   requireAdmin,
   postAdminRescoreFromRace,
+);
+router.delete(
+  "/admin/rounds/:roundId",
+  protect,
+  requireAdmin,
+  deleteAdminRound,
 );
 
 export default router;
