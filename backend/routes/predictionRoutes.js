@@ -6,6 +6,7 @@ import {
   getMyPredictions,
   getRoundById,
   getRounds,
+  deleteAdminOverrideScore,
   patchAdminOverrideScore,
   patchAdminRoundStatus,
   postAdminPublishRound,
@@ -48,6 +49,12 @@ router.patch(
   protect,
   requireAdmin,
   patchAdminOverrideScore,
+);
+router.delete(
+  "/admin/rounds/:roundId/scores/:userId/override",
+  protect,
+  requireAdmin,
+  deleteAdminOverrideScore,
 );
 router.post(
   "/admin/rounds/:roundId/rescore-from-race",

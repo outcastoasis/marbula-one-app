@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import API from "../api";
 import { useToast } from "../context/ToastContext";
 import "../styles/Predictions.css";
@@ -125,6 +125,7 @@ const getBreakdownDetails = (row) => {
 
 export default function Predictions() {
   const toast = useToast();
+  const loadingSeasonAssignmentsRef = useRef(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [isSavingEntry, setIsSavingEntry] = useState(false);
   const [filters, setFilters] = useState({
@@ -135,6 +136,7 @@ export default function Predictions() {
 
   const [allSeasons, setAllSeasons] = useState([]);
   const [allTeams, setAllTeams] = useState([]);
+  const [seasonAssignmentsBySeasonId, setSeasonAssignmentsBySeasonId] = useState({});
   const [rounds, setRounds] = useState([]);
   const [selectedRoundId, setSelectedRoundId] = useState("");
   const [roundDetails, setRoundDetails] = useState(null);
@@ -162,11 +164,28 @@ export default function Predictions() {
     if (roundDetails?.round?._id) return roundDetails.round;
     return rounds.find((round) => String(round._id) === String(selectedRoundId)) || null;
   }, [roundDetails, rounds, selectedRoundId]);
+  const selectedRoundSeasonId = getId(selectedRound?.season?._id || selectedRound?.season);
 
   const scoringConfig = useMemo(
     () => normalizeScoringConfig(selectedRound?.scoringConfig || {}),
     [selectedRound?.scoringConfig],
   );
+  const teamOwnerBySeasonAndTeam = useMemo(() => {
+    const map = new Map();
+    Object.entries(seasonAssignmentsBySeasonId).forEach(([seasonId, assignments]) => {
+      const teamMap = new Map();
+      asArray(assignments).forEach((assignment) => {
+        const teamId = getId(assignment?.team);
+        if (!teamId) return;
+        const ownerName = getDisplayName(assignment?.user);
+        if (ownerName && ownerName !== "-") {
+          teamMap.set(teamId, ownerName);
+        }
+      });
+      map.set(String(seasonId), teamMap);
+    });
+    return map;
+  }, [seasonAssignmentsBySeasonId]);
 
   const scoringRuleItems = useMemo(() => {
     const rules = [
@@ -185,18 +204,24 @@ export default function Predictions() {
   }, [scoringConfig]);
 
   const roundTeamOptions = useMemo(() => {
-    const seasonId = getId(selectedRound?.season?._id || selectedRound?.season);
+    const seasonId = selectedRoundSeasonId;
     if (!seasonId) return [];
     const season = seasonById.get(seasonId);
     if (!season) return [];
+    const ownerMap = teamOwnerBySeasonAndTeam.get(seasonId) || new Map();
     const teamIds = asArray(season.teams).map((team) => getId(team)).filter(Boolean);
     return teamIds
       .map((teamId) => ({
         _id: teamId,
         name: getDisplayName(teamById.get(teamId)),
+        ownerName: ownerMap.get(teamId) || "",
+      }))
+      .map((team) => ({
+        ...team,
+        displayName: team.ownerName ? `${team.name} (${team.ownerName})` : team.name,
       }))
       .sort((a, b) => a.name.localeCompare(b.name, "de-CH"));
-  }, [seasonById, selectedRound, teamById]);
+  }, [seasonById, selectedRoundSeasonId, teamById, teamOwnerBySeasonAndTeam]);
 
   const availableRaceOptions = useMemo(() => {
     const raceMap = new Map();
@@ -220,11 +245,17 @@ export default function Predictions() {
   );
   const canEditEntry = selectedRound?.status === "open";
 
-  const resolveTeamName = (value) => {
+  const resolveTeamName = (value, seasonId = selectedRoundSeasonId) => {
     if (!value) return "-";
-    if (typeof value === "object" && value.name) return value.name;
-    const team = teamById.get(getId(value));
-    return getDisplayName(team);
+    const teamId = getId(value);
+    const ownerName =
+      (seasonId && teamOwnerBySeasonAndTeam.get(String(seasonId))?.get(teamId)) || "";
+    const baseName =
+      typeof value === "object" && value.name
+        ? value.name
+        : getDisplayName(teamById.get(teamId));
+    if (!baseName || baseName === "-") return "-";
+    return ownerName ? `${baseName} (${ownerName})` : baseName;
   };
 
   const syncEntryFormFromDetails = useCallback((details) => {
@@ -253,6 +284,32 @@ export default function Predictions() {
     setAllSeasons(asArray(seasonRes.data));
     setAllTeams(asArray(teamsRes.data));
   }, []);
+
+  const loadSeasonAssignments = useCallback(async (seasonId) => {
+    const normalizedSeasonId = getId(seasonId);
+    if (!normalizedSeasonId) return;
+    if (loadingSeasonAssignmentsRef.current.has(normalizedSeasonId)) return;
+    if (Object.prototype.hasOwnProperty.call(seasonAssignmentsBySeasonId, normalizedSeasonId)) {
+      return;
+    }
+    loadingSeasonAssignmentsRef.current.add(normalizedSeasonId);
+
+    try {
+      const response = await API.get(`/userSeasonTeams?season=${normalizedSeasonId}`);
+      setSeasonAssignmentsBySeasonId((prev) => ({
+        ...prev,
+        [normalizedSeasonId]: asArray(response.data),
+      }));
+    } catch (assignmentError) {
+      console.error("Fehler beim Laden der Teamzuweisungen der Season:", assignmentError);
+      setSeasonAssignmentsBySeasonId((prev) => ({
+        ...prev,
+        [normalizedSeasonId]: [],
+      }));
+    } finally {
+      loadingSeasonAssignmentsRef.current.delete(normalizedSeasonId);
+    }
+  }, [seasonAssignmentsBySeasonId]);
 
   const loadRounds = useCallback(async () => {
     const params = {};
@@ -358,6 +415,11 @@ export default function Predictions() {
     };
     run();
   }, [loadRoundDetails, selectedRoundId, toast]);
+
+  useEffect(() => {
+    if (!selectedRoundSeasonId) return;
+    loadSeasonAssignments(selectedRoundSeasonId);
+  }, [loadSeasonAssignments, selectedRoundSeasonId]);
 
   const validateEntry = () => {
     const values = [entryForm.p1, entryForm.p2, entryForm.p3, entryForm.lastPlace];
@@ -567,7 +629,7 @@ export default function Predictions() {
                     <option value="">Bitte wählen</option>
                     {roundTeamOptions.map((team) => (
                       <option key={team._id} value={team._id}>
-                        {team.name}
+                        {team.displayName}
                       </option>
                     ))}
                   </select>
@@ -585,7 +647,7 @@ export default function Predictions() {
                     <option value="">Bitte wählen</option>
                     {roundTeamOptions.map((team) => (
                       <option key={team._id} value={team._id}>
-                        {team.name}
+                        {team.displayName}
                       </option>
                     ))}
                   </select>
@@ -603,7 +665,7 @@ export default function Predictions() {
                     <option value="">Bitte wählen</option>
                     {roundTeamOptions.map((team) => (
                       <option key={team._id} value={team._id}>
-                        {team.name}
+                        {team.displayName}
                       </option>
                     ))}
                   </select>
@@ -621,7 +683,7 @@ export default function Predictions() {
                     <option value="">Bitte wählen</option>
                     {roundTeamOptions.map((team) => (
                       <option key={team._id} value={team._id}>
-                        {team.name}
+                        {team.displayName}
                       </option>
                     ))}
                   </select>

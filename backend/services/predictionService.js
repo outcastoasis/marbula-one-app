@@ -502,6 +502,7 @@ export const getRoundDetailsForAdmin = async ({ roundId }) => {
       .sort({ submittedAt: 1, _id: 1 }),
     PredictionScore.find({ roundId: normalizedRoundId })
       .populate("userId", "username realname")
+      .populate("overrideBy", "username realname")
       .populate("predicted.p1 predicted.p2 predicted.p3 predicted.lastPlace", "name")
       .populate("actual.p1 actual.p2 actual.p3 actual.lastPlace", "name")
       .sort({ total: -1, userId: 1 }),
@@ -1010,6 +1011,65 @@ export const overrideUserScore = async ({
   await score.save();
 
   return score;
+};
+
+export const clearUserScoreOverride = async ({
+  roundId,
+  userId,
+  clearedBy = null,
+}) => {
+  const normalizedRoundId = ensureObjectId(roundId, "Round-ID");
+  const normalizedUserId = ensureObjectId(userId, "Benutzer-ID");
+  const normalizedClearedBy = clearedBy
+    ? ensureObjectId(clearedBy, "Benutzer-ID")
+    : null;
+
+  const round = await PredictionRound.findById(normalizedRoundId).select("status");
+  if (!round) {
+    throw new PredictionServiceError("Prediction-Runde nicht gefunden.", 404);
+  }
+  if (!["scored", "published"].includes(round.status)) {
+    throw new PredictionServiceError(
+      "Overrides kÃ¶nnen nur bei gescorten oder verÃ¶ffentlichten Runden entfernt werden.",
+      409,
+    );
+  }
+
+  const score = await PredictionScore.findOne({
+    roundId: normalizedRoundId,
+    userId: normalizedUserId,
+  });
+  if (!score) {
+    throw new PredictionServiceError(
+      "FÃ¼r diesen Benutzer existiert noch kein Score in der Runde.",
+      404,
+    );
+  }
+  if (!score.isOverridden) {
+    throw new PredictionServiceError(
+      "FÃ¼r diesen Benutzer ist kein manueller Override gesetzt.",
+      409,
+    );
+  }
+
+  score.isOverridden = false;
+  score.overrideReason = null;
+  score.overrideBy = null;
+  score.overrideAt = null;
+  await score.save();
+
+  const rescoreResult = await scoreRoundFromRaceResults({
+    roundId: normalizedRoundId,
+    generatedBy: normalizedClearedBy,
+    trigger: "override_clear_recalc",
+    force: true,
+    preserveOverrides: true,
+  });
+
+  return {
+    cleared: true,
+    rescoreResult,
+  };
 };
 
 export const syncPredictionsForRace = async ({

@@ -117,6 +117,21 @@ export default function AdminPredictions() {
     () => normalizeScoringConfig(selectedRound?.scoringConfig || {}),
     [selectedRound?.scoringConfig],
   );
+  const scoringRuleItems = useMemo(() => {
+    const rules = [
+      `P1, P2, P3 exakt: +${formatPoints(scoringConfig.exactPositionPoints)} pro Treffer`,
+      `Top 3 richtig, aber falsche Position: +${formatPoints(scoringConfig.top3AnyPositionPoints)}`,
+      `Letzter Platz exakt: +${formatPoints(scoringConfig.exactLastPlacePoints)}`,
+    ];
+    if (scoringConfig.tieBreakerEnabled) {
+      rules.push(
+        `Siegerpunkte-Tipp: exakt +${formatPoints(scoringConfig.tieBreakerExactPoints)}, sonst anteilig bis ${formatPoints(scoringConfig.tieBreakerProximityWindow)} Abstand`,
+      );
+    } else {
+      rules.push("Siegerpunkte-Tipp ist in dieser Runde deaktiviert.");
+    }
+    return rules;
+  }, [scoringConfig]);
 
   const availableRaceFilters = useMemo(() => {
     const raceMap = new Map();
@@ -134,6 +149,10 @@ export default function AdminPredictions() {
 
   const scoreRows = asArray(roundDetails?.scores);
   const entryRows = asArray(roundDetails?.entries);
+  const overriddenScores = useMemo(
+    () => scoreRows.filter((score) => score?.isOverridden),
+    [scoreRows],
+  );
 
   const selectedScore = useMemo(() => {
     if (scoreRows.length === 0) return null;
@@ -380,6 +399,26 @@ export default function AdminPredictions() {
     }
   };
 
+  const handleClearOverride = async ({ userId, userLabel }) => {
+    if (!selectedRoundId || !userId) return;
+
+    setIsBusy(true);
+    try {
+      await API.delete(`/predictions/admin/rounds/${selectedRoundId}/scores/${userId}/override`);
+      toast.success(
+        `Override f${userLabel ? `ür ${userLabel}` : ""} entfernt und neu berechnet.`,
+      );
+      await refreshRoundsAndDetails();
+    } catch (clearError) {
+      console.error("Fehler beim Entfernen des Overrides:", clearError);
+      toast.error(
+        getApiErrorMessage(clearError, "Override konnte nicht entfernt werden."),
+      );
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
   const selectedScoreBreakdown = asArray(selectedScore?.breakdown);
 
   return (
@@ -391,24 +430,11 @@ export default function AdminPredictions() {
 
       <section className="admin-predictions-panel">
         <h2>Scoring-Regeln</h2>
-        <div className="admin-predictions-rule-line">
-          <span className="admin-predictions-rule-chip">
-            Exakte Position: +{formatPoints(scoringConfig.exactPositionPoints)}
-          </span>
-          <span className="admin-predictions-rule-chip">
-            Top3 falsche Position: +{formatPoints(scoringConfig.top3AnyPositionPoints)}
-          </span>
-          <span className="admin-predictions-rule-chip">
-            Letzter Platz exakt: +{formatPoints(scoringConfig.exactLastPlacePoints)}
-          </span>
-          {scoringConfig.tieBreakerEnabled ? (
-            <span className="admin-predictions-rule-chip">
-              Siegerpunkte-Tipp (Punkte des Siegerteams): exakt +{formatPoints(scoringConfig.tieBreakerExactPoints)} oder anteilig bis {formatPoints(scoringConfig.tieBreakerProximityWindow)} Abstand
-            </span>
-          ) : (
-            <span className="admin-predictions-rule-chip">Siegerpunkte-Tipp deaktiviert</span>
-          )}
-        </div>
+        <ul className="admin-predictions-rules-compact">
+          {scoringRuleItems.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
       </section>
 
       <div className="admin-predictions-top-grid">
@@ -753,6 +779,64 @@ export default function AdminPredictions() {
       </div>
 
       <section className="admin-predictions-panel">
+        <h2>Manuelle Overrides</h2>
+        <p className="admin-predictions-inline-state">
+          Aktive manuelle Overrides in dieser Runde: {overriddenScores.length}
+        </p>
+
+        {overriddenScores.length === 0 ? (
+          <p className="admin-predictions-inline-state">
+            Keine aktiven manuellen Overrides vorhanden.
+          </p>
+        ) : (
+          <div className="admin-predictions-table-wrap">
+            <table className="admin-predictions-table">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Total</th>
+                  <th>Grund</th>
+                  <th>Von</th>
+                  <th>Zeit</th>
+                  <th>Aktion</th>
+                </tr>
+              </thead>
+              <tbody>
+                {overriddenScores.map((score) => {
+                  const userId = getId(score.userId);
+                  const userLabel = getDisplayName(score.userId);
+                  return (
+                    <tr key={`override-${score._id}`}>
+                      <td>{userLabel}</td>
+                      <td>{formatPoints(score.total)}</td>
+                      <td>{score.overrideReason || "-"}</td>
+                      <td>{getDisplayName(score.overrideBy)}</td>
+                      <td>{formatDateTime(score.overrideAt)}</td>
+                      <td>
+                        <button
+                          type="button"
+                          className="admin-predictions-button"
+                          onClick={() =>
+                            handleClearOverride({
+                              userId,
+                              userLabel,
+                            })
+                          }
+                          disabled={isBusy}
+                        >
+                          Override löschen + neu berechnen
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <section className="admin-predictions-panel">
         <h2>Score-Inspektor</h2>
         {scoreRows.length === 0 ? (
           <p className="admin-predictions-inline-state">Keine Scores vorhanden.</p>
@@ -790,6 +874,34 @@ export default function AdminPredictions() {
                 <strong>{selectedScore?.generatedFrom?.trigger || "-"}</strong>
               </article>
             </div>
+
+            {selectedScore?.isOverridden ? (
+              <div className="admin-predictions-card admin-predictions-override-meta">
+                <h3>Aktiver Override</h3>
+                <p>
+                  <strong>Grund:</strong> {selectedScore?.overrideReason || "-"}
+                </p>
+                <p>
+                  <strong>Von:</strong> {getDisplayName(selectedScore?.overrideBy)}
+                </p>
+                <p>
+                  <strong>Zeit:</strong> {formatDateTime(selectedScore?.overrideAt)}
+                </p>
+                <button
+                  type="button"
+                  className="admin-predictions-button"
+                  onClick={() =>
+                    handleClearOverride({
+                      userId: getId(selectedScore?.userId),
+                      userLabel: getDisplayName(selectedScore?.userId),
+                    })
+                  }
+                  disabled={isBusy}
+                >
+                  Override löschen + neu berechnen
+                </button>
+              </div>
+            ) : null}
 
             <div className="admin-predictions-snapshot-grid">
               <div className="admin-predictions-card">

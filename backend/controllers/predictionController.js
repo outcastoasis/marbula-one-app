@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import asyncHandler from "express-async-handler";
 import {
   PredictionServiceError,
+  clearUserScoreOverride,
   createRound,
   getRoundDetailsForAdmin,
   getRoundDetailsForUser,
@@ -184,6 +185,18 @@ export const patchAdminOverrideScore = withPredictionHandler(
     return res.json(score);
   },
   "Fehler beim Überschreiben des Scores.",
+);
+
+export const deleteAdminOverrideScore = withPredictionHandler(
+  async (req, res) => {
+    const result = await clearUserScoreOverride({
+      roundId: req.params.roundId,
+      userId: req.params.userId,
+      clearedBy: req.user?._id,
+    });
+    return res.json(result);
+  },
+  "Fehler beim Entfernen des Overrides.",
 );
 
 export const postAdminRescoreFromRace = withPredictionHandler(

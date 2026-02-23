@@ -49,19 +49,16 @@
   color: #ffd7d7;
 }
 
-.admin-predictions-rule-line {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+.admin-predictions-rules-compact {
+  margin: 0;
+  padding-left: 1rem;
+  display: grid;
+  gap: 0.34rem;
 }
 
-.admin-predictions-rule-chip {
-  border: 1px solid #363636;
-  border-radius: 999px;
-  background-color: #141414;
-  color: #dfdfdf;
-  padding: 0.34rem 0.6rem;
-  font-size: 0.8rem;
+.admin-predictions-rules-compact li {
+  color: #d8d8d8;
+  font-size: 0.86rem;
 }
 
 .admin-predictions-top-grid {
@@ -71,11 +68,21 @@
   margin-top: 0.95rem;
 }
 
+.admin-predictions-top-grid .admin-predictions-panel + .admin-predictions-panel {
+  margin-top: 0;
+}
+
 .admin-predictions-create-grid,
 .admin-predictions-filter-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.65rem;
+}
+
+.admin-predictions-create-grid > .admin-predictions-button {
+  align-self: end;
+  justify-self: start;
+  width: auto;
 }
 
 .admin-predictions-field {
@@ -133,6 +140,10 @@
   display: grid;
   grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
   gap: 0.95rem;
+  margin-top: 0.95rem;
+}
+
+.admin-predictions-grid + .admin-predictions-panel {
   margin-top: 0.95rem;
 }
 
@@ -251,6 +262,10 @@
   font-size: 0.84rem;
 }
 
+.admin-predictions-inline-forms .admin-predictions-card > .admin-predictions-button {
+  margin-top: 0.6rem;
+}
+
 .admin-predictions-inline-state {
   margin: 0;
   color: #cbcbcb;
@@ -284,6 +299,14 @@
 .admin-predictions-score-summary strong {
   color: #fff;
   font-size: 1rem;
+}
+
+.admin-predictions-override-meta {
+  margin-top: 0.75rem;
+}
+
+.admin-predictions-override-meta .admin-predictions-button {
+  margin-top: 0.6rem;
 }
 
 .admin-predictions-snapshot-grid {

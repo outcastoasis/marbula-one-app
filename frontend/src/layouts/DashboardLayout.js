@@ -215,11 +215,11 @@ export default function DashboardLayout({ children }) {
               <Link to="/admin/winners" onClick={closeSidebar}>
                 Event-Sieger eintragen
               </Link>
-              <Link to="/admin/seasons" onClick={closeSidebar}>
-                Seasons
-              </Link>
               <Link to="/admin/predictions" onClick={closeSidebar}>
                 Tippspiel verwalten
+              </Link>
+              <Link to="/admin/seasons" onClick={closeSidebar}>
+                Seasons
               </Link>
 
               {seasons.map((season) => {
