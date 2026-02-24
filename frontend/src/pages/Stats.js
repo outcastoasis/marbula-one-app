@@ -54,6 +54,13 @@ const formatNumber = (value, digits = 2) => {
   return value.toFixed(digits);
 };
 
+const clampPercent = (value) => {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return 0;
+  }
+  return Math.max(0, Math.min(100, value));
+};
+
 const formatRaceLabel = (race, includeSeason = false) => {
   if (!race) return "-";
 
@@ -380,6 +387,30 @@ export default function Stats() {
     };
   }, [seasonFilter, seasonStats]);
 
+  const ownRankLineConfig = useMemo(() => {
+    if (seasonFilter !== "all") {
+      return null;
+    }
+
+    const points = seasonStats
+      .filter((season) => season?.participationStatus === "participated")
+      .map((season) => ({
+        key: season.seasonId,
+        label: season.seasonName,
+        value:
+          typeof season.finalRank === "number" && Number.isFinite(season.finalRank)
+            ? season.finalRank
+            : null,
+      }))
+      .filter((entry) => entry.value != null);
+
+    return {
+      title: "Endrang pro Season",
+      points,
+      emptyMessage: "Keine Endränge für teilgenommene Seasons vorhanden.",
+    };
+  }, [seasonFilter, seasonStats]);
+
   const compareMetricUsers = useMemo(() => {
     if (selectedCompareIds.length === 0) {
       return [];
@@ -512,11 +543,176 @@ export default function Stats() {
   };
 
   const hasCompareSelection = selectedCompareIds.length > 0;
+  const seasonWinRate =
+    toSafeNumber(overall.participatedSeasonsCount) > 0
+      ? toSafeNumber(overall.seasonsWon) /
+        toSafeNumber(overall.participatedSeasonsCount)
+      : 0;
+  const top3RatePercent = clampPercent(toSafeNumber(overall.top3Rate) * 100);
+  const seasonWinRatePercent = clampPercent(seasonWinRate * 100);
   const formatOverviewPlayer = (player) => {
     if (!player?.displayName) {
       return "-";
     }
     return `${player.displayName} (${toSafeNumber(player.totalPoints)})`;
+  };
+
+  const renderRadialKpi = ({
+    title,
+    percent,
+    percentLabel,
+    detailLabel,
+    className = "",
+  }) => {
+    const normalizedPercent = clampPercent(percent);
+
+    return (
+      <article className={`stats-kpi stats-kpi-radial ${className}`.trim()}>
+        <p>{title}</p>
+        <div className="stats-radial-kpi">
+          <div
+            className="stats-radial-track"
+            style={{ "--radial-percent": normalizedPercent }}
+            role="img"
+            aria-label={`${title}: ${percentLabel}`}
+          >
+            <div className="stats-radial-inner">
+              <strong>{percentLabel}</strong>
+              {detailLabel ? <span>{detailLabel}</span> : null}
+            </div>
+          </div>
+        </div>
+      </article>
+    );
+  };
+
+  const renderRankLineChartCard = (config) => {
+    if (!config) {
+      return null;
+    }
+
+    const points = asArray(config.points);
+    const chartWidth = 360;
+    const chartHeight = 180;
+    const padding = { top: 14, right: 14, bottom: 22, left: 24 };
+    const innerWidth = chartWidth - padding.left - padding.right;
+    const innerHeight = chartHeight - padding.top - padding.bottom;
+
+    if (points.length === 0) {
+      return (
+        <article className="stats-chart-card">
+          <h3>{config.title}</h3>
+          <p className="stats-inline-state">{config.emptyMessage}</p>
+        </article>
+      );
+    }
+
+    const values = points.map((point) => point.value);
+    const minValue = Math.min(...values);
+    const maxValue = Math.max(...values);
+    const range = maxValue - minValue;
+    const xStep = points.length > 1 ? innerWidth / (points.length - 1) : 0;
+
+    const chartPoints = points.map((point, index) => {
+      const x = padding.left + index * xStep;
+      const y =
+        range === 0
+          ? padding.top + innerHeight / 2
+          : padding.top + ((point.value - minValue) / range) * innerHeight;
+      return { ...point, x, y };
+    });
+
+    const polyline = chartPoints.map((point) => `${point.x},${point.y}`).join(" ");
+    const areaPolyline = [
+      `${chartPoints[0].x},${padding.top + innerHeight}`,
+      ...chartPoints.map((point) => `${point.x},${point.y}`),
+      `${chartPoints[chartPoints.length - 1].x},${padding.top + innerHeight}`,
+    ].join(" ");
+
+    const yTicks = [...new Set([minValue, maxValue])]
+      .sort((a, b) => a - b)
+      .map((value) => {
+        const y =
+          range === 0
+            ? padding.top + innerHeight / 2
+            : padding.top + ((value - minValue) / range) * innerHeight;
+        return { value, y };
+      });
+
+    return (
+      <article className="stats-chart-card">
+        <h3>{config.title}</h3>
+        <p className="stats-chart-hint">1 = bester Rang</p>
+        <div className="stats-line-chart">
+          <svg
+            className="stats-line-chart-svg"
+            viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+            role="img"
+            aria-label={`${config.title} als Liniendiagramm`}
+            preserveAspectRatio="none"
+          >
+            {yTicks.map((tick) => (
+              <g key={`tick-${tick.value}`}>
+                <line
+                  x1={padding.left}
+                  y1={tick.y}
+                  x2={chartWidth - padding.right}
+                  y2={tick.y}
+                  className="stats-line-grid"
+                />
+                <text
+                  x={padding.left - 8}
+                  y={tick.y + 4}
+                  className="stats-line-y-label"
+                  textAnchor="end"
+                >
+                  {tick.value}
+                </text>
+              </g>
+            ))}
+            {chartPoints.length > 1 ? (
+              <polygon points={areaPolyline} className="stats-line-area" />
+            ) : null}
+            {chartPoints.length > 1 ? (
+              <polyline points={polyline} className="stats-line-path" />
+            ) : (
+              <line
+                x1={chartPoints[0].x}
+                y1={chartPoints[0].y}
+                x2={chartPoints[0].x}
+                y2={chartPoints[0].y}
+                className="stats-line-path"
+              />
+            )}
+            {chartPoints.map((point) => (
+              <g key={point.key}>
+                <circle
+                  cx={point.x}
+                  cy={point.y}
+                  r="4"
+                  className="stats-line-point"
+                />
+                <text
+                  x={point.x}
+                  y={point.y - 10}
+                  className="stats-line-point-label"
+                  textAnchor="middle"
+                >
+                  {point.value}
+                </text>
+              </g>
+            ))}
+          </svg>
+          <div className="stats-line-x-labels">
+            {points.map((point) => (
+              <span key={`label-${point.key}`} className="stats-line-x-label">
+                {point.label}
+              </span>
+            ))}
+          </div>
+        </div>
+      </article>
+    );
   };
 
   const renderCompareMetricCard = (title, bars, formatValue) => (
@@ -631,18 +827,18 @@ export default function Stats() {
 
       <section className="stats-panel stats-order-key">
         <h2>Persönliche Statistiken</h2>
-        <div className="stats-kpi-grid">
+        <div className="stats-kpi-grid stats-kpi-grid-main">
           <article className="stats-kpi">
             <p>Gesamtpunkte</p>
             <strong>{overall.totalPoints ?? 0}</strong>
           </article>
           <article className="stats-kpi">
-            <p>Podien</p>
-            <strong>{overall.podiumCount ?? 0}</strong>
+            <p>Rennen</p>
+            <strong>{overall.raceCount ?? 0}</strong>
           </article>
           <article className="stats-kpi">
-            <p>Top-3-Rate</p>
-            <strong>{formatPercent(overall.top3Rate)}</strong>
+            <p>Podien</p>
+            <strong>{overall.podiumCount ?? 0}</strong>
           </article>
           <article className="stats-kpi">
             <p>Ø Punkte / Rennen</p>
@@ -652,15 +848,30 @@ export default function Stats() {
             <p>Ø Season-Endrang</p>
             <strong>{formatNumber(overall.avgSeasonEndRank, 2)}</strong>
           </article>
-          <article className="stats-kpi">
-            <p>Seasons gewonnen</p>
-            <strong>{overall.seasonsWon ?? 0}</strong>
-          </article>
-          <article className="stats-kpi stats-kpi-wide">
+          {renderRadialKpi({
+            title: "Top-3-Rate",
+            className: "stats-kpi-wide",
+            percent: top3RatePercent,
+            percentLabel: formatPercent(overall.top3Rate),
+            detailLabel: `${toSafeNumber(overall.podiumCount)} / ${toSafeNumber(
+              overall.raceCount,
+            )} Rennen`,
+          })}
+          {renderRadialKpi({
+            title: "Season-Sieg-Quote",
+            percent: seasonWinRatePercent,
+            percentLabel: formatPercent(seasonWinRate),
+            detailLabel: `${toSafeNumber(overall.seasonsWon)} / ${toSafeNumber(
+              overall.participatedSeasonsCount,
+            )} Seasons`,
+          })}
+        </div>
+        <div className="stats-kpi-grid stats-kpi-grid-races">
+          <article className="stats-kpi stats-kpi-detail">
             <p>Best Race</p>
             <strong>{formatRaceLabel(overall.bestRace, true)}</strong>
           </article>
-          <article className="stats-kpi stats-kpi-wide">
+          <article className="stats-kpi stats-kpi-detail">
             <p>Worst Race</p>
             <strong>{formatRaceLabel(overall.worstRace, true)}</strong>
           </article>
@@ -673,7 +884,11 @@ export default function Stats() {
 
       <section className="stats-panel stats-order-personal">
         <h2>Persönliche Grafik</h2>
-        <div className="stats-chart-grid stats-chart-grid-single">
+        <div
+          className={`stats-chart-grid ${
+            seasonFilter === "all" ? "" : "stats-chart-grid-single"
+          }`}
+        >
           <article className="stats-chart-card">
             <h3>{ownBarsConfig.title}</h3>
             {ownBarsConfig.entries.length === 0 ? (
@@ -689,12 +904,15 @@ export default function Stats() {
                         style={{ width: `${entry.percent}%` }}
                       />
                     </div>
-                    <strong className="stats-bar-value">{entry.value}</strong>
+                    <strong className="stats-bar-value">
+                      {entry.value == null ? "-" : entry.value}
+                    </strong>
                   </div>
                 ))}
               </div>
             )}
           </article>
+          {seasonFilter === "all" ? renderRankLineChartCard(ownRankLineConfig) : null}
         </div>
       </section>
 
@@ -840,16 +1058,48 @@ export default function Stats() {
                     </tr>
                   </thead>
                   <tbody>
-                    {asArray(detailSeason.races).map((race) => (
-                      <tr key={race.raceId}>
-                        <td>{race.raceName}</td>
-                        <td>{race.points}</td>
-                        <td>{race.cumulativePoints}</td>
-                        <td>{race.raceRank}</td>
-                        <td>{race.cumulativeRank}</td>
-                        <td>{race.isPodium ? "Ja" : "Nein"}</td>
-                      </tr>
-                    ))}
+                    {asArray(detailSeason.races).map((race, index, races) => {
+                      const previousRace =
+                        index > 0 && Array.isArray(races) ? races[index - 1] : null;
+                      const hasCurrentRank =
+                        typeof race?.raceRank === "number" &&
+                        Number.isFinite(race.raceRank);
+                      const hasPreviousRank =
+                        typeof previousRace?.raceRank === "number" &&
+                        Number.isFinite(previousRace.raceRank);
+                      const rankDelta =
+                        hasCurrentRank && hasPreviousRank
+                          ? previousRace.raceRank - race.raceRank
+                          : null;
+
+                      return (
+                        <tr key={race.raceId}>
+                          <td>{race.raceName}</td>
+                          <td>{race.points}</td>
+                          <td>{race.cumulativePoints}</td>
+                          <td>
+                            <span className="stats-race-rank-cell">
+                              <span>{race.raceRank}</span>
+                              {rankDelta !== null ? (
+                                <span
+                                  className={`stats-rank-delta ${
+                                    rankDelta > 0
+                                      ? "is-positive"
+                                      : rankDelta < 0
+                                        ? "is-negative"
+                                        : "is-neutral"
+                                  }`}
+                                >
+                                  {rankDelta > 0 ? `+${rankDelta}` : rankDelta}
+                                </span>
+                              ) : null}
+                            </span>
+                          </td>
+                          <td>{race.cumulativeRank}</td>
+                          <td>{race.isPodium ? "Ja" : "Nein"}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
