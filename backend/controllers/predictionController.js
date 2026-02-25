@@ -14,6 +14,7 @@ import {
   publishRound,
   scoreRoundFromRaceResults,
   transitionRoundStatus,
+  updateRoundScoringConfig,
   upsertUserEntry,
 } from "../services/predictionService.js";
 
@@ -148,6 +149,18 @@ export const patchAdminRoundStatus = withPredictionHandler(
     return res.json(round);
   },
   "Fehler beim Wechseln des Round-Status.",
+);
+
+export const patchAdminRoundScoringConfig = withPredictionHandler(
+  async (req, res) => {
+    const result = await updateRoundScoringConfig({
+      roundId: req.params.roundId,
+      scoringConfig: req.body?.scoringConfig || {},
+      updatedBy: req.user?._id,
+    });
+    return res.json(result);
+  },
+  "Fehler beim Speichern der Punkteverteilung.",
 );
 
 export const postAdminScoreRound = withPredictionHandler(

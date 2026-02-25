@@ -93,6 +93,13 @@
   gap: 0.65rem;
 }
 
+.admin-predictions-config-grid {
+  margin-top: 0.75rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
 .admin-predictions-create-grid > .admin-predictions-button {
   align-self: end;
   justify-self: start;
@@ -411,7 +418,8 @@
   }
 
   .admin-predictions-create-grid,
-  .admin-predictions-filter-grid {
+  .admin-predictions-filter-grid,
+  .admin-predictions-config-grid {
     grid-template-columns: 1fr;
   }
 

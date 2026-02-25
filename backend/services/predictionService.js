@@ -15,6 +15,11 @@ const ALLOWED_TRANSITIONS = {
   scored: new Set(["published"]),
 };
 const REOPENABLE_STATUSES = new Set(["locked", "scored", "published"]);
+const DEFAULT_SCORING_CONFIG = Object.freeze({
+  exactPositionPoints: 6,
+  top3AnyPositionPoints: 3,
+  exactLastPlacePoints: 4,
+});
 
 const toIdString = (value) => {
   if (!value) return null;
@@ -84,6 +89,36 @@ const buildRankMap = (scores) => {
 };
 
 const isDuplicateKeyError = (error) => error?.code === 11000;
+
+const normalizePredictionScoringConfig = (config = {}) => {
+  if (!config || typeof config !== "object" || Array.isArray(config)) {
+    throw new PredictionServiceError(
+      "Die Punkteverteilung ist ungültig.",
+      400,
+    );
+  }
+
+  const next = { ...DEFAULT_SCORING_CONFIG };
+  const fields = [
+    ["exactPositionPoints", "P1/P2/P3 exakt"],
+    ["top3AnyPositionPoints", "Top 3 falsche Position"],
+    ["exactLastPlacePoints", "Letzter Platz exakt"],
+  ];
+
+  fields.forEach(([key, label]) => {
+    if (config[key] === undefined) return;
+    const value = Number(config[key]);
+    if (!Number.isFinite(value) || value < 0) {
+      throw new PredictionServiceError(
+        `Die Punkteverteilung für '${label}' muss eine gültige Zahl >= 0 sein.`,
+        400,
+      );
+    }
+    next[key] = roundToTwoDecimals(value);
+  });
+
+  return next;
+};
 
 const assertRoundVisibleForUser = async ({ round, userId }) => {
   if (round.status === "draft") {
@@ -184,11 +219,7 @@ export const buildRaceResultsHash = (raceResults) => {
 };
 
 export const calculateRoundScore = ({ entry, actual, config }) => {
-  const scoringConfig = {
-    exactPositionPoints: Number(config?.exactPositionPoints ?? 6),
-    top3AnyPositionPoints: Number(config?.top3AnyPositionPoints ?? 3),
-    exactLastPlacePoints: Number(config?.exactLastPlacePoints ?? 4),
-  };
+  const scoringConfig = normalizePredictionScoringConfig(config || {});
 
   const predicted = {
     p1: toObjectIdOrNull(entry?.picks?.p1),
@@ -300,7 +331,7 @@ export const createRound = async ({
     return await PredictionRound.create({
       season: normalizedSeasonId,
       race: normalizedRaceId,
-      scoringConfig,
+      scoringConfig: normalizePredictionScoringConfig(scoringConfig || {}),
       createdBy: createdById,
       updatedBy: createdById,
     });
@@ -313,6 +344,78 @@ export const createRound = async ({
     }
     throw error;
   }
+};
+
+export const updateRoundScoringConfig = async ({
+  roundId,
+  scoringConfig,
+  updatedBy = null,
+}) => {
+  const normalizedRoundId = ensureObjectId(roundId, "Round-ID");
+  const updatedById = updatedBy ? ensureObjectId(updatedBy, "Benutzer-ID") : null;
+  const nextScoringConfig = normalizePredictionScoringConfig(scoringConfig || {});
+
+  const round = await PredictionRound.findById(normalizedRoundId);
+  if (!round) {
+    throw new PredictionServiceError("Prediction-Runde nicht gefunden.", 404);
+  }
+
+  const currentConfig = normalizePredictionScoringConfig(round.scoringConfig || {});
+  const unchanged =
+    currentConfig.exactPositionPoints === nextScoringConfig.exactPositionPoints &&
+    currentConfig.top3AnyPositionPoints === nextScoringConfig.top3AnyPositionPoints &&
+    currentConfig.exactLastPlacePoints === nextScoringConfig.exactLastPlacePoints;
+
+  if (unchanged) {
+    return {
+      round,
+      rescored: false,
+      scoringConfigChanged: false,
+    };
+  }
+
+  const now = new Date();
+  const currentStatus = round.status;
+  round.scoringConfig = nextScoringConfig;
+  round.updatedBy = updatedById;
+
+  if (currentStatus === "published") {
+    round.requiresReview = true;
+  }
+
+  round.statusTransitions.push({
+    fromStatus: currentStatus,
+    toStatus: currentStatus,
+    changedBy: updatedById,
+    changedAt: now,
+    reason: "Punkteverteilung der Prediction-Runde geändert.",
+    trigger: "manual_scoring_config_update",
+  });
+
+  await round.save();
+
+  if (currentStatus === "scored") {
+    const rescoreResult = await scoreRoundFromRaceResults({
+      roundId: normalizedRoundId,
+      generatedBy: updatedById,
+      trigger: "scoring_config_update",
+      force: true,
+      preserveOverrides: true,
+    });
+    return {
+      round: rescoreResult.round,
+      rescored: true,
+      scoringConfigChanged: true,
+      updatedScores: rescoreResult.updatedScores,
+      preservedOverrides: rescoreResult.preservedOverrides,
+    };
+  }
+
+  return {
+    round,
+    rescored: false,
+    scoringConfigChanged: true,
+  };
 };
 
 export const listRoundsForAdmin = async ({ filters = {} } = {}) => {

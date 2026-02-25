@@ -77,6 +77,41 @@ const normalizeScoringConfig = (config) => ({
   exactLastPlacePoints: Number(config?.exactLastPlacePoints ?? 4),
 });
 
+const DEFAULT_SCORING_FORM = {
+  exactPositionPoints: "6",
+  top3AnyPositionPoints: "3",
+  exactLastPlacePoints: "4",
+};
+
+const toScoringForm = (config) => {
+  const normalized = normalizeScoringConfig(config || {});
+  return {
+    exactPositionPoints: String(normalized.exactPositionPoints),
+    top3AnyPositionPoints: String(normalized.top3AnyPositionPoints),
+    exactLastPlacePoints: String(normalized.exactLastPlacePoints),
+  };
+};
+
+const parseScoringForm = (form) => {
+  const fields = [
+    ["exactPositionPoints", "P1/P2/P3 exakt"],
+    ["top3AnyPositionPoints", "Top 3 falsche Position"],
+    ["exactLastPlacePoints", "Letzter Platz exakt"],
+  ];
+
+  const payload = {};
+  for (const [key, label] of fields) {
+    const value = Number(form?.[key]);
+    if (!Number.isFinite(value) || value < 0) {
+      return {
+        error: `Punktewert für '${label}' muss eine gültige Zahl >= 0 sein.`,
+      };
+    }
+    payload[key] = value;
+  }
+  return { payload };
+};
+
 export default function AdminPredictions() {
   const toast = useToast();
   const [isLoading, setIsLoading] = useState(true);
@@ -98,6 +133,8 @@ export default function AdminPredictions() {
     seasonId: "",
     raceId: "",
   });
+  const [createScoringForm, setCreateScoringForm] = useState(DEFAULT_SCORING_FORM);
+  const [roundScoringForm, setRoundScoringForm] = useState(DEFAULT_SCORING_FORM);
   const [statusForm, setStatusForm] = useState({
     toStatus: "",
     reason: "",
@@ -203,6 +240,7 @@ export default function AdminPredictions() {
   const loadRoundDetails = useCallback(async () => {
     if (!selectedRoundId) {
       setRoundDetails(null);
+      setRoundScoringForm(DEFAULT_SCORING_FORM);
       return;
     }
     const detailsRes = await API.get(
@@ -210,6 +248,7 @@ export default function AdminPredictions() {
     );
     const details = detailsRes.data || null;
     setRoundDetails(details);
+    setRoundScoringForm(toScoringForm(details?.round?.scoringConfig || {}));
 
     const firstScore = asArray(details?.scores)[0] || null;
     if (firstScore) {
@@ -315,11 +354,18 @@ export default function AdminPredictions() {
       return;
     }
 
+    const parsedScoring = parseScoringForm(createScoringForm);
+    if (parsedScoring.error) {
+      toast.error(parsedScoring.error);
+      return;
+    }
+
     setIsBusy(true);
     try {
       const response = await API.post("/predictions/admin/rounds", {
         seasonId: createForm.seasonId,
         raceId: createForm.raceId,
+        scoringConfig: parsedScoring.payload,
       });
       toast.success("Prediction-Run erstellt.");
       if (response?.data?._id) {
@@ -333,6 +379,42 @@ export default function AdminPredictions() {
           createError,
           "Prediction-Run konnte nicht erstellt werden.",
         ),
+      );
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  const handleSaveRoundScoringConfig = async () => {
+    if (!selectedRoundId) return;
+
+    const parsedScoring = parseScoringForm(roundScoringForm);
+    if (parsedScoring.error) {
+      toast.error(parsedScoring.error);
+      return;
+    }
+
+    setIsBusy(true);
+    try {
+      const response = await API.patch(
+        `/predictions/admin/rounds/${selectedRoundId}/scoring-config`,
+        { scoringConfig: parsedScoring.payload },
+      );
+      const result = response?.data || {};
+
+      let message = "Punkteverteilung gespeichert.";
+      if (result?.rescored) {
+        message = "Punkteverteilung gespeichert und Runde neu gescored.";
+      } else if (selectedRound?.status === "published") {
+        message =
+          "Punkteverteilung gespeichert. Published-Runde ist nun review-pflichtig.";
+      }
+      toast.success(message);
+      await refreshRoundsAndDetails();
+    } catch (saveError) {
+      console.error("Fehler beim Speichern der Punkteverteilung:", saveError);
+      toast.error(
+        getApiErrorMessage(saveError, "Punkteverteilung konnte nicht gespeichert werden."),
       );
     } finally {
       setIsBusy(false);
@@ -539,6 +621,53 @@ export default function AdminPredictions() {
             >
               Runde erstellen
             </button>
+          </div>
+          <div className="admin-predictions-config-grid">
+            <label className="admin-predictions-field">
+              <span>P1/P2/P3 exakt</span>
+              <input
+                type="number"
+                min="0"
+                step="0.1"
+                value={createScoringForm.exactPositionPoints}
+                onChange={(event) =>
+                  setCreateScoringForm((prev) => ({
+                    ...prev,
+                    exactPositionPoints: event.target.value,
+                  }))
+                }
+              />
+            </label>
+            <label className="admin-predictions-field">
+              <span>Top 3 falsch</span>
+              <input
+                type="number"
+                min="0"
+                step="0.1"
+                value={createScoringForm.top3AnyPositionPoints}
+                onChange={(event) =>
+                  setCreateScoringForm((prev) => ({
+                    ...prev,
+                    top3AnyPositionPoints: event.target.value,
+                  }))
+                }
+              />
+            </label>
+            <label className="admin-predictions-field">
+              <span>Letzter Platz exakt</span>
+              <input
+                type="number"
+                min="0"
+                step="0.1"
+                value={createScoringForm.exactLastPlacePoints}
+                onChange={(event) =>
+                  setCreateScoringForm((prev) => ({
+                    ...prev,
+                    exactLastPlacePoints: event.target.value,
+                  }))
+                }
+              />
+            </label>
           </div>
         </section>
 
@@ -793,6 +922,63 @@ export default function AdminPredictions() {
                     disabled={isBusy}
                   >
                     Status setzen
+                  </button>
+                </div>
+
+                <div className="admin-predictions-card">
+                  <h3>Punkteverteilung dieser Runde</h3>
+                  <label className="admin-predictions-field">
+                    <span>P1/P2/P3 exakt</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={roundScoringForm.exactPositionPoints}
+                      onChange={(event) =>
+                        setRoundScoringForm((prev) => ({
+                          ...prev,
+                          exactPositionPoints: event.target.value,
+                        }))
+                      }
+                    />
+                  </label>
+                  <label className="admin-predictions-field">
+                    <span>Top 3 falsch</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={roundScoringForm.top3AnyPositionPoints}
+                      onChange={(event) =>
+                        setRoundScoringForm((prev) => ({
+                          ...prev,
+                          top3AnyPositionPoints: event.target.value,
+                        }))
+                      }
+                    />
+                  </label>
+                  <label className="admin-predictions-field">
+                    <span>Letzter Platz exakt</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={roundScoringForm.exactLastPlacePoints}
+                      onChange={(event) =>
+                        setRoundScoringForm((prev) => ({
+                          ...prev,
+                          exactLastPlacePoints: event.target.value,
+                        }))
+                      }
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    className="admin-predictions-button primary"
+                    onClick={handleSaveRoundScoringConfig}
+                    disabled={isBusy}
+                  >
+                    Punkteverteilung speichern
                   </button>
                 </div>
 

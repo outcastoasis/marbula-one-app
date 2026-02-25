@@ -9,6 +9,7 @@ import {
   getRounds,
   deleteAdminOverrideScore,
   patchAdminOverrideScore,
+  patchAdminRoundScoringConfig,
   patchAdminRoundStatus,
   postAdminPublishRound,
   postAdminRescoreFromRace,
@@ -32,6 +33,12 @@ router.patch(
   protect,
   requireAdmin,
   patchAdminRoundStatus,
+);
+router.patch(
+  "/admin/rounds/:roundId/scoring-config",
+  protect,
+  requireAdmin,
+  patchAdminRoundScoringConfig,
 );
 router.post(
   "/admin/rounds/:roundId/score",
