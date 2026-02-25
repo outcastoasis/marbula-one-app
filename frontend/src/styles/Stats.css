@@ -182,8 +182,23 @@
   gap: 0.65rem;
 }
 
+.stats-kpi-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2.2fr) minmax(220px, 0.95fr);
+  gap: 0.65rem;
+  align-items: start;
+}
+
+.stats-kpi-grid.stats-kpi-grid-main {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.stats-kpi-grid.stats-kpi-grid-main .stats-kpi-wide {
+  grid-column: auto;
+}
+
 .stats-kpi-grid-main .stats-kpi {
-  min-height: 130px;
+  min-height: 112px;
   display: flex;
   flex-direction: column;
 }
@@ -194,8 +209,17 @@
   letter-spacing: 0.01em;
 }
 
-.stats-kpi-grid-races {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.stats-kpi-grid.stats-kpi-grid-radials {
+  grid-template-columns: 1fr;
+  align-content: start;
+}
+
+.stats-kpi-grid-radials .stats-kpi {
+  min-height: 112px;
+}
+
+.stats-kpi-grid.stats-kpi-grid-races {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   margin-top: 0.65rem;
 }
 
@@ -572,15 +596,27 @@
     grid-template-columns: 1fr;
   }
 
-  .stats-kpi-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .stats-kpi-layout {
+    grid-template-columns: 1fr;
   }
 
   .stats-kpi-grid-main .stats-kpi {
     min-height: 118px;
   }
 
-  .stats-kpi-grid-races {
+  .stats-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .stats-kpi-grid.stats-kpi-grid-main {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .stats-kpi-grid.stats-kpi-grid-radials {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .stats-kpi-grid.stats-kpi-grid-races {
     grid-template-columns: 1fr;
   }
 
@@ -590,6 +626,38 @@
 }
 
 @media (max-width: 700px) {
+  .stats-kpi-grid.stats-kpi-grid-main,
+  .stats-kpi-grid.stats-kpi-grid-radials {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-kpi-grid-main .stats-kpi,
+  .stats-kpi-grid-radials .stats-kpi {
+    min-height: 104px;
+  }
+
+  .stats-kpi-grid-radials .stats-kpi {
+    min-height: 132px;
+  }
+
+  .stats-kpi-grid-radials .stats-radial-track {
+    width: 104px;
+    height: 104px;
+  }
+
+  .stats-kpi-grid-radials .stats-radial-inner {
+    width: 80px;
+    height: 80px;
+  }
+
+  .stats-kpi-grid-radials .stats-radial-inner strong {
+    font-size: 0.98rem;
+  }
+
+  .stats-kpi-grid-radials .stats-radial-inner span {
+    font-size: 0.66rem;
+  }
+
   .stats-bar-row {
     grid-template-columns: 1fr;
     gap: 0.28rem;

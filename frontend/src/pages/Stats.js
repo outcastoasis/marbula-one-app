@@ -827,7 +827,8 @@ export default function Stats() {
 
       <section className="stats-panel stats-order-key">
         <h2>Persönliche Statistiken</h2>
-        <div className="stats-kpi-grid stats-kpi-grid-main">
+        <div className="stats-kpi-layout">
+          <div className="stats-kpi-grid stats-kpi-grid-main stats-kpi-grid-metrics">
           <article className="stats-kpi">
             <p>Gesamtpunkte</p>
             <strong>{overall.totalPoints ?? 0}</strong>
@@ -848,9 +849,10 @@ export default function Stats() {
             <p>Ø Season-Endrang</p>
             <strong>{formatNumber(overall.avgSeasonEndRank, 2)}</strong>
           </article>
+          </div>
+          <div className="stats-kpi-grid stats-kpi-grid-radials">
           {renderRadialKpi({
             title: "Top-3-Rate",
-            className: "stats-kpi-wide",
             percent: top3RatePercent,
             percentLabel: formatPercent(overall.top3Rate),
             detailLabel: `${toSafeNumber(overall.podiumCount)} / ${toSafeNumber(
@@ -865,6 +867,7 @@ export default function Stats() {
               overall.participatedSeasonsCount,
             )} Seasons`,
           })}
+          </div>
         </div>
         <div className="stats-kpi-grid stats-kpi-grid-races">
           <article className="stats-kpi stats-kpi-detail">
