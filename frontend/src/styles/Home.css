@@ -12,6 +12,7 @@
   width: min(1200px, 100%);
   margin: 0 auto;
   padding: clamp(0.75rem, 2vw, 1.5rem);
+  padding-bottom: clamp(5rem, 8vw, 6.5rem);
   background-color: var(--home-bg);
   box-sizing: border-box;
 }
@@ -63,6 +64,18 @@
   color: var(--home-red);
   margin: 0 0 0.7rem;
   font-size: clamp(1.1rem, 2.6vw, 1.45rem);
+}
+
+.home-container .home-section-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.7rem;
+}
+
+.home-container .home-section-header h2 {
+  margin: 0;
 }
 
 .home-container section p {
@@ -210,6 +223,136 @@
   border: 1px solid var(--home-border);
   padding: clamp(0.75rem, 2vw, 1rem);
   box-sizing: border-box;
+}
+
+.home-container .home-combined-meta {
+  margin: 0 0 0.8rem;
+  border: 1px solid #2f2f2f;
+  border-radius: 12px;
+  background: #171717;
+  padding: 0.7rem 0.8rem;
+}
+
+.home-container .home-combined-meta p {
+  margin: 0.2rem 0;
+  color: #d7d7d7;
+  font-size: 0.88rem;
+}
+
+.home-container .home-combined-warning {
+  color: #ffe0a8;
+}
+
+.home-container .home-combined-muted {
+  color: #c7c7c7;
+}
+
+.home-container .home-prediction-round-chip-list {
+  margin-top: 0.45rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.home-container .home-prediction-round-chip {
+  border: 1px solid rgba(255, 30, 30, 0.4);
+  border-radius: 999px;
+  background: rgba(255, 30, 30, 0.1);
+  color: #ffd6d6;
+  font-size: 0.78rem;
+  padding: 0.18rem 0.5rem;
+}
+
+.home-container .home-prediction-round-chip.is-warning {
+  border-color: rgba(255, 194, 71, 0.55);
+  background: rgba(255, 194, 71, 0.12);
+  color: #ffe7b3;
+}
+
+.home-container .home-inline-toggle-row {
+  margin: 0;
+}
+
+.home-container .home-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  color: #ececec;
+  font-size: 0.88rem;
+}
+
+.home-container .home-switch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.home-container .home-switch-track {
+  order: 2;
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  background: #2e2e2e;
+  border: 1px solid #454545;
+  position: relative;
+  flex-shrink: 0;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.home-container .home-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #f1f1f1;
+  transition: transform 0.18s ease;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+.home-container .home-switch input:checked ~ .home-switch-track {
+  background: rgba(255, 30, 30, 0.2);
+  border-color: rgba(255, 30, 30, 0.55);
+}
+
+.home-container
+  .home-switch
+  input:checked
+  ~ .home-switch-track
+  .home-switch-thumb {
+  transform: translateX(20px);
+  background: #fff;
+}
+
+.home-container .home-switch input:focus-visible ~ .home-switch-track {
+  outline: 2px solid #ff4e4e;
+  outline-offset: 2px;
+}
+
+.home-container .home-switch-label {
+  order: 1;
+  line-height: 1.1;
+}
+
+.home-container .home-global-predictions-toggle {
+  position: fixed;
+  right: clamp(0.75rem, 2vw, 1.25rem);
+  bottom: clamp(0.75rem, 2vw, 1.25rem);
+  z-index: 40;
+  border: 1px solid #343434;
+  border-radius: 14px;
+  background: rgba(22, 22, 22, 0.92);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.35);
+  padding: 0.55rem 0.7rem;
+}
+
+.home-container .home-global-predictions-toggle .home-switch {
+  font-size: 0.84rem;
 }
 
 .home-container .home-chart-tooltip {
@@ -381,6 +524,7 @@
 @media (max-width: 900px) {
   .home-container {
     padding: 0.75rem;
+    padding-bottom: 3rem;
   }
 
   .home-container .chart-inner {
@@ -409,6 +553,18 @@
     height: 52px;
   }
 
+  .home-container .home-global-predictions-toggle {
+    right: 0.65rem;
+    bottom: 0.65rem;
+    border-radius: 12px;
+    padding: 0.5rem 0.65rem;
+  }
+
+  .home-container .home-global-predictions-toggle .home-switch {
+    width: 100%;
+    justify-content: space-between;
+  }
+
   .home-container .home-chart-filter-dropdown > summary {
     padding: 0.68rem 0.78rem;
     font-size: 0.91rem;
@@ -416,6 +572,11 @@
 
   .home-container .home-chart-filter-content {
     padding: 0.65rem 0.65rem 0.7rem;
+  }
+
+  .home-container .home-section-header {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .home-container .home-chart-filter-actions {

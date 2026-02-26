@@ -3,6 +3,11 @@ import Season from "../models/Season.js";
 import UserSeasonTeam from "../models/UserSeasonTeam.js";
 import Race from "../models/Race.js";
 import { deletePredictionDataForSeason } from "../services/predictionService.js";
+import {
+  getCurrentSeasonCombinedResults,
+  getSeasonCombinedResults,
+  SeasonCombinedResultsError,
+} from "../services/seasonCombinedResultsService.js";
 import { runWithOptionalTransaction } from "../utils/transaction.js";
 import { bumpStatsRevision } from "../utils/statsRevision.js";
 
@@ -183,4 +188,34 @@ export const getCurrentSeason = async (req, res) => {
   if (!current)
     return res.status(404).json({ message: "Keine aktuelle Season gesetzt" });
   res.json(current);
+};
+
+export const getCurrentSeasonStandingsCombined = async (req, res) => {
+  try {
+    const payload = await getCurrentSeasonCombinedResults();
+    return res.json(payload);
+  } catch (error) {
+    if (error instanceof SeasonCombinedResultsError) {
+      return res.status(error.statusCode || 400).json({ message: error.message });
+    }
+    console.error("Fehler beim Laden der kombinierten Current-Season-Resultate:", error);
+    return res.status(500).json({
+      message: "Fehler beim Laden der kombinierten Season-Resultate",
+    });
+  }
+};
+
+export const getSeasonStandingsCombined = async (req, res) => {
+  try {
+    const payload = await getSeasonCombinedResults({ seasonId: req.params.seasonId });
+    return res.json(payload);
+  } catch (error) {
+    if (error instanceof SeasonCombinedResultsError) {
+      return res.status(error.statusCode || 400).json({ message: error.message });
+    }
+    console.error("Fehler beim Laden der kombinierten Season-Resultate:", error);
+    return res.status(500).json({
+      message: "Fehler beim Laden der kombinierten Season-Resultate",
+    });
+  }
 };
