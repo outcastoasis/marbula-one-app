@@ -8,6 +8,7 @@ import {
   faChevronUp,
   faFlagCheckered,
   faHouse,
+  faListCheck,
   faTrophy,
   faUsers,
   faXmark,
@@ -192,6 +193,9 @@ export default function DashboardLayout({ children }) {
           <Link to="/stats" onClick={closeSidebar}>
             <FontAwesomeIcon icon={faChartLine} /> Stats
           </Link>
+          <Link to="/predictions" onClick={closeSidebar}>
+            <FontAwesomeIcon icon={faListCheck} /> Tippspiel
+          </Link>
           {user && showChooseTeamLink && (
             <Link to="/choose-team" onClick={closeSidebar}>
               <FontAwesomeIcon icon={faFlagCheckered} /> Team wählen
@@ -210,6 +214,9 @@ export default function DashboardLayout({ children }) {
               </Link>
               <Link to="/admin/winners" onClick={closeSidebar}>
                 Event-Sieger eintragen
+              </Link>
+              <Link to="/admin/predictions" onClick={closeSidebar}>
+                Tippspiel verwalten
               </Link>
               <Link to="/admin/seasons" onClick={closeSidebar}>
                 Seasons

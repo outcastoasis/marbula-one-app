@@ -15,10 +15,12 @@ import AdminRaceResults from "./pages/admin/AdminRaceResults";
 import DashboardLayout from "./layouts/DashboardLayout";
 import { Navigate } from "react-router-dom";
 import AdminUserEdit from "./pages/admin/AdminUserEdit";
+import AdminPredictions from "./pages/admin/AdminPredictions";
 import TeamDetail from "./pages/TeamDetail";
 import AdminWin from "./pages/admin/AdminWin";
 import Win from "./pages/Win";
 import Stats from "./pages/Stats";
+import Predictions from "./pages/Predictions";
 import "./index.css";
 
 function App() {
@@ -92,6 +94,14 @@ function App() {
               }
             />
             <Route
+              path="/predictions"
+              element={
+                <ProtectedRoute>
+                  <Predictions />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/choose-team"
               element={
                 <ProtectedRoute>
@@ -153,6 +163,14 @@ function App() {
               element={
                 <ProtectedRoute adminOnly>
                   <AdminUserEdit />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/predictions"
+              element={
+                <ProtectedRoute adminOnly>
+                  <AdminPredictions />
                 </ProtectedRoute>
               }
             />

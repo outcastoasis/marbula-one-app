@@ -29,6 +29,26 @@
   transform: translateX(-100%);
   transition: transform 0.25s ease-in-out;
   z-index: 1000;
+  scrollbar-color: #4a4a4a #151515;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 10px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: #151515;
+  border-radius: 999px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: #4a4a4a;
+  border-radius: 999px;
+  border: 2px solid #151515;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: #616161;
 }
 
 .sidebar.open {

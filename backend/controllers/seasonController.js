@@ -1,9 +1,8 @@
-// backend/controllers/seasonController.js
-
 import mongoose from "mongoose";
 import Season from "../models/Season.js";
 import UserSeasonTeam from "../models/UserSeasonTeam.js";
 import Race from "../models/Race.js";
+import { deletePredictionDataForSeason } from "../services/predictionService.js";
 import { runWithOptionalTransaction } from "../utils/transaction.js";
 import { bumpStatsRevision } from "../utils/statsRevision.js";
 
@@ -21,6 +20,7 @@ const deleteSeasonWithDependencies = async (seasonId, session) => {
   }
 
   await UserSeasonTeam.deleteMany({ season: seasonId }, writeOptions);
+  await deletePredictionDataForSeason({ seasonId, session });
   await Race.deleteMany({ season: seasonId }, writeOptions);
 
   let newCurrentSeason = null;
@@ -47,7 +47,8 @@ const deleteSeasonWithDependencies = async (seasonId, session) => {
   return {
     status: 200,
     body: {
-      message: "Season, zugehörige Teamzuweisungen und Rennen gelöscht",
+      message:
+        "Season, zugehörige Teamzuweisungen, Rennen und Prediction-Daten gelöscht",
       newCurrentSeason: newCurrentSeason
         ? { _id: newCurrentSeason._id, name: newCurrentSeason.name }
         : null,

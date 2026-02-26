@@ -41,11 +41,7 @@ const buildUserEntry = (userDoc, statsResponse) => ({
   },
 });
 
-const loadStatsForUser = async ({
-  userId,
-  completedOnly,
-  seasonId,
-}) => {
+const loadStatsForUser = async ({ userId, completedOnly, seasonId }) => {
   const user = await User.findById(userId).select("username realname");
   if (!user) {
     return null;
@@ -74,7 +70,9 @@ const getStatsResponse = asyncHandler(async (req, res) => {
     });
   }
   const completedOnly = true;
-  const seasonId = req.query.seasonId ? String(req.query.seasonId).trim() : null;
+  const seasonId = req.query.seasonId
+    ? String(req.query.seasonId).trim()
+    : null;
   if (seasonId && seasonId !== "all" && !isValidObjectId(seasonId)) {
     return res.status(400).json({ message: "Ungültige Season-ID." });
   }
@@ -113,7 +111,8 @@ export const getStatsOverview = asyncHandler(async (req, res) => {
   const requestedCompletedOnly = parseBoolean(req.query.completedOnly, true);
   if (requestedCompletedOnly !== true) {
     return res.status(400).json({
-      message: "Die allgemeine Stats-Ãœbersicht ist nur fÃ¼r abgeschlossene Seasons verfÃ¼gbar.",
+      message:
+        "Die allgemeine Stats-Übersicht ist nur für abgeschlossene Seasons verfügbar.",
     });
   }
 
