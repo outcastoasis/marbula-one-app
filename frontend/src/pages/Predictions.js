@@ -28,6 +28,13 @@ const DEFAULT_HISTORY = {
   },
 };
 
+const PICK_ORDER = [
+  { key: "p1", label: "1. Platz", kind: "top3" },
+  { key: "p2", label: "2. Platz", kind: "top3" },
+  { key: "p3", label: "3. Platz", kind: "top3" },
+  { key: "lastPlace", label: "Letzter Platz", kind: "last" },
+];
+
 const asArray = (value) => (Array.isArray(value) ? value : []);
 
 const getApiErrorMessage = (error, fallback) =>
@@ -83,12 +90,12 @@ const normalizeScoringConfig = (config) => ({
 });
 
 const BREAKDOWN_LABELS = {
-  exact_p1: "P1 exakt getroffen",
-  exact_p2: "P2 exakt getroffen",
-  exact_p3: "P3 exakt getroffen",
-  top3_any_position_p1: "P1 in Top 3",
-  top3_any_position_p2: "P2 in Top 3",
-  top3_any_position_p3: "P3 in Top 3",
+  exact_p1: "1. Platz exakt getroffen",
+  exact_p2: "2. Platz exakt getroffen",
+  exact_p3: "3. Platz exakt getroffen",
+  top3_any_position_p1: "1. Platz: Team in Top 3",
+  top3_any_position_p2: "2. Platz: Team in Top 3",
+  top3_any_position_p3: "3. Platz: Team in Top 3",
   exact_last_place: "Letzter Platz exakt",
 };
 
@@ -106,10 +113,21 @@ const getBreakdownLabel = (row) => {
   return "Scoring-Treffer";
 };
 
-const getBreakdownDetails = (row) => {
-  const details = typeof row?.details === "string" ? row.details.trim() : "";
-  if (!details || isTechnicalToken(details)) return "-";
-  return details;
+const getPickResultState = ({ slotKey, predictedId, actual, actualTop3Ids }) => {
+  if (!predictedId) {
+    return { tone: "neutral", label: "Nicht getippt" };
+  }
+
+  const actualId = getId(actual?.[slotKey]);
+  if (predictedId && actualId && predictedId === actualId) {
+    return { tone: "success", label: "Richtig" };
+  }
+
+  if (slotKey !== "lastPlace" && actualTop3Ids.has(predictedId)) {
+    return { tone: "warning", label: "Top 3, falsche Position" };
+  }
+
+  return { tone: "danger", label: "Falsch" };
 };
 
 export default function Predictions() {
@@ -131,6 +149,7 @@ export default function Predictions() {
   const [roundDetails, setRoundDetails] = useState(null);
   const [entryForm, setEntryForm] = useState(DEFAULT_ENTRY_FORM);
   const [historyPayload, setHistoryPayload] = useState(DEFAULT_HISTORY);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [error, setError] = useState("");
 
   const seasonById = useMemo(() => {
@@ -178,7 +197,7 @@ export default function Predictions() {
 
   const scoringRuleItems = useMemo(() => {
     return [
-      `P1, P2, P3 exakt: +${formatPoints(scoringConfig.exactPositionPoints)} pro Treffer`,
+      `1./2./3. Platz exakt: +${formatPoints(scoringConfig.exactPositionPoints)} pro Treffer`,
       `Top 3 richtig, aber falsche Position: +${formatPoints(scoringConfig.top3AnyPositionPoints)}`,
       `Letzter Platz exakt: +${formatPoints(scoringConfig.exactLastPlacePoints)}`,
     ];
@@ -225,8 +244,15 @@ export default function Predictions() {
     0,
   );
   const canEditEntry = selectedRound?.status === "open";
+  const publishedHistoryRows = useMemo(
+    () =>
+      asArray(historyPayload?.rows).filter(
+        (row) => String(row?.round?.status || "") === "published",
+      ),
+    [historyPayload],
+  );
 
-  const resolveTeamName = (value, seasonId = selectedRoundSeasonId) => {
+  const resolveTeamName = useCallback((value, seasonId = selectedRoundSeasonId) => {
     if (!value) return "-";
     const teamId = getId(value);
     const ownerName =
@@ -237,7 +263,35 @@ export default function Predictions() {
         : getDisplayName(teamById.get(teamId));
     if (!baseName || baseName === "-") return "-";
     return ownerName ? `${baseName} (${ownerName})` : baseName;
-  };
+  }, [selectedRoundSeasonId, teamById, teamOwnerBySeasonAndTeam]);
+  const scoreComparisonRows = useMemo(() => {
+    if (!myScore) return [];
+
+    const actualTop3Ids = new Set(
+      ["p1", "p2", "p3"].map((key) => getId(myScore?.actual?.[key])).filter(Boolean),
+    );
+
+    return PICK_ORDER.map((pick) => {
+      const predictedId = getId(myScore?.predicted?.[pick.key]);
+      const actualId = getId(myScore?.actual?.[pick.key]);
+      const result = getPickResultState({
+        slotKey: pick.key,
+        predictedId,
+        actual: myScore?.actual,
+        actualTop3Ids,
+      });
+
+      return {
+        key: pick.key,
+        label: pick.label,
+        predictedId,
+        actualId,
+        predictedName: resolveTeamName(myScore?.predicted?.[pick.key]),
+        actualName: resolveTeamName(myScore?.actual?.[pick.key]),
+        result,
+      };
+    });
+  }, [myScore, resolveTeamName]);
 
   const syncEntryFormFromDetails = useCallback((details) => {
     const picks = details?.myEntry?.picks;
@@ -448,15 +502,6 @@ export default function Predictions() {
       </header>
 
       <section className="predictions-panel">
-        <h2>Punkteverteilung kurz erklärt</h2>
-        <ul className="predictions-rules-compact">
-          {scoringRuleItems.map((item) => (
-            <li key={item}>{item}</li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="predictions-panel">
         <h2>Filter</h2>
         <div className="predictions-filters">
           <label className="predictions-field">
@@ -588,9 +633,20 @@ export default function Predictions() {
                 </p>
               </div>
 
+              <div className="predictions-scoring-inline">
+                <p className="predictions-subline">
+                  <strong>Aktuelle Punkteverteilung (dieses Rennen):</strong>
+                </p>
+                <ul className="predictions-rules-compact">
+                  {scoringRuleItems.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+
               <div className="predictions-picks-grid">
                 <label className="predictions-field">
-                  <span>P1</span>
+                  <span>1. Platz</span>
                   <select
                     disabled={!canEditEntry}
                     value={entryForm.p1}
@@ -608,7 +664,7 @@ export default function Predictions() {
                 </label>
 
                 <label className="predictions-field">
-                  <span>P2</span>
+                  <span>2. Platz</span>
                   <select
                     disabled={!canEditEntry}
                     value={entryForm.p2}
@@ -626,7 +682,7 @@ export default function Predictions() {
                 </label>
 
                 <label className="predictions-field">
-                  <span>P3</span>
+                  <span>3. Platz</span>
                   <select
                     disabled={!canEditEntry}
                     value={entryForm.p3}
@@ -706,21 +762,31 @@ export default function Predictions() {
               </article>
             </div>
 
-            <div className="predictions-score-snapshots">
-              <div className="predictions-snapshot-card">
-                <h3>Getippt</h3>
-                <p>P1: {resolveTeamName(myScore?.predicted?.p1)}</p>
-                <p>P2: {resolveTeamName(myScore?.predicted?.p2)}</p>
-                <p>P3: {resolveTeamName(myScore?.predicted?.p3)}</p>
-                <p>Last: {resolveTeamName(myScore?.predicted?.lastPlace)}</p>
-              </div>
-
-              <div className="predictions-snapshot-card">
-                <h3>Tatsächlich</h3>
-                <p>P1: {resolveTeamName(myScore?.actual?.p1)}</p>
-                <p>P2: {resolveTeamName(myScore?.actual?.p2)}</p>
-                <p>P3: {resolveTeamName(myScore?.actual?.p3)}</p>
-                <p>Last: {resolveTeamName(myScore?.actual?.lastPlace)}</p>
+            <div className="predictions-comparison-card">
+              <h3>Getippt vs. Tatsächlich</h3>
+              <div className="predictions-comparison-list">
+                {scoreComparisonRows.map((row) => (
+                  <div key={row.key} className="predictions-comparison-row">
+                    <div className="predictions-comparison-slot">
+                      <strong>{row.label}</strong>
+                      <span
+                        className={`predictions-result-pill is-${row.result.tone}`}
+                      >
+                        {row.result.label}
+                      </span>
+                    </div>
+                    <div className="predictions-comparison-values">
+                      <p>
+                        <span>Getippt</span>
+                        <strong>{row.predictedName}</strong>
+                      </p>
+                      <p>
+                        <span>Tatsächlich</span>
+                        <strong>{row.actualName}</strong>
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -730,20 +796,18 @@ export default function Predictions() {
                   <tr>
                     <th>Treffer</th>
                     <th>Punkte</th>
-                    <th>Hinweis</th>
                   </tr>
                 </thead>
                 <tbody>
                   {breakdownRows.length === 0 ? (
                     <tr>
-                      <td colSpan={3}>Keine Treffereinträge in der Breakdown-Liste.</td>
+                      <td colSpan={2}>Keine Treffereinträge in der Breakdown-Liste.</td>
                     </tr>
                   ) : (
                     breakdownRows.map((row, index) => (
                       <tr key={`${row.code || "row"}-${index}`}>
                         <td>{getBreakdownLabel(row)}</td>
                         <td>{formatPoints(row.points)}</td>
-                        <td>{getBreakdownDetails(row)}</td>
                       </tr>
                     ))
                   )}
@@ -755,66 +819,69 @@ export default function Predictions() {
       </section>
 
       <section className="predictions-panel">
-        <h2>Meine Tippspiel-History</h2>
-        <div className="predictions-kpi-grid">
-          <article className="predictions-kpi">
-            <p>Runden mit Score</p>
-            <strong>{historyPayload?.summary?.totalRounds ?? 0}</strong>
-          </article>
-          <article className="predictions-kpi">
-            <p>Gesamtpunkte</p>
-            <strong>{formatPoints(historyPayload?.summary?.totalPoints ?? 0)}</strong>
-          </article>
-          <article className="predictions-kpi">
-            <p>Published-Runden</p>
-            <strong>{historyPayload?.summary?.publishedRounds ?? 0}</strong>
-          </article>
-          <article className="predictions-kpi">
-            <p>Published-Punkte</p>
-            <strong>
-              {formatPoints(historyPayload?.summary?.publishedPoints ?? 0)}
-            </strong>
-          </article>
+        <div className="predictions-panel-head">
+          <h2>Meine Tippspiel-History</h2>
+          <button
+            type="button"
+            className="predictions-toggle-button"
+            onClick={() => setIsHistoryOpen((prev) => !prev)}
+            aria-expanded={isHistoryOpen}
+            aria-controls="predictions-history-content"
+          >
+            <span>{isHistoryOpen ? "-" : "+"}</span>
+            <span>{isHistoryOpen ? "Einklappen" : "Ausklappen"}</span>
+          </button>
         </div>
 
-        <div className="predictions-table-wrap">
-          <table className="predictions-table">
-            <thead>
-              <tr>
-                <th>Season</th>
-                <th>Rennen</th>
-                <th>Status</th>
-                <th>Punkte</th>
-                <th>Rundenrang</th>
-              </tr>
-            </thead>
-            <tbody>
-              {asArray(historyPayload?.rows).length === 0 ? (
-                <tr>
-                  <td colSpan={5}>Noch keine Tippspiel-History vorhanden.</td>
-                </tr>
-              ) : (
-                asArray(historyPayload.rows).map((row) => (
-                  <tr key={`${row?.round?._id}-${row?.placement || "na"}`}>
-                    <td>{getDisplayName(row?.round?.season)}</td>
-                    <td>{getDisplayName(row?.round?.race)}</td>
-                    <td>
-                      <span
-                        className={`predictions-status-badge ${getStatusBadgeClass(
-                          row?.round?.status,
-                        )}`}
-                      >
-                        {row?.round?.status || "-"}
-                      </span>
-                    </td>
-                    <td>{formatPoints(row?.score?.total)}</td>
-                    <td>{row?.placement ?? "-"}</td>
+        {!isHistoryOpen ? (
+          <p className="predictions-inline-state">
+            Nur veröffentlichte Runden werden in der History angezeigt.
+          </p>
+        ) : (
+          <div id="predictions-history-content">
+            <div className="predictions-kpi-grid predictions-kpi-grid-compact">
+              <article className="predictions-kpi">
+                <p>Veröffentlichte Runden</p>
+                <strong>{historyPayload?.summary?.publishedRounds ?? 0}</strong>
+              </article>
+              <article className="predictions-kpi">
+                <p>Veröffentlichte Punkte</p>
+                <strong>
+                  {formatPoints(historyPayload?.summary?.publishedPoints ?? 0)}
+                </strong>
+              </article>
+            </div>
+
+            <div className="predictions-table-wrap">
+              <table className="predictions-table">
+                <thead>
+                  <tr>
+                    <th>Season</th>
+                    <th>Rennen</th>
+                    <th>Punkte</th>
+                    <th>Rundenrang</th>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                </thead>
+                <tbody>
+                  {publishedHistoryRows.length === 0 ? (
+                    <tr>
+                      <td colSpan={4}>Noch keine veröffentlichte Tippspiel-History vorhanden.</td>
+                    </tr>
+                  ) : (
+                    publishedHistoryRows.map((row) => (
+                      <tr key={`${row?.round?._id}-${row?.placement || "na"}`}>
+                        <td>{getDisplayName(row?.round?.season)}</td>
+                        <td>{getDisplayName(row?.round?.race)}</td>
+                        <td>{formatPoints(row?.score?.total)}</td>
+                        <td>{row?.placement ?? "-"}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </section>
     </div>
   );

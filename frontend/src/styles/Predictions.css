@@ -43,6 +43,18 @@
   font-size: clamp(1.1rem, 2.6vw, 1.45rem);
 }
 
+.predictions-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  margin-bottom: 0.75rem;
+}
+
+.predictions-panel-head h2 {
+  margin: 0;
+}
+
 .predictions-panel-error {
   border-color: rgba(255, 82, 82, 0.45);
   background-color: rgba(255, 82, 82, 0.1);
@@ -59,6 +71,18 @@
 .predictions-rules-compact li {
   color: #d8d8d8;
   font-size: 0.86rem;
+}
+
+.predictions-scoring-inline {
+  margin-bottom: 0.8rem;
+  border: 1px solid #2f2f2f;
+  border-radius: 11px;
+  background-color: #151515;
+  padding: 0.65rem 0.75rem;
+}
+
+.predictions-scoring-inline .predictions-rules-compact {
+  margin-top: 0.35rem;
 }
 
 .predictions-filters {
@@ -256,6 +280,36 @@
   font-size: 0.82rem;
 }
 
+.predictions-toggle-button {
+  border: 1px solid #2f2f2f;
+  border-radius: 10px;
+  background-color: #151515;
+  color: #fff;
+  font-size: 0.84rem;
+  font-weight: 600;
+  padding: 0.45rem 0.7rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.predictions-toggle-button span:first-child {
+  width: 1rem;
+  text-align: center;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.predictions-toggle-button:hover {
+  background-color: #1d1d1d;
+}
+
+.predictions-toggle-button:focus-visible {
+  outline: 2px solid #ff1e1e;
+  outline-offset: 2px;
+}
+
 .predictions-score-summary {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -281,6 +335,101 @@
 .predictions-kpi strong {
   color: #fff;
   font-size: 1rem;
+}
+
+.predictions-comparison-card {
+  margin-top: 0.75rem;
+  border: 1px solid #313131;
+  border-radius: 11px;
+  background-color: #121212;
+  padding: 0.7rem 0.8rem;
+}
+
+.predictions-comparison-card h3 {
+  margin: 0 0 0.5rem;
+  color: #ffb1b1;
+  font-size: 0.95rem;
+}
+
+.predictions-comparison-list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.predictions-comparison-row {
+  border: 1px solid #2d2d2d;
+  border-radius: 10px;
+  background-color: #161616;
+  padding: 0.55rem 0.65rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.predictions-comparison-slot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.predictions-comparison-slot strong {
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.predictions-comparison-values {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem 0.6rem;
+}
+
+.predictions-comparison-values p {
+  margin: 0;
+  display: grid;
+  gap: 0.1rem;
+}
+
+.predictions-comparison-values span {
+  color: #bfbfbf;
+  font-size: 0.74rem;
+}
+
+.predictions-comparison-values strong {
+  color: #ececec;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.predictions-result-pill {
+  border: 1px solid #4a4a4a;
+  border-radius: 999px;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.74rem;
+  white-space: nowrap;
+  background-color: #151515;
+}
+
+.predictions-result-pill.is-success {
+  border-color: rgba(50, 215, 123, 0.6);
+  color: #baffd8;
+  background-color: rgba(50, 215, 123, 0.12);
+}
+
+.predictions-result-pill.is-warning {
+  border-color: rgba(255, 194, 71, 0.65);
+  color: #ffe8b8;
+  background-color: rgba(255, 194, 71, 0.14);
+}
+
+.predictions-result-pill.is-danger {
+  border-color: rgba(255, 82, 82, 0.5);
+  color: #ffd4d4;
+  background-color: rgba(255, 82, 82, 0.12);
+}
+
+.predictions-result-pill.is-neutral {
+  border-color: #4a4a4a;
+  color: #d0d0d0;
 }
 
 .predictions-score-snapshots {
@@ -313,6 +462,10 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.65rem;
+}
+
+.predictions-kpi-grid-compact {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .predictions-table-wrap {
@@ -364,6 +517,10 @@
   .predictions-kpi-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .predictions-comparison-values {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 640px) {
@@ -376,6 +533,11 @@
   .predictions-score-summary,
   .predictions-kpi-grid {
     grid-template-columns: 1fr;
+  }
+
+  .predictions-panel-head {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 
