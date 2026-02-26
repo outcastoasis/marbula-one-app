@@ -803,7 +803,9 @@ export default function AdminPredictions() {
           )}
         </section>
 
-        <section className="admin-predictions-panel">
+      </div>
+
+      <section className="admin-predictions-panel">
           <h2>Runden-Steuerung</h2>
           {!selectedRound ? (
             <p className="admin-predictions-inline-state">
@@ -1042,8 +1044,7 @@ export default function AdminPredictions() {
               </div>
             </>
           )}
-        </section>
-      </div>
+      </section>
 
       <section className="admin-predictions-panel">
         <h2>Manuelle Overrides</h2>

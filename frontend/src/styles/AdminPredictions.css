@@ -183,6 +183,10 @@
   margin-top: 0;
 }
 
+.admin-predictions-grid > .admin-predictions-panel:only-child {
+  grid-column: 1 / -1;
+}
+
 .admin-predictions-round-list {
   display: grid;
   gap: 0.55rem;
@@ -294,7 +298,8 @@
 .admin-predictions-inline-forms {
   margin-top: 0.75rem;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
   gap: 0.65rem;
 }
 
