@@ -1256,7 +1256,7 @@ export default function Stats() {
       <AnimatedVisibility
         show={showCombinedMode}
         className="stats-order-prediction-only stats-animated-section"
-        maxHeight="360px"
+        maxHeight="1200px"
       >
         <section className="stats-panel">
           <h2>
