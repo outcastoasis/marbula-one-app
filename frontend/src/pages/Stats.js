@@ -890,7 +890,6 @@ export default function Stats() {
       return (
         <article className="stats-chart-card">
           <h3>
-            <FontAwesomeIcon icon={faArrowRightLong} />
             <span>{config.title}</span>
           </h3>
           <p className="stats-inline-state">{config.emptyMessage}</p>
@@ -933,7 +932,6 @@ export default function Stats() {
     return (
       <article className="stats-chart-card">
         <h3>
-          <FontAwesomeIcon icon={faArrowRightLong} />
           <span>{config.title}</span>
         </h3>
         <p className="stats-chart-hint">1 = bester Rang</p>
