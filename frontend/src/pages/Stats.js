@@ -1,4 +1,22 @@
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faArrowRightLong,
+  faCalendarDays,
+  faChartLine,
+  faCircleUser,
+  faFlagCheckered,
+  faListCheck,
+  faNoteSticky,
+  faTrophy,
+  faUsers,
+} from "@fortawesome/free-solid-svg-icons";
 import API from "../api";
 import { AuthContext } from "../context/AuthContext";
 import "../styles/Stats.css";
@@ -10,10 +28,18 @@ const emptyOverall = {
   participatedSeasonsCount: 0,
   raceCount: 0,
   totalPoints: 0,
+  predictionRoundCount: 0,
+  predictionPoints: 0,
+  predictionPodiumCount: 0,
+  predictionTop3Rate: 0,
+  avgPredictionPointsPerRound: 0,
   podiumCount: 0,
   top3Rate: 0,
   avgPointsPerRace: 0,
+  combinedPoints: 0,
+  avgCombinedPointsPerRace: 0,
   avgSeasonEndRank: null,
+  avgCombinedSeasonEndRank: null,
   seasonsWon: 0,
   bestRace: null,
   worstRace: null,
@@ -53,6 +79,9 @@ const formatNumber = (value, digits = 2) => {
   }
   return value.toFixed(digits);
 };
+
+const formatSplit = (left, right) =>
+  `${toSafeNumber(left)} / ${toSafeNumber(right)}`;
 
 const clampPercent = (value) => {
   if (typeof value !== "number" || Number.isNaN(value)) {
@@ -118,9 +147,51 @@ const normalizeBars = (entries, options = {}) => {
   });
 };
 
+function AnimatedVisibility({
+  show,
+  children,
+  className = "",
+  maxHeight = "320px",
+}) {
+  const [isMounted, setIsMounted] = useState(show);
+  const [isVisible, setIsVisible] = useState(show);
+
+  useEffect(() => {
+    let hideTimer;
+    let showTimer;
+
+    if (show) {
+      setIsMounted(true);
+      showTimer = setTimeout(() => setIsVisible(true), 20);
+    } else {
+      setIsVisible(false);
+      hideTimer = setTimeout(() => setIsMounted(false), 420);
+    }
+
+    return () => {
+      clearTimeout(hideTimer);
+      clearTimeout(showTimer);
+    };
+  }, [show]);
+
+  if (!isMounted) {
+    return null;
+  }
+
+  return (
+    <div
+      className={`stats-animated-block ${isVisible ? "is-visible" : "is-hidden"} ${className}`.trim()}
+      style={{ "--stats-anim-max-height": maxHeight }}
+    >
+      {children}
+    </div>
+  );
+}
+
 export default function Stats() {
   const { user } = useContext(AuthContext);
   const [seasonFilter, setSeasonFilter] = useState("all");
+  const [includePredictions, setIncludePredictions] = useState(true);
   const [completedSeasons, setCompletedSeasons] = useState([]);
   const [compareCandidatesAll, setCompareCandidatesAll] = useState([]);
   const [compareCandidatesBySeason, setCompareCandidatesBySeason] = useState(
@@ -324,6 +395,23 @@ export default function Stats() {
   const seasonStats = asArray(baseStats?.seasons);
   const overall = baseStats?.overall || emptyOverall;
   const comparisons = asArray(statsResponse?.comparisons);
+  const showCombinedMode = includePredictions;
+  const racePoints = toSafeNumber(overall.totalPoints);
+  const predictionPoints = toSafeNumber(overall.predictionPoints);
+  const combinedPoints = toSafeNumber(overall.combinedPoints);
+  const pointsSplitLabel = formatSplit(racePoints, predictionPoints);
+  const displayedTotalPoints = showCombinedMode
+    ? combinedPoints
+    : racePoints;
+  const displayedAvgPoints = showCombinedMode
+    ? toSafeNumber(overall.avgCombinedPointsPerRace)
+    : toSafeNumber(overall.avgPointsPerRace);
+  const displayedAvgSeasonRank = showCombinedMode
+    ? overall.avgCombinedSeasonEndRank
+    : overall.avgSeasonEndRank;
+  const displayedRankTitle = showCombinedMode
+    ? "Schnitt Endrang (Gesamt)"
+    : "Schnitt Endrang";
 
   const detailSeason = useMemo(() => {
     if (seasonStats.length === 0) {
@@ -338,6 +426,10 @@ export default function Stats() {
   }, [seasonStats]);
 
   const ownBarsConfig = useMemo(() => {
+    const pointsLabel = showCombinedMode
+      ? "Gesamtpunkte"
+      : "Rennpunkte";
+
     if (seasonFilter !== "all") {
       const selectedSeason = seasonStats.find(
         (season) => season?.seasonId === seasonFilter,
@@ -345,7 +437,7 @@ export default function Stats() {
 
       if (!selectedSeason) {
         return {
-          title: "Punkte pro Rennen",
+          title: pointsLabel,
           entries: [],
           emptyMessage: "Keine Daten für diese Season gefunden.",
         };
@@ -353,7 +445,7 @@ export default function Stats() {
 
       if (selectedSeason.participationStatus !== "participated") {
         return {
-          title: "Punkte pro Rennen",
+          title: pointsLabel,
           entries: [],
           emptyMessage: "Nicht teilgenommen in dieser Season.",
         };
@@ -362,11 +454,13 @@ export default function Stats() {
       const entries = asArray(selectedSeason.races).map((race) => ({
         key: race.raceId || race.raceName,
         label: race.raceName,
-        value: toSafeNumber(race.points),
+        value: showCombinedMode
+          ? toSafeNumber(race.combinedPoints)
+          : toSafeNumber(race.points),
       }));
 
       return {
-        title: `${selectedSeason.seasonName}: Punkte pro Rennen`,
+        title: `${selectedSeason.seasonName}: ${pointsLabel}`,
         entries: normalizeBars(entries),
         emptyMessage: "Keine Rennen vorhanden.",
       };
@@ -377,7 +471,9 @@ export default function Stats() {
       .map((season) => ({
         key: season.seasonId,
         label: season.seasonName,
-        value: toSafeNumber(season.totalPoints),
+        value: showCombinedMode
+          ? toSafeNumber(season.combinedPoints)
+          : toSafeNumber(season.totalPoints),
       }));
 
     return {
@@ -385,7 +481,7 @@ export default function Stats() {
       entries: normalizeBars(entries),
       emptyMessage: "Keine teilgenommenen Seasons vorhanden.",
     };
-  }, [seasonFilter, seasonStats]);
+  }, [seasonFilter, seasonStats, showCombinedMode]);
 
   const ownRankLineConfig = useMemo(() => {
     if (seasonFilter !== "all") {
@@ -397,17 +493,73 @@ export default function Stats() {
       .map((season) => ({
         key: season.seasonId,
         label: season.seasonName,
-        value:
-          typeof season.finalRank === "number" && Number.isFinite(season.finalRank)
-            ? season.finalRank
-            : null,
+        value: (() => {
+          const rankValue = showCombinedMode
+            ? season.finalCombinedRank
+            : season.finalRank;
+          return typeof rankValue === "number" && Number.isFinite(rankValue)
+            ? rankValue
+            : null;
+        })(),
       }))
       .filter((entry) => entry.value != null);
 
     return {
-      title: "Endrang pro Season",
+      title: showCombinedMode
+        ? "Endrang pro Season (Gesamt)"
+        : "Endrang pro Season",
       points,
       emptyMessage: "Keine Endränge für teilgenommene Seasons vorhanden.",
+    };
+  }, [seasonFilter, seasonStats, showCombinedMode]);
+
+  const predictionBarsConfig = useMemo(() => {
+    if (seasonFilter !== "all") {
+      const selectedSeason = seasonStats.find(
+        (season) => season?.seasonId === seasonFilter,
+      );
+
+      if (!selectedSeason) {
+        return {
+          title: "Tippspiel-Punkte pro Runde",
+          entries: [],
+          emptyMessage: "Keine Daten für diese Season gefunden.",
+        };
+      }
+
+      if (selectedSeason.participationStatus !== "participated") {
+        return {
+          title: "Tippspiel-Punkte pro Runde",
+          entries: [],
+          emptyMessage: "Nicht teilgenommen in dieser Season.",
+        };
+      }
+
+      const entries = asArray(selectedSeason.races).map((race) => ({
+        key: race.raceId || race.raceName,
+        label: race.raceName,
+        value: toSafeNumber(race.predictionPoints),
+      }));
+
+      return {
+        title: `${selectedSeason.seasonName}: Tippspiel-Punkte pro Runde`,
+        entries: normalizeBars(entries),
+        emptyMessage: "Keine Tippspiel-Runden vorhanden.",
+      };
+    }
+
+    const entries = seasonStats
+      .filter((season) => season?.participationStatus === "participated")
+      .map((season) => ({
+        key: season.seasonId,
+        label: season.seasonName,
+        value: toSafeNumber(season.predictionPoints),
+      }));
+
+    return {
+      title: "Tippspiel-Punkte pro Season",
+      entries: normalizeBars(entries),
+      emptyMessage: "Keine teilgenommenen Seasons vorhanden.",
     };
   }, [seasonFilter, seasonStats]);
 
@@ -452,12 +604,14 @@ export default function Stats() {
       label: entry.label,
       isBase: entry.isBase,
       note: entry.note,
-      value: toSafeNumber(entry.overall?.totalPoints),
+      value: showCombinedMode
+        ? toSafeNumber(entry.overall?.combinedPoints)
+        : toSafeNumber(entry.overall?.totalPoints),
     }));
 
     const sorted = [...entries].sort((a, b) => b.value - a.value);
     return normalizeBars(sorted);
-  }, [compareMetricUsers]);
+  }, [compareMetricUsers, showCombinedMode]);
 
   const compareAvgPointsBars = useMemo(() => {
     if (compareMetricUsers.length === 0) {
@@ -469,12 +623,14 @@ export default function Stats() {
       label: entry.label,
       isBase: entry.isBase,
       note: entry.note,
-      value: toSafeNumber(entry.overall?.avgPointsPerRace),
+      value: showCombinedMode
+        ? toSafeNumber(entry.overall?.avgCombinedPointsPerRace)
+        : toSafeNumber(entry.overall?.avgPointsPerRace),
     }));
 
     const sorted = [...entries].sort((a, b) => b.value - a.value);
     return normalizeBars(sorted);
-  }, [compareMetricUsers]);
+  }, [compareMetricUsers, showCombinedMode]);
 
   const comparePodiumRateBars = useMemo(() => {
     if (compareMetricUsers.length === 0) {
@@ -487,6 +643,57 @@ export default function Stats() {
       isBase: entry.isBase,
       note: entry.note,
       value: toSafeNumber(entry.overall?.top3Rate),
+    }));
+
+    const sorted = [...entries].sort((a, b) => b.value - a.value);
+    return normalizeBars(sorted);
+  }, [compareMetricUsers]);
+
+  const comparePredictionPointsBars = useMemo(() => {
+    if (compareMetricUsers.length === 0) {
+      return [];
+    }
+
+    const entries = compareMetricUsers.map((entry) => ({
+      key: entry.key,
+      label: entry.label,
+      isBase: entry.isBase,
+      note: entry.note,
+      value: toSafeNumber(entry.overall?.predictionPoints),
+    }));
+
+    const sorted = [...entries].sort((a, b) => b.value - a.value);
+    return normalizeBars(sorted);
+  }, [compareMetricUsers]);
+
+  const comparePredictionAvgBars = useMemo(() => {
+    if (compareMetricUsers.length === 0) {
+      return [];
+    }
+
+    const entries = compareMetricUsers.map((entry) => ({
+      key: entry.key,
+      label: entry.label,
+      isBase: entry.isBase,
+      note: entry.note,
+      value: toSafeNumber(entry.overall?.avgPredictionPointsPerRound),
+    }));
+
+    const sorted = [...entries].sort((a, b) => b.value - a.value);
+    return normalizeBars(sorted);
+  }, [compareMetricUsers]);
+
+  const comparePredictionTop3Bars = useMemo(() => {
+    if (compareMetricUsers.length === 0) {
+      return [];
+    }
+
+    const entries = compareMetricUsers.map((entry) => ({
+      key: entry.key,
+      label: entry.label,
+      isBase: entry.isBase,
+      note: entry.note,
+      value: toSafeNumber(entry.overall?.predictionTop3Rate),
     }));
 
     const sorted = [...entries].sort((a, b) => b.value - a.value);
@@ -506,8 +713,14 @@ export default function Stats() {
       label: entry.label,
       isBase: entry.isBase,
       note: entry.note,
-      value: hasValue(entry.overall?.avgSeasonEndRank)
-        ? entry.overall.avgSeasonEndRank
+      value: hasValue(
+        showCombinedMode
+          ? entry.overall?.avgCombinedSeasonEndRank
+          : entry.overall?.avgSeasonEndRank,
+      )
+        ? showCombinedMode
+          ? entry.overall.avgCombinedSeasonEndRank
+          : entry.overall.avgSeasonEndRank
         : null,
     }));
 
@@ -528,7 +741,7 @@ export default function Stats() {
     });
 
     return normalizeBars(sorted, { lowerIsBetter: true });
-  }, [compareMetricUsers]);
+  }, [compareMetricUsers, showCombinedMode]);
 
   const toggleCompare = (compareId) => {
     setSelectedCompareIds((previous) => {
@@ -543,13 +756,22 @@ export default function Stats() {
   };
 
   const hasCompareSelection = selectedCompareIds.length > 0;
+  const displayedSeasonsWon = seasonStats.filter((season) => {
+    if (season?.participationStatus !== "participated") return false;
+    const seasonRank = showCombinedMode
+      ? season?.finalCombinedRank
+      : season?.finalRank;
+    return seasonRank === 1;
+  }).length;
   const seasonWinRate =
     toSafeNumber(overall.participatedSeasonsCount) > 0
-      ? toSafeNumber(overall.seasonsWon) /
+      ? toSafeNumber(displayedSeasonsWon) /
         toSafeNumber(overall.participatedSeasonsCount)
       : 0;
-  const top3RatePercent = clampPercent(toSafeNumber(overall.top3Rate) * 100);
-  const seasonWinRatePercent = clampPercent(seasonWinRate * 100);
+  const raceTop3RatePercent = toSafeNumber(overall.top3Rate) * 100;
+  const seasonWinRatePercent = toSafeNumber(seasonWinRate) * 100;
+  const predictionTop3RatePercent =
+    toSafeNumber(overall.predictionTop3Rate) * 100;
   const formatOverviewPlayer = (player) => {
     if (!player?.displayName) {
       return "-";
@@ -565,26 +787,92 @@ export default function Stats() {
     className = "",
   }) => {
     const normalizedPercent = clampPercent(percent);
+    const radius = 57;
+    const arcLength = Math.PI * radius;
+    const progressLength = (normalizedPercent / 100) * arcLength;
 
     return (
       <article className={`stats-kpi stats-kpi-radial ${className}`.trim()}>
-        <p>{title}</p>
-        <div className="stats-radial-kpi">
-          <div
-            className="stats-radial-track"
-            style={{ "--radial-percent": normalizedPercent }}
+        <p className="stats-kpi-title">{title}</p>
+        <div className="stats-speedometer-wrap">
+          <svg
+            className="stats-speedometer"
+            viewBox="0 0 180 100"
             role="img"
             aria-label={`${title}: ${percentLabel}`}
           >
-            <div className="stats-radial-inner">
-              <strong>{percentLabel}</strong>
-              {detailLabel ? <span>{detailLabel}</span> : null}
-            </div>
+            <path
+              d="M 33 82 A 57 57 0 0 1 147 82"
+              className="stats-speedometer-track"
+            />
+            <path
+              d="M 33 82 A 57 57 0 0 1 147 82"
+              className="stats-speedometer-progress"
+              style={{
+                strokeDasharray: `${progressLength} ${arcLength}`,
+              }}
+            />
+          </svg>
+          <div className="stats-speedometer-readout">
+            <strong>{percentLabel}</strong>
+            {detailLabel ? <span>{detailLabel}</span> : null}
           </div>
         </div>
       </article>
     );
   };
+
+  const renderBarList = ({ bars, formatValue, barClassName = "" }) => (
+    <div className="stats-bar-list">
+      {bars.map((entry) => (
+        <div
+          key={entry.key}
+          className={`stats-bar-row ${entry.isBase ? "is-base-row" : ""}`.trim()}
+        >
+          <span className="stats-bar-label">
+            {entry.label}
+            {entry.note ? <em className="stats-bar-note"> ({entry.note})</em> : null}
+          </span>
+          <div className="stats-bar-track">
+            <div
+              className={`stats-bar-fill ${barClassName} ${entry.isBase ? "is-base" : ""}`.trim()}
+              style={{ width: `${entry.percent}%` }}
+            />
+          </div>
+          <strong className="stats-bar-value">{formatValue(entry.value)}</strong>
+        </div>
+      ))}
+    </div>
+  );
+
+  const renderMetricCard = ({
+    title,
+    icon = faChartLine,
+    bars,
+    formatValue,
+    emptyMessage,
+    barClassName = "",
+    requireCompareSelection = false,
+  }) => (
+    <article className="stats-chart-card">
+      <h3>
+        <span>{title}</span>
+      </h3>
+      {requireCompareSelection && !hasCompareSelection ? (
+        <p className="stats-inline-state">
+          Wähle im Filter einen oder mehrere User für den Vergleich.
+        </p>
+      ) : bars.length === 0 ? (
+        <p className="stats-inline-state">{emptyMessage}</p>
+      ) : (
+        renderBarList({
+          bars,
+          formatValue,
+          barClassName,
+        })
+      )}
+    </article>
+  );
 
   const renderRankLineChartCard = (config) => {
     if (!config) {
@@ -592,16 +880,19 @@ export default function Stats() {
     }
 
     const points = asArray(config.points);
-    const chartWidth = 360;
-    const chartHeight = 180;
-    const padding = { top: 14, right: 14, bottom: 22, left: 24 };
+    const chartWidth = 380;
+    const chartHeight = 200;
+    const padding = { top: 16, right: 14, bottom: 26, left: 30 };
     const innerWidth = chartWidth - padding.left - padding.right;
     const innerHeight = chartHeight - padding.top - padding.bottom;
 
     if (points.length === 0) {
       return (
         <article className="stats-chart-card">
-          <h3>{config.title}</h3>
+          <h3>
+            <FontAwesomeIcon icon={faArrowRightLong} />
+            <span>{config.title}</span>
+          </h3>
           <p className="stats-inline-state">{config.emptyMessage}</p>
         </article>
       );
@@ -641,7 +932,10 @@ export default function Stats() {
 
     return (
       <article className="stats-chart-card">
-        <h3>{config.title}</h3>
+        <h3>
+          <FontAwesomeIcon icon={faArrowRightLong} />
+          <span>{config.title}</span>
+        </h3>
         <p className="stats-chart-hint">1 = bester Rang</p>
         <div className="stats-line-chart">
           <svg
@@ -651,6 +945,12 @@ export default function Stats() {
             aria-label={`${config.title} als Liniendiagramm`}
             preserveAspectRatio="none"
           >
+            <defs>
+              <linearGradient id="stats-rank-line-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#ff8080" />
+                <stop offset="100%" stopColor="#ff2f2f" />
+              </linearGradient>
+            </defs>
             {yTicks.map((tick) => (
               <g key={`tick-${tick.value}`}>
                 <line
@@ -674,7 +974,11 @@ export default function Stats() {
               <polygon points={areaPolyline} className="stats-line-area" />
             ) : null}
             {chartPoints.length > 1 ? (
-              <polyline points={polyline} className="stats-line-path" />
+              <polyline
+                points={polyline}
+                className="stats-line-path"
+                style={{ stroke: "url(#stats-rank-line-gradient)" }}
+              />
             ) : (
               <line
                 x1={chartPoints[0].x}
@@ -682,6 +986,7 @@ export default function Stats() {
                 x2={chartPoints[0].x}
                 y2={chartPoints[0].y}
                 className="stats-line-path"
+                style={{ stroke: "url(#stats-rank-line-gradient)" }}
               />
             )}
             {chartPoints.map((point) => (
@@ -715,45 +1020,23 @@ export default function Stats() {
     );
   };
 
-  const renderCompareMetricCard = (title, bars, formatValue) => (
-    <article className="stats-chart-card">
-      <h3>{title}</h3>
-      {!hasCompareSelection ? (
-        <p className="stats-inline-state">
-          Wähle im Filter einen oder mehrere User für den Vergleich.
-        </p>
-      ) : bars.length === 0 ? (
-        <p className="stats-inline-state">Keine Vergleichsdaten verfügbar.</p>
-      ) : (
-        <div className="stats-bar-list">
-          {bars.map((entry) => (
-            <div key={entry.key} className="stats-bar-row">
-              <span className="stats-bar-label">
-                {entry.label}
-                {entry.note ? (
-                  <em className="stats-bar-note"> ({entry.note})</em>
-                ) : null}
-              </span>
-              <div className="stats-bar-track">
-                <div
-                  className={`stats-bar-fill ${entry.isBase ? "is-base" : ""}`}
-                  style={{ width: `${entry.percent}%` }}
-                />
-              </div>
-              <strong className="stats-bar-value">
-                {formatValue(entry.value)}
-              </strong>
-            </div>
-          ))}
-        </div>
-      )}
-    </article>
-  );
+  const renderCompareMetricCard = (title, bars, formatValue, icon, barClassName = "") =>
+    renderMetricCard({
+      title,
+      icon,
+      bars,
+      formatValue,
+      emptyMessage: "Keine Vergleichsdaten verfügbar.",
+      barClassName,
+      requireCompareSelection: true,
+    });
 
   return (
     <div className="stats-page">
       <header className="stats-header">
-        <h1>Statistiken</h1>
+        <h1>
+          <span>Statistik-Übersicht</span>
+        </h1>
         <p>
           Übersicht für <strong>{getDisplayName(baseUserEntry || user)}</strong>
         </p>
@@ -761,12 +1044,15 @@ export default function Stats() {
 
       <div className="stats-top-grid stats-order-season-picker">
         <section className="stats-panel stats-season-toolbar">
+          <h2>
+            <FontAwesomeIcon icon={faListCheck} />
+            <span>Filter</span>
+          </h2>
           <div className="stats-season-toolbar-main">
-            <div className="stats-season-heading">
-              <p>Filter</p>
-            </div>
             <label className="stats-field stats-season-field">
-              <span>Auswahl Season</span>
+              <span>
+                <span>Season</span>
+              </span>
               <select
                 value={seasonFilter}
                 onChange={(event) => setSeasonFilter(event.target.value)}
@@ -783,7 +1069,10 @@ export default function Stats() {
         </section>
 
         <section className="stats-panel stats-global-panel">
-          <h2>Allgemeine Statistiken</h2>
+          <h2>
+            <FontAwesomeIcon icon={faUsers} />
+            <span>Allgemeine Statistiken</span>
+          </h2>
           {isLoadingOverview ? (
             <p className="stats-inline-state">
               Allgemeine Statistiken werden geladen...
@@ -791,25 +1080,37 @@ export default function Stats() {
           ) : (
             <div className="stats-global-grid">
               <article className="stats-global-item">
-                <p>Abgeschlossene Seasons gesamt</p>
+                <p>
+                  <FontAwesomeIcon icon={faCalendarDays} />
+                  <span>Abgeschlossene Seasons</span>
+                </p>
                 <strong>
                   {toSafeNumber(globalOverview.completedSeasonsCount)}
                 </strong>
               </article>
               <article className="stats-global-item">
-                <p>Ø Spieleranzahl pro Season</p>
+                <p>
+                  <FontAwesomeIcon icon={faUsers} />
+                  <span>Schnitt Spieler / Season</span>
+                </p>
                 <strong>
                   {formatNumber(globalOverview.avgPlayersPerSeason, 2)}
                 </strong>
               </article>
               <article className="stats-global-item">
-                <p>Spieler mit meisten Punkten</p>
+                <p>
+                  <FontAwesomeIcon icon={faTrophy} />
+                  <span>Top Spieler</span>
+                </p>
                 <strong>
                   {formatOverviewPlayer(globalOverview.mostPointsPlayer)}
                 </strong>
               </article>
               <article className="stats-global-item">
-                <p>Spieler mit wenigsten Punkten</p>
+                <p>
+                  <FontAwesomeIcon icon={faCircleUser} />
+                  <span>Flop Spieler</span>
+                </p>
                 <strong>
                   {formatOverviewPlayer(globalOverview.leastPointsPlayer)}
                 </strong>
@@ -826,56 +1127,88 @@ export default function Stats() {
       ) : null}
 
       <section className="stats-panel stats-order-key">
-        <h2>Persönliche Statistiken</h2>
-        <div className="stats-kpi-layout">
-          <div className="stats-kpi-grid stats-kpi-grid-main stats-kpi-grid-metrics">
-          <article className="stats-kpi">
-            <p>Gesamtpunkte</p>
-            <strong>{overall.totalPoints ?? 0}</strong>
-          </article>
-          <article className="stats-kpi">
-            <p>Rennen</p>
-            <strong>{overall.raceCount ?? 0}</strong>
-          </article>
-          <article className="stats-kpi">
-            <p>Podien</p>
-            <strong>{overall.podiumCount ?? 0}</strong>
-          </article>
-          <article className="stats-kpi">
-            <p>Ø Punkte / Rennen</p>
-            <strong>{formatNumber(overall.avgPointsPerRace, 2)}</strong>
-          </article>
-          <article className="stats-kpi">
-            <p>Ø Season-Endrang</p>
-            <strong>{formatNumber(overall.avgSeasonEndRank, 2)}</strong>
-          </article>
+        <h2>
+          <FontAwesomeIcon icon={faFlagCheckered} />
+          <span>Persönliche Statistiken</span>
+        </h2>
+        <p className="stats-subline">
+          Modus:{" "}
+          <strong>
+            {showCombinedMode ? "Rennen + Tippspiele" : "Nur Rennen"}
+          </strong>
+        </p>
+        <div className="stats-kpi-grid stats-kpi-grid-main stats-kpi-grid-metrics">
+          <div className="stats-kpi-grid stats-kpi-grid-standard">
+            <AnimatedVisibility
+              show={showCombinedMode}
+              className="stats-animated-kpi"
+              maxHeight="96px"
+            >
+              <article className="stats-kpi stats-kpi-standard stats-kpi-highlight">
+                <p className="stats-kpi-title">Punkte (Rennen/Tippspiel)</p>
+                <strong>{pointsSplitLabel}</strong>
+              </article>
+            </AnimatedVisibility>
+            <article className="stats-kpi stats-kpi-standard">
+              <p className="stats-kpi-title">Gesamtpunkte</p>
+              <strong>{displayedTotalPoints}</strong>
+            </article>
+            <article className="stats-kpi stats-kpi-standard">
+              <p className="stats-kpi-title">Rennen</p>
+              <strong>{overall.raceCount ?? 0}</strong>
+            </article>
+            <article className="stats-kpi stats-kpi-standard">
+              <p className="stats-kpi-title">Anzahl Podienplätze</p>
+              <strong>{overall.podiumCount ?? 0}</strong>
+            </article>
+            <article className="stats-kpi stats-kpi-standard">
+              <p className="stats-kpi-title">Schnitt Punkte / Rennen</p>
+              <strong>{formatNumber(displayedAvgPoints, 2)}</strong>
+            </article>
+            <article className="stats-kpi stats-kpi-standard">
+              <p className="stats-kpi-title">{displayedRankTitle}</p>
+              <strong>{formatNumber(displayedAvgSeasonRank, 2)}</strong>
+            </article>
           </div>
-          <div className="stats-kpi-grid stats-kpi-grid-radials">
-          {renderRadialKpi({
-            title: "Top-3-Rate",
-            percent: top3RatePercent,
-            percentLabel: formatPercent(overall.top3Rate),
-            detailLabel: `${toSafeNumber(overall.podiumCount)} / ${toSafeNumber(
-              overall.raceCount,
-            )} Rennen`,
-          })}
-          {renderRadialKpi({
-            title: "Season-Sieg-Quote",
-            percent: seasonWinRatePercent,
-            percentLabel: formatPercent(seasonWinRate),
-            detailLabel: `${toSafeNumber(overall.seasonsWon)} / ${toSafeNumber(
-              overall.participatedSeasonsCount,
-            )} Seasons`,
-          })}
+
+          <div className="stats-kpi-grid stats-kpi-grid-radial-metrics">
+            <div>
+              {renderRadialKpi({
+                title: "Top-3-Rate",
+                percent: raceTop3RatePercent,
+                percentLabel: formatPercent(overall.top3Rate),
+                detailLabel: `${toSafeNumber(overall.podiumCount)} / ${toSafeNumber(overall.raceCount)} Rennen`,
+              })}
+            </div>
+            <div>
+              {renderRadialKpi({
+                title: "Season-Sieg-Quote",
+                percent: seasonWinRatePercent,
+                percentLabel: formatPercent(seasonWinRate),
+                detailLabel: `${toSafeNumber(displayedSeasonsWon)} / ${toSafeNumber(overall.participatedSeasonsCount)} Seasons`,
+              })}
+            </div>
+            <AnimatedVisibility
+              show={showCombinedMode}
+              className="stats-animated-kpi"
+              maxHeight="160px"
+            >
+              {renderRadialKpi({
+                title: "Prediction Top-3-Rate",
+                percent: predictionTop3RatePercent,
+                percentLabel: formatPercent(overall.predictionTop3Rate),
+                detailLabel: `${toSafeNumber(overall.predictionPodiumCount)} / ${toSafeNumber(overall.predictionRoundCount)} Runden`,
+              })}
+            </AnimatedVisibility>
           </div>
         </div>
         <div className="stats-kpi-grid stats-kpi-grid-races">
-          <article className="stats-kpi stats-kpi-detail">
-            <p>Best Race</p>
+          <article className="stats-kpi stats-kpi-standard stats-kpi-detail">
+            <p className="stats-kpi-title">Bestes Rennen</p>
             <strong>{formatRaceLabel(overall.bestRace, true)}</strong>
           </article>
-          <article className="stats-kpi stats-kpi-detail">
-            <p>Worst Race</p>
+          <article className="stats-kpi stats-kpi-standard stats-kpi-detail">
+            <p className="stats-kpi-title">Schlechtestes Rennen</p>
             <strong>{formatRaceLabel(overall.worstRace, true)}</strong>
           </article>
         </div>
@@ -886,41 +1219,80 @@ export default function Stats() {
       </section>
 
       <section className="stats-panel stats-order-personal">
-        <h2>Persönliche Grafik</h2>
-        <div
-          className={`stats-chart-grid ${
-            seasonFilter === "all" ? "" : "stats-chart-grid-single"
-          }`}
-        >
-          <article className="stats-chart-card">
-            <h3>{ownBarsConfig.title}</h3>
-            {ownBarsConfig.entries.length === 0 ? (
-              <p className="stats-inline-state">{ownBarsConfig.emptyMessage}</p>
-            ) : (
-              <div className="stats-bar-list">
-                {ownBarsConfig.entries.map((entry) => (
-                  <div key={entry.key} className="stats-bar-row">
-                    <span className="stats-bar-label">{entry.label}</span>
-                    <div className="stats-bar-track">
-                      <div
-                        className="stats-bar-fill"
-                        style={{ width: `${entry.percent}%` }}
-                      />
-                    </div>
-                    <strong className="stats-bar-value">
-                      {entry.value == null ? "-" : entry.value}
-                    </strong>
-                  </div>
-                ))}
-              </div>
-            )}
-          </article>
-          {seasonFilter === "all" ? renderRankLineChartCard(ownRankLineConfig) : null}
+        <h2>
+          <FontAwesomeIcon icon={faChartLine} />
+          <span>Persönliche Charts</span>
+        </h2>
+        <div className="stats-chart-grid">
+          <div>
+            {renderMetricCard({
+              title: ownBarsConfig.title,
+              bars: ownBarsConfig.entries,
+              formatValue: (value) => (value == null ? "-" : String(value)),
+              emptyMessage: ownBarsConfig.emptyMessage,
+            })}
+          </div>
+          <AnimatedVisibility
+            show={showCombinedMode}
+            className="stats-animated-chart"
+            maxHeight="520px"
+          >
+            {renderMetricCard({
+              title: predictionBarsConfig.title,
+              bars: predictionBarsConfig.entries,
+              formatValue: (value) => (value == null ? "-" : String(value)),
+              emptyMessage: predictionBarsConfig.emptyMessage,
+              barClassName: "is-prediction",
+            })}
+          </AnimatedVisibility>
+          {seasonFilter === "all" ? (
+            <div>
+              {renderRankLineChartCard(ownRankLineConfig)}
+            </div>
+          ) : null}
         </div>
       </section>
 
+      <AnimatedVisibility
+        show={showCombinedMode}
+        className="stats-order-prediction-only stats-animated-section"
+        maxHeight="360px"
+      >
+        <section className="stats-panel">
+          <h2>
+            <FontAwesomeIcon icon={faNoteSticky} />
+            <span>Tippspiel Statistiken</span>
+          </h2>
+          <div className="stats-kpi-grid stats-kpi-grid-standard">
+            <article className="stats-kpi stats-kpi-standard">
+              <p className="stats-kpi-title">Runden</p>
+              <strong>{toSafeNumber(overall.predictionRoundCount)}</strong>
+            </article>
+            <article className="stats-kpi stats-kpi-standard">
+              <p className="stats-kpi-title">Punkte</p>
+              <strong>{toSafeNumber(overall.predictionPoints)}</strong>
+            </article>
+            <article className="stats-kpi stats-kpi-standard">
+              <p className="stats-kpi-title">Schnitt / Runde</p>
+              <strong>{formatNumber(overall.avgPredictionPointsPerRound, 2)}</strong>
+            </article>
+            <article className="stats-kpi stats-kpi-standard">
+              <p className="stats-kpi-title">Podien</p>
+              <strong>{toSafeNumber(overall.predictionPodiumCount)}</strong>
+            </article>
+            <article className="stats-kpi stats-kpi-standard">
+              <p className="stats-kpi-title">Top-3-Rate</p>
+              <strong>{formatPercent(overall.predictionTop3Rate)}</strong>
+            </article>
+          </div>
+        </section>
+      </AnimatedVisibility>
+
       <section className="stats-panel stats-order-compare">
-        <h2>Vergleichs-Statistiken</h2>
+        <h2>
+          <FontAwesomeIcon icon={faUsers} />
+          <span>Vergleichs-Statistiken</span>
+        </h2>
         <div className="stats-compare-controls">
           <div className="stats-field">
             <span>User-Auswahl (max. {MAX_COMPARE_USERS})</span>
@@ -948,32 +1320,86 @@ export default function Stats() {
             )}
           </div>
         </div>
+        <p className="stats-subline">
+          Aktiv ausgewählt: <strong>{selectedCompareIds.length}</strong> / {MAX_COMPARE_USERS}
+        </p>
         <div className="stats-chart-grid">
-          {renderCompareMetricCard(
-            "Vergleich Gesamtpunkte",
-            compareTotalPointsBars,
-            (value) => String(toSafeNumber(value)),
-          )}
-          {renderCompareMetricCard(
-            "Vergleich Ø Punkte pro Rennen",
-            compareAvgPointsBars,
-            (value) => formatNumber(value, 2),
-          )}
-          {renderCompareMetricCard(
-            "Vergleich Podiumsrate",
-            comparePodiumRateBars,
-            (value) => formatPercent(value),
-          )}
-          {renderCompareMetricCard(
-            "Vergleich Ø Season-Endrang",
-            compareAvgRankBars,
-            (value) => formatNumber(value, 2),
-          )}
+          <div>
+            {renderCompareMetricCard(
+              "Punkte gesamt",
+              compareTotalPointsBars,
+              (value) => String(toSafeNumber(value)),
+              faFlagCheckered,
+            )}
+          </div>
+          <div>
+            {renderCompareMetricCard(
+              "Schnitt Punkte / Rennen",
+              compareAvgPointsBars,
+              (value) => formatNumber(value, 2),
+              faArrowRightLong,
+            )}
+          </div>
+          <div>
+            {renderCompareMetricCard(
+              "Podiumsrate",
+              comparePodiumRateBars,
+              (value) => formatPercent(value),
+              faTrophy,
+            )}
+          </div>
+          <div>
+            {renderCompareMetricCard(
+              "Schnitt Endrang",
+              compareAvgRankBars,
+              (value) => formatNumber(value, 2),
+              faArrowRightLong,
+            )}
+          </div>
+          <AnimatedVisibility
+            show={showCombinedMode}
+            className="stats-animated-chart"
+            maxHeight="500px"
+          >
+            {renderCompareMetricCard(
+              "Tippspiel Punkte",
+              comparePredictionPointsBars,
+              (value) => String(toSafeNumber(value)),
+              faNoteSticky,
+            )}
+          </AnimatedVisibility>
+          <AnimatedVisibility
+            show={showCombinedMode}
+            className="stats-animated-chart"
+            maxHeight="500px"
+          >
+            {renderCompareMetricCard(
+              "Schnitt Tippspielpunkte / Runde",
+              comparePredictionAvgBars,
+              (value) => formatNumber(value, 2),
+              faArrowRightLong,
+            )}
+          </AnimatedVisibility>
+          <AnimatedVisibility
+            show={showCombinedMode}
+            className="stats-animated-chart"
+            maxHeight="500px"
+          >
+            {renderCompareMetricCard(
+              "Tippspiel Top-3-Rate",
+              comparePredictionTop3Bars,
+              (value) => formatPercent(value),
+              faChartLine,
+            )}
+          </AnimatedVisibility>
         </div>
       </section>
 
       <section className="stats-panel stats-order-season-overview">
-        <h2>Season Übersicht</h2>
+        <h2>
+          <FontAwesomeIcon icon={faFlagCheckered} />
+          <span>Season Übersicht</span>
+        </h2>
         {isLoadingStats ? (
           <p className="stats-inline-state">Statistiken werden geladen...</p>
         ) : seasonStats.length === 0 ? (
@@ -988,12 +1414,13 @@ export default function Stats() {
                   <th>Season</th>
                   <th>Status</th>
                   <th>Rennen</th>
-                  <th>Punkte</th>
+                  <th>{showCombinedMode ? "Punkte (Renn./Tipp)" : "Renn-Punkte"}</th>
+                  {showCombinedMode ? <th>Gesamt</th> : null}
                   <th>Podien</th>
                   <th>Top-3-Rate</th>
                   <th>Endrang</th>
-                  <th>Best Race</th>
-                  <th>Worst Race</th>
+                  <th>Bestes Rennen</th>
+                  <th>Schlechtestes Rennen</th>
                 </tr>
               </thead>
               <tbody>
@@ -1007,7 +1434,9 @@ export default function Stats() {
                             Nicht teilgenommen
                           </span>
                         </td>
-                        <td colSpan={7}>Nicht teilgenommen</td>
+                        <td colSpan={showCombinedMode ? 8 : 7}>
+                          Nicht teilgenommen
+                        </td>
                       </tr>
                     );
                   }
@@ -1019,10 +1448,19 @@ export default function Stats() {
                         <span className="stats-badge">Teilgenommen</span>
                       </td>
                       <td>{season.raceCount}</td>
-                      <td>{season.totalPoints}</td>
+                      <td>
+                        {showCombinedMode
+                          ? formatSplit(season.totalPoints, season.predictionPoints)
+                          : toSafeNumber(season.totalPoints)}
+                      </td>
+                      {showCombinedMode ? <td>{toSafeNumber(season.combinedPoints)}</td> : null}
                       <td>{season.podiumCount}</td>
                       <td>{formatPercent(season.top3Rate)}</td>
-                      <td>{season.finalRank ?? "-"}</td>
+                      <td>
+                        {showCombinedMode
+                          ? season.finalCombinedRank ?? "-"
+                          : season.finalRank ?? "-"}
+                      </td>
                       <td>{formatRaceLabel(season.bestRace)}</td>
                       <td>{formatRaceLabel(season.worstRace)}</td>
                     </tr>
@@ -1036,7 +1474,10 @@ export default function Stats() {
 
       {seasonFilter !== "all" ? (
         <section className="stats-panel stats-order-race">
-          <h2>Race Detail</h2>
+          <h2>
+            <FontAwesomeIcon icon={faFlagCheckered} />
+            <span>Race Detail</span>
+          </h2>
           {!detailSeason ? (
             <p className="stats-inline-state">Keine Race-Details verfügbar.</p>
           ) : detailSeason.participationStatus !== "participated" ? (
@@ -1053,10 +1494,12 @@ export default function Stats() {
                   <thead>
                     <tr>
                       <th>Rennen</th>
-                      <th>Punkte</th>
-                      <th>Kumuliert</th>
+                      <th>{showCombinedMode ? "Punkte (R/P)" : "Punkte"}</th>
+                      <th>{showCombinedMode ? "Kumuliert (R/P)" : "Kumuliert"}</th>
+                      {showCombinedMode ? <th>Gesamt</th> : null}
+                      {showCombinedMode ? <th>Kumuliert Gesamt</th> : null}
                       <th>Rang im Rennen</th>
-                      <th>Zwischenrang</th>
+                      <th>{showCombinedMode ? "Zwischenrang Gesamt" : "Zwischenrang"}</th>
                       <th>Podium</th>
                     </tr>
                   </thead>
@@ -1064,25 +1507,42 @@ export default function Stats() {
                     {asArray(detailSeason.races).map((race, index, races) => {
                       const previousRace =
                         index > 0 && Array.isArray(races) ? races[index - 1] : null;
+                      const currentRankValue = race?.raceRank;
+                      const previousRankValue = previousRace?.raceRank;
                       const hasCurrentRank =
-                        typeof race?.raceRank === "number" &&
-                        Number.isFinite(race.raceRank);
+                        typeof currentRankValue === "number" &&
+                        Number.isFinite(currentRankValue);
                       const hasPreviousRank =
-                        typeof previousRace?.raceRank === "number" &&
-                        Number.isFinite(previousRace.raceRank);
+                        typeof previousRankValue === "number" &&
+                        Number.isFinite(previousRankValue);
                       const rankDelta =
                         hasCurrentRank && hasPreviousRank
-                          ? previousRace.raceRank - race.raceRank
+                          ? previousRankValue - currentRankValue
                           : null;
 
                       return (
                         <tr key={race.raceId}>
                           <td>{race.raceName}</td>
-                          <td>{race.points}</td>
-                          <td>{race.cumulativePoints}</td>
+                          <td>
+                            {showCombinedMode
+                              ? formatSplit(race.points, race.predictionPoints)
+                              : toSafeNumber(race.points)}
+                          </td>
+                          <td>
+                            {showCombinedMode
+                              ? formatSplit(
+                                  race.cumulativePoints,
+                                  race.cumulativePredictionPoints,
+                                )
+                              : toSafeNumber(race.cumulativePoints)}
+                          </td>
+                          {showCombinedMode ? <td>{toSafeNumber(race.combinedPoints)}</td> : null}
+                          {showCombinedMode ? (
+                            <td>{toSafeNumber(race.cumulativeCombinedPoints)}</td>
+                          ) : null}
                           <td>
                             <span className="stats-race-rank-cell">
-                              <span>{race.raceRank}</span>
+                              <span>{currentRankValue}</span>
                               {rankDelta !== null ? (
                                 <span
                                   className={`stats-rank-delta ${
@@ -1098,7 +1558,11 @@ export default function Stats() {
                               ) : null}
                             </span>
                           </td>
-                          <td>{race.cumulativeRank}</td>
+                          <td>
+                            {showCombinedMode
+                              ? race.combinedRank ?? "-"
+                              : race.cumulativeRank ?? "-"}
+                          </td>
                           <td>{race.isPodium ? "Ja" : "Nein"}</td>
                         </tr>
                       );
@@ -1110,6 +1574,24 @@ export default function Stats() {
           )}
         </section>
       ) : null}
+
+      <div
+        className="stats-global-predictions-toggle"
+        role="group"
+        aria-label="Tippspiel Darstellung"
+      >
+        <label className="stats-switch">
+          <input
+            type="checkbox"
+            checked={includePredictions}
+            onChange={(event) => setIncludePredictions(event.target.checked)}
+          />
+          <span className="stats-switch-label">Tippspiele im Ranking</span>
+          <span className="stats-switch-track" aria-hidden="true">
+            <span className="stats-switch-thumb" />
+          </span>
+        </label>
+      </div>
     </div>
   );
 }

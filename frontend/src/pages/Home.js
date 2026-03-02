@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import API from "../api";
 import { Link } from "react-router-dom";
@@ -24,6 +24,8 @@ export default function Home() {
   const [visibleUserIds, setVisibleUserIds] = useState([]);
   const [assignments, setAssignments] = useState([]);
   const [cumulativeData, setCumulativeData] = useState([]);
+  const [combinedStandings, setCombinedStandings] = useState(null);
+  const [includePredictions, setIncludePredictions] = useState(true);
   const [activePoint, setActivePoint] = useState(null);
 
   useEffect(() => {
@@ -46,6 +48,7 @@ export default function Home() {
           setParticipants([]);
           setAssignments([]);
           setCumulativeData([]);
+          setCombinedStandings(null);
           return;
         }
 
@@ -55,12 +58,14 @@ export default function Home() {
         setParticipants(filtered);
         setVisibleUserIds(filtered.map((participant) => participant._id));
 
-        const [assignmentRes, racesRes] = await Promise.all([
+        const [assignmentRes, racesRes, combinedRes] = await Promise.all([
           API.get(`/userSeasonTeams?season=${seasonId}`),
           API.get(`/races/season/${seasonId}`),
+          API.get(`/seasons/${seasonId}/combined-standings`),
         ]);
 
         setAssignments(assignmentRes.data);
+        setCombinedStandings(combinedRes.data || null);
 
         const races = racesRes.data;
 
@@ -68,7 +73,7 @@ export default function Home() {
         filtered.forEach((u) => (cumulative[u._id] = 0));
 
         const chartData = races.map((race) => {
-          const entry = { name: race.name };
+          const entry = { name: race.name, raceId: race?._id };
           race.results.forEach((res) => {
             const userId =
               typeof res.user === "object" ? res.user._id : res.user;
@@ -85,6 +90,7 @@ export default function Home() {
         setCumulativeData(chartData);
       } catch (error) {
         console.error("Fehler beim Laden:", error);
+        setCombinedStandings(null);
       }
     };
     fetchData();
@@ -155,9 +161,78 @@ export default function Home() {
   const generateColor = (index, total) =>
     `hsl(${(index * 360) / total}, 70%, 50%)`;
 
+  const formatPointValue = (value) => {
+    const num = Number(value);
+    if (!Number.isFinite(num)) return "-";
+    return Number.isInteger(num) ? String(num) : num.toFixed(2);
+  };
+
   const visibleParticipants = participants.filter((participant) =>
     visibleUserIds.includes(participant._id),
   );
+
+  const combinedStandingsByUserId = useMemo(() => {
+    const map = new Map();
+    (combinedStandings?.standings || []).forEach((row) => {
+      const userId = typeof row?.user === "object" ? row.user?._id : row?.user;
+      if (!userId) return;
+      map.set(String(userId), row);
+    });
+    return map;
+  }, [combinedStandings]);
+
+  const includedPredictionRounds = useMemo(
+    () => combinedStandings?.includedPredictionRounds || [],
+    [combinedStandings],
+  );
+  const predictionPointsByRaceId = useMemo(() => {
+    const map = new Map();
+    includedPredictionRounds.forEach((round) => {
+      const raceId = round?.race?._id;
+      if (!raceId) return;
+      const userMap = new Map();
+      (round?.userPoints || []).forEach((entry) => {
+        if (!entry?.userId) return;
+        userMap.set(String(entry.userId), Number(entry.points) || 0);
+      });
+      map.set(String(raceId), userMap);
+    });
+    return map;
+  }, [includedPredictionRounds]);
+
+  const cumulativeDataWithPredictions = useMemo(() => {
+    if (!Array.isArray(cumulativeData) || cumulativeData.length === 0)
+      return [];
+
+    const cumulativePrediction = {};
+    participants.forEach((participant) => {
+      cumulativePrediction[String(participant._id)] = 0;
+    });
+
+    return cumulativeData.map((raceEntry) => {
+      const raceId = raceEntry?.raceId ? String(raceEntry.raceId) : "";
+      const predictionMap = predictionPointsByRaceId.get(raceId);
+      const nextEntry = { ...raceEntry };
+
+      participants.forEach((participant) => {
+        const userId = String(participant._id);
+        if (predictionMap?.has(userId)) {
+          cumulativePrediction[userId] += Number(
+            predictionMap.get(userId) || 0,
+          );
+        }
+        nextEntry[userId] =
+          Number(raceEntry?.[userId] || 0) +
+          Number(cumulativePrediction[userId] || 0);
+      });
+
+      return nextEntry;
+    });
+  }, [cumulativeData, participants, predictionPointsByRaceId]);
+
+  const displayedChartData = includePredictions
+    ? cumulativeDataWithPredictions
+    : cumulativeData;
 
   const toggleVisibleUser = (userId) => {
     setVisibleUserIds((previous) =>
@@ -182,20 +257,62 @@ export default function Home() {
     </div>
   );
 
-  const rankingRows = [...participants]
-    .map((p) => ({
-      ...p,
-      points: cumulativeData.at(-1)?.[p._id] || 0,
-    }))
-    .sort((a, b) => b.points - a.points)
-    .map((p, i) => (
-      <tr key={p._id}>
-        <td>{i + 1}</td>
-        <td>{p.realname}</td>
-        <td>{getTeamName(p._id)}</td>
-        <td>{p.points}</td>
-      </tr>
-    ));
+  const rankingSourceRows = useMemo(() => {
+    if (combinedStandings?.standings?.length) {
+      return combinedStandings.standings;
+    }
+    return [...participants].map((p) => ({
+      user: p,
+      racePoints: cumulativeData.at(-1)?.[p._id] || 0,
+      predictionPoints: 0,
+      combinedPoints: cumulativeData.at(-1)?.[p._id] || 0,
+      combinedRank: null,
+      raceRank: null,
+    }));
+  }, [combinedStandings, cumulativeData, participants]);
+
+  const rankingTableColumns = includePredictions
+    ? ["#", "Name", "Team", "Rennen", "Predictions", "Gesamt"]
+    : ["#", "Name", "Team", "Rennen"];
+
+  const rankingRows = rankingSourceRows
+    .slice()
+    .sort((a, b) => {
+      const aPoints = includePredictions
+        ? Number(a?.combinedPoints || 0)
+        : Number(a?.racePoints || 0);
+      const bPoints = includePredictions
+        ? Number(b?.combinedPoints || 0)
+        : Number(b?.racePoints || 0);
+      const diff = bPoints - aPoints;
+      if (diff !== 0) return diff;
+
+      const raceDiff = Number(b?.racePoints || 0) - Number(a?.racePoints || 0);
+      if (raceDiff !== 0) return raceDiff;
+      const aName = a?.user?.realname || a?.user?.username || "";
+      const bName = b?.user?.realname || b?.user?.username || "";
+      return aName.localeCompare(bName, "de-CH");
+    })
+    .map((row, i) => {
+      const userRow = row?.user || {};
+      const userId = userRow?._id;
+      return (
+        <tr key={userId || `row-${i}`}>
+          <td>{i + 1}</td>
+          <td>{userRow?.realname || userRow?.username || "-"}</td>
+          <td>{getTeamName(userId)}</td>
+          <td>{formatPointValue(row?.racePoints || 0)}</td>
+          {includePredictions ? (
+            <>
+              <td>{formatPointValue(row?.predictionPoints || 0)}</td>
+              <td>
+                <strong>{formatPointValue(row?.combinedPoints || 0)}</strong>
+              </td>
+            </>
+          ) : null}
+        </tr>
+      );
+    });
 
   const resultRows = participants.map((p) => {
     let last = 0;
@@ -215,6 +332,24 @@ export default function Home() {
         <td>
           <strong>{last}</strong>
         </td>
+        {includePredictions ? (
+          <>
+            <td>
+              {formatPointValue(
+                combinedStandingsByUserId.get(String(p._id))
+                  ?.predictionPoints || 0,
+              )}
+            </td>
+            <td>
+              <strong>
+                {formatPointValue(
+                  combinedStandingsByUserId.get(String(p._id))
+                    ?.combinedPoints ?? last,
+                )}
+              </strong>
+            </td>
+          </>
+        ) : null}
       </tr>
     );
   });
@@ -328,6 +463,7 @@ export default function Home() {
         typeof participant === "object" ? participant?._id : participant;
       return participantId === localUser._id;
     });
+  const combinedMeta = combinedStandings?.meta || null;
 
   return (
     <div className="home-container">
@@ -398,22 +534,55 @@ export default function Home() {
       </div>
 
       <section>
-        <h2>Rangliste</h2>
+        <h2>
+          {includePredictions ? "Rangliste (Gesamt)" : "Rangliste (nur Rennen)"}
+        </h2>
+        {includePredictions &&
+        (combinedMeta?.reviewRequiredPublishedPredictionRounds ||
+          includedPredictionRounds.length > 0) ? (
+          <div className="home-combined-meta">
+            {combinedMeta?.reviewRequiredPublishedPredictionRounds ? (
+              <p className="home-combined-warning">
+                Review offen bei{" "}
+                {combinedMeta.reviewRequiredPublishedPredictionRounds}{" "}
+                Prediction-Runde(n).
+              </p>
+            ) : null}
+            {includedPredictionRounds.length > 0 ? (
+              <>
+                <p className="home-combined-muted">Berechnete Tippspiele:</p>
+                <div className="home-prediction-round-chip-list">
+                  {includedPredictionRounds.map((round) => (
+                    <span
+                      key={round._id}
+                      className={`home-prediction-round-chip ${
+                        round.requiresReview ? "is-warning" : ""
+                      }`}
+                    >
+                      {round?.race?.name || "Prediction-Runde"}
+                    </span>
+                  ))}
+                </div>
+              </>
+            ) : null}
+          </div>
+        ) : null}
         {rankingRows.length > 0 ? (
-          renderTable(rankingRows, ["#", "Name", "Team", "Punkte"])
+          renderTable(rankingRows, rankingTableColumns)
         ) : (
           <p>Keine Rangliste verfügbar</p>
         )}
       </section>
 
       <section>
-        <h2>Ergebnis-Tabelle</h2>
+        <h2>Ergebnisse</h2>
         {resultRows.length > 0 ? (
           renderTable(resultRows, [
             "Name",
             "Team",
             ...cumulativeData.map((r) => r.name),
-            "Total",
+            "Rennen Total",
+            ...(includePredictions ? ["Predictions", "Gesamt"] : []),
           ])
         ) : (
           <p>Keine Resultate verfügbar</p>
@@ -477,7 +646,7 @@ export default function Home() {
         <div className="scroll-wrapper chart-scroll-wrapper">
           <div className="chart-inner">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={cumulativeData}>
+              <LineChart data={displayedChartData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis allowDecimals={false} />
@@ -508,6 +677,24 @@ export default function Home() {
           </p>
         ) : null}
       </section>
+
+      <div
+        className="home-global-predictions-toggle"
+        role="group"
+        aria-label="Predictions Darstellung"
+      >
+        <label className="home-switch">
+          <input
+            type="checkbox"
+            checked={includePredictions}
+            onChange={(event) => setIncludePredictions(event.target.checked)}
+          />
+          <span className="home-switch-label">Tippspiele</span>
+          <span className="home-switch-track" aria-hidden="true">
+            <span className="home-switch-thumb" />
+          </span>
+        </label>
+      </div>
     </div>
   );
 }

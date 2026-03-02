@@ -17,6 +17,7 @@ import {
   updateRoundScoringConfig,
   upsertUserEntry,
 } from "../services/predictionService.js";
+import { bumpStatsRevision } from "../utils/statsRevision.js";
 
 const isObjectIdError = (error) =>
   error?.name === "CastError" ||
@@ -122,6 +123,7 @@ export const createAdminRound = withPredictionHandler(
       scoringConfig: req.body?.scoringConfig || {},
       createdBy: req.user?._id,
     });
+    await bumpStatsRevision();
     return res.status(201).json(round);
   },
   "Fehler beim Erstellen der Prediction-Runde.",
@@ -146,6 +148,7 @@ export const patchAdminRoundStatus = withPredictionHandler(
       trigger: req.body?.trigger || "manual_admin",
       changedBy: req.user?._id,
     });
+    await bumpStatsRevision();
     return res.json(round);
   },
   "Fehler beim Wechseln des Round-Status.",
@@ -158,6 +161,7 @@ export const patchAdminRoundScoringConfig = withPredictionHandler(
       scoringConfig: req.body?.scoringConfig || {},
       updatedBy: req.user?._id,
     });
+    await bumpStatsRevision();
     return res.json(result);
   },
   "Fehler beim Speichern der Punkteverteilung.",
@@ -171,6 +175,7 @@ export const postAdminScoreRound = withPredictionHandler(
       trigger: req.body?.trigger || "manual",
       force: false,
     });
+    await bumpStatsRevision();
     return res.json(result);
   },
   "Fehler beim Scoring der Runde.",
@@ -182,6 +187,7 @@ export const postAdminPublishRound = withPredictionHandler(
       roundId: req.params.roundId,
       publishedBy: req.user?._id,
     });
+    await bumpStatsRevision();
     return res.json(round);
   },
   "Fehler beim Veröffentlichen der Runde.",
@@ -196,6 +202,7 @@ export const patchAdminOverrideScore = withPredictionHandler(
       reason: req.body?.reason,
       overrideBy: req.user?._id,
     });
+    await bumpStatsRevision();
     return res.json(score);
   },
   "Fehler beim Überschreiben des Scores.",
@@ -208,6 +215,7 @@ export const deleteAdminOverrideScore = withPredictionHandler(
       userId: req.params.userId,
       clearedBy: req.user?._id,
     });
+    await bumpStatsRevision();
     return res.json(result);
   },
   "Fehler beim Entfernen des Overrides.",
@@ -222,6 +230,7 @@ export const postAdminRescoreFromRace = withPredictionHandler(
       force: true,
       preserveOverrides: true,
     });
+    await bumpStatsRevision();
     return res.json(result);
   },
   "Fehler beim Re-Scoring aus Race-Ergebnissen.",
@@ -233,6 +242,7 @@ export const deleteAdminRound = withPredictionHandler(
       roundId: req.params.roundId,
       deletedBy: req.user?._id,
     });
+    await bumpStatsRevision();
     return res.json(result);
   },
   "Fehler beim Löschen der Prediction-Runde.",
