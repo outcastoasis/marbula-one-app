@@ -50,6 +50,17 @@ export default function AdminUsers() {
     [users],
   );
 
+  const sortedUsers = useMemo(
+    () =>
+      [...users].sort((a, b) =>
+        String(a?.username || "").localeCompare(String(b?.username || ""), "de-CH", {
+          sensitivity: "base",
+          numeric: true,
+        }),
+      ),
+    [users],
+  );
+
   const createUser = async (event) => {
     event.preventDefault();
 
@@ -116,38 +127,44 @@ export default function AdminUsers() {
         </div>
 
         <form className="admin-users-create-form" onSubmit={createUser}>
-          <label htmlFor="create-username">Benutzername</label>
-          <input
-            id="create-username"
-            className="admin-users-control"
-            type="text"
-            value={username}
-            onChange={(event) => setUsername(event.target.value)}
-            placeholder="Benutzername"
-            autoComplete="off"
-          />
+          <label htmlFor="create-username" className="admin-users-field">
+            <span>Benutzername</span>
+            <input
+              id="create-username"
+              className="admin-users-control"
+              type="text"
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              placeholder="Benutzername"
+              autoComplete="off"
+            />
+          </label>
 
-          <label htmlFor="create-realname">Name</label>
-          <input
-            id="create-realname"
-            className="admin-users-control"
-            type="text"
-            value={realname}
-            onChange={(event) => setRealname(event.target.value)}
-            placeholder="Vorname Nachname"
-            autoComplete="off"
-          />
+          <label htmlFor="create-realname" className="admin-users-field">
+            <span>Name</span>
+            <input
+              id="create-realname"
+              className="admin-users-control"
+              type="text"
+              value={realname}
+              onChange={(event) => setRealname(event.target.value)}
+              placeholder="Vorname Nachname"
+              autoComplete="off"
+            />
+          </label>
 
-          <label htmlFor="create-password">Passwort</label>
-          <input
-            id="create-password"
-            className="admin-users-control"
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="Passwort"
-            autoComplete="new-password"
-          />
+          <label htmlFor="create-password" className="admin-users-field">
+            <span>Passwort</span>
+            <input
+              id="create-password"
+              className="admin-users-control"
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Passwort"
+              autoComplete="new-password"
+            />
+          </label>
 
           <button
             type="submit"
@@ -163,13 +180,13 @@ export default function AdminUsers() {
         <div className="admin-users-table-head">
           <h2>Benutzerliste</h2>
           <span className="admin-users-count">
-            {users.length} {users.length === 1 ? "Eintrag" : "Einträge"}
+            {sortedUsers.length} {sortedUsers.length === 1 ? "Eintrag" : "Einträge"}
           </span>
         </div>
 
         {isLoading ? (
           <p className="admin-users-state">Lade Benutzer...</p>
-        ) : users.length === 0 ? (
+        ) : sortedUsers.length === 0 ? (
           <p className="admin-users-state">Keine Benutzer gefunden.</p>
         ) : (
           <div className="admin-users-table-wrapper">
@@ -183,7 +200,7 @@ export default function AdminUsers() {
                 </tr>
               </thead>
               <tbody>
-                {users.map((user) => (
+                {sortedUsers.map((user) => (
                   <tr key={user._id}>
                     <td data-label="Benutzername">{user.username}</td>
                     <td data-label="Name">{user.realname || "-"}</td>

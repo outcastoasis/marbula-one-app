@@ -90,10 +90,16 @@
 .admin-users-create-form {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.55rem 0.75rem;
+  gap: 0.7rem 0.75rem;
 }
 
-.admin-users-create-form label {
+.admin-users-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.38rem;
+}
+
+.admin-users-field span {
   font-size: 0.86rem;
   color: #d7d7d7;
 }

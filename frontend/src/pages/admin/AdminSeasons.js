@@ -44,6 +44,17 @@ export default function AdminSeasons() {
     [seasons],
   );
 
+  const sortedUsers = useMemo(
+    () =>
+      [...users].sort((a, b) =>
+        String(a?.username || "").localeCompare(String(b?.username || ""), "de-CH", {
+          sensitivity: "base",
+          numeric: true,
+        }),
+      ),
+    [users],
+  );
+
   const fetchData = useCallback(
     async ({ showErrorToast = true } = {}) => {
       setIsLoading(true);
@@ -324,19 +335,21 @@ export default function AdminSeasons() {
               <button
                 type="button"
                 className="admin-seasons-toggle"
-                onClick={() => toggleAll(users, participants, setParticipants)}
+                onClick={() =>
+                  toggleAll(sortedUsers, participants, setParticipants)
+                }
               >
-                {participants.length === users.length
+                {participants.length === sortedUsers.length
                   ? "Alle abwählen"
                   : "Alle auswählen"}
               </button>
             </div>
 
-            {users.length === 0 ? (
+            {sortedUsers.length === 0 ? (
               <p className="admin-seasons-empty">Keine Benutzer verfügbar.</p>
             ) : (
               <div className="admin-seasons-checkbox-list">
-                {users.map((user) => {
+                {sortedUsers.map((user) => {
                   const isSelected = participants.includes(user._id);
                   return (
                     <label key={user._id} className="admin-seasons-checkbox">
