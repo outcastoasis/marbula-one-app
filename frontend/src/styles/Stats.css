@@ -73,6 +73,74 @@
   gap: 0.5rem;
 }
 
+.stats-mode-toggle {
+  margin-top: 0.15rem;
+}
+
+.stats-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: #efefef;
+  font-size: 0.86rem;
+}
+
+.stats-switch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.stats-switch-label {
+  color: #e5e5e5;
+}
+
+.stats-switch-track {
+  width: 42px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid #3b3b3b;
+  background: #222;
+  display: inline-flex;
+  align-items: center;
+  padding: 2px;
+  box-sizing: border-box;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+  cursor: pointer;
+}
+
+.stats-switch-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #c7c7c7;
+  transform: translateX(0);
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.stats-switch input:checked + .stats-switch-label + .stats-switch-track {
+  background: rgba(255, 30, 30, 0.3);
+  border-color: rgba(255, 30, 30, 0.68);
+}
+
+.stats-switch
+  input:checked
+  + .stats-switch-label
+  + .stats-switch-track
+  .stats-switch-thumb {
+  transform: translateX(18px);
+  background: #fff;
+}
+
+.stats-switch input:focus-visible + .stats-switch-label + .stats-switch-track {
+  outline: 2px solid #ff1e1e;
+  outline-offset: 2px;
+}
+
 .stats-season-heading p {
   margin: 0;
   color: #bdbdbd;
@@ -270,11 +338,10 @@
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background:
-    conic-gradient(
-      #ff2a2a calc(var(--radial-percent) * 1%),
-      #2a2a2a 0
-    );
+  background: conic-gradient(
+    #ff2a2a calc(var(--radial-percent) * 1%),
+    #2a2a2a 0
+  );
   box-shadow: inset 0 0 0 1px #303030;
 }
 
@@ -356,12 +423,16 @@
   order: 4;
 }
 
-.stats-order-race {
+.stats-order-prediction-only {
   order: 5;
 }
 
-.stats-order-compare {
+.stats-order-race {
   order: 6;
+}
+
+.stats-order-compare {
+  order: 7;
 }
 
 .stats-chart-card {
@@ -426,6 +497,10 @@
   background: linear-gradient(90deg, #ff7f50 0%, #ff3700 100%);
 }
 
+.stats-bar-fill.is-prediction {
+  background: linear-gradient(90deg, #ff9f1a 0%, #ff5f1a 100%);
+}
+
 .stats-bar-value {
   color: #fff;
   text-align: right;
@@ -443,7 +518,11 @@
   display: block;
   border-radius: 10px;
   background:
-    radial-gradient(circle at 15% 15%, rgba(255, 30, 30, 0.08), transparent 60%),
+    radial-gradient(
+      circle at 15% 15%,
+      rgba(255, 30, 30, 0.08),
+      transparent 60%
+    ),
     #121212;
   border: 1px solid #2c2c2c;
 }

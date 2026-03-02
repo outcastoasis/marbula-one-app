@@ -10,13 +10,23 @@ const emptyOverall = {
   participatedSeasonsCount: 0,
   raceCount: 0,
   totalPoints: 0,
+  predictionRoundCount: 0,
+  predictionPoints: 0,
+  predictionPodiumCount: 0,
+  predictionTop3Rate: 0,
+  avgPredictionPointsPerRound: 0,
   podiumCount: 0,
   top3Rate: 0,
   avgPointsPerRace: 0,
+  combinedPoints: 0,
+  avgCombinedPointsPerRace: 0,
   avgSeasonEndRank: null,
+  avgCombinedSeasonEndRank: null,
   seasonsWon: 0,
   bestRace: null,
   worstRace: null,
+  bestPredictionRound: null,
+  worstPredictionRound: null,
 };
 
 const emptyOverview = {
@@ -121,6 +131,7 @@ const normalizeBars = (entries, options = {}) => {
 export default function Stats() {
   const { user } = useContext(AuthContext);
   const [seasonFilter, setSeasonFilter] = useState("all");
+  const [includePredictions, setIncludePredictions] = useState(true);
   const [completedSeasons, setCompletedSeasons] = useState([]);
   const [compareCandidatesAll, setCompareCandidatesAll] = useState([]);
   const [compareCandidatesBySeason, setCompareCandidatesBySeason] = useState(
@@ -324,6 +335,19 @@ export default function Stats() {
   const seasonStats = asArray(baseStats?.seasons);
   const overall = baseStats?.overall || emptyOverall;
   const comparisons = asArray(statsResponse?.comparisons);
+  const showCombinedMode = includePredictions;
+  const displayedTotalPoints = showCombinedMode
+    ? toSafeNumber(overall.combinedPoints)
+    : toSafeNumber(overall.totalPoints);
+  const displayedAvgPoints = showCombinedMode
+    ? toSafeNumber(overall.avgCombinedPointsPerRace)
+    : toSafeNumber(overall.avgPointsPerRace);
+  const displayedAvgSeasonRank = showCombinedMode
+    ? overall.avgCombinedSeasonEndRank
+    : overall.avgSeasonEndRank;
+  const displayedRankTitle = showCombinedMode
+    ? "Ø Season-Endrang (Gesamt)"
+    : "Ø Season-Endrang";
 
   const detailSeason = useMemo(() => {
     if (seasonStats.length === 0) {
@@ -338,6 +362,10 @@ export default function Stats() {
   }, [seasonStats]);
 
   const ownBarsConfig = useMemo(() => {
+    const pointsLabel = showCombinedMode
+      ? "Gesamtpunkte inkl. Predictions"
+      : "Punkte pro Rennen";
+
     if (seasonFilter !== "all") {
       const selectedSeason = seasonStats.find(
         (season) => season?.seasonId === seasonFilter,
@@ -345,7 +373,7 @@ export default function Stats() {
 
       if (!selectedSeason) {
         return {
-          title: "Punkte pro Rennen",
+          title: pointsLabel,
           entries: [],
           emptyMessage: "Keine Daten für diese Season gefunden.",
         };
@@ -353,7 +381,7 @@ export default function Stats() {
 
       if (selectedSeason.participationStatus !== "participated") {
         return {
-          title: "Punkte pro Rennen",
+          title: pointsLabel,
           entries: [],
           emptyMessage: "Nicht teilgenommen in dieser Season.",
         };
@@ -362,11 +390,13 @@ export default function Stats() {
       const entries = asArray(selectedSeason.races).map((race) => ({
         key: race.raceId || race.raceName,
         label: race.raceName,
-        value: toSafeNumber(race.points),
+        value: showCombinedMode
+          ? toSafeNumber(race.combinedPoints)
+          : toSafeNumber(race.points),
       }));
 
       return {
-        title: `${selectedSeason.seasonName}: Punkte pro Rennen`,
+        title: `${selectedSeason.seasonName}: ${pointsLabel}`,
         entries: normalizeBars(entries),
         emptyMessage: "Keine Rennen vorhanden.",
       };
@@ -377,15 +407,19 @@ export default function Stats() {
       .map((season) => ({
         key: season.seasonId,
         label: season.seasonName,
-        value: toSafeNumber(season.totalPoints),
+        value: showCombinedMode
+          ? toSafeNumber(season.combinedPoints)
+          : toSafeNumber(season.totalPoints),
       }));
 
     return {
-      title: "Gesamtpunkte pro Season",
+      title: showCombinedMode
+        ? "Gesamtpunkte pro Season (inkl. Predictions)"
+        : "Gesamtpunkte pro Season",
       entries: normalizeBars(entries),
       emptyMessage: "Keine teilgenommenen Seasons vorhanden.",
     };
-  }, [seasonFilter, seasonStats]);
+  }, [seasonFilter, seasonStats, showCombinedMode]);
 
   const ownRankLineConfig = useMemo(() => {
     if (seasonFilter !== "all") {
@@ -397,17 +431,73 @@ export default function Stats() {
       .map((season) => ({
         key: season.seasonId,
         label: season.seasonName,
-        value:
-          typeof season.finalRank === "number" && Number.isFinite(season.finalRank)
-            ? season.finalRank
-            : null,
+        value: (() => {
+          const rankValue = showCombinedMode
+            ? season.finalCombinedRank
+            : season.finalRank;
+          return typeof rankValue === "number" && Number.isFinite(rankValue)
+            ? rankValue
+            : null;
+        })(),
       }))
       .filter((entry) => entry.value != null);
 
     return {
-      title: "Endrang pro Season",
+      title: showCombinedMode
+        ? "Endrang pro Season (inkl. Predictions)"
+        : "Endrang pro Season",
       points,
       emptyMessage: "Keine Endränge für teilgenommene Seasons vorhanden.",
+    };
+  }, [seasonFilter, seasonStats, showCombinedMode]);
+
+  const predictionBarsConfig = useMemo(() => {
+    if (seasonFilter !== "all") {
+      const selectedSeason = seasonStats.find(
+        (season) => season?.seasonId === seasonFilter,
+      );
+
+      if (!selectedSeason) {
+        return {
+          title: "Prediction-Punkte pro Runde",
+          entries: [],
+          emptyMessage: "Keine Daten fÃ¼r diese Season gefunden.",
+        };
+      }
+
+      if (selectedSeason.participationStatus !== "participated") {
+        return {
+          title: "Prediction-Punkte pro Runde",
+          entries: [],
+          emptyMessage: "Nicht teilgenommen in dieser Season.",
+        };
+      }
+
+      const entries = asArray(selectedSeason.races).map((race) => ({
+        key: race.raceId || race.raceName,
+        label: race.raceName,
+        value: toSafeNumber(race.predictionPoints),
+      }));
+
+      return {
+        title: `${selectedSeason.seasonName}: Prediction-Punkte pro Runde`,
+        entries: normalizeBars(entries),
+        emptyMessage: "Keine Prediction-Runden vorhanden.",
+      };
+    }
+
+    const entries = seasonStats
+      .filter((season) => season?.participationStatus === "participated")
+      .map((season) => ({
+        key: season.seasonId,
+        label: season.seasonName,
+        value: toSafeNumber(season.predictionPoints),
+      }));
+
+    return {
+      title: "Prediction-Punkte pro Season",
+      entries: normalizeBars(entries),
+      emptyMessage: "Keine teilgenommenen Seasons vorhanden.",
     };
   }, [seasonFilter, seasonStats]);
 
@@ -452,12 +542,14 @@ export default function Stats() {
       label: entry.label,
       isBase: entry.isBase,
       note: entry.note,
-      value: toSafeNumber(entry.overall?.totalPoints),
+      value: showCombinedMode
+        ? toSafeNumber(entry.overall?.combinedPoints)
+        : toSafeNumber(entry.overall?.totalPoints),
     }));
 
     const sorted = [...entries].sort((a, b) => b.value - a.value);
     return normalizeBars(sorted);
-  }, [compareMetricUsers]);
+  }, [compareMetricUsers, showCombinedMode]);
 
   const compareAvgPointsBars = useMemo(() => {
     if (compareMetricUsers.length === 0) {
@@ -469,12 +561,14 @@ export default function Stats() {
       label: entry.label,
       isBase: entry.isBase,
       note: entry.note,
-      value: toSafeNumber(entry.overall?.avgPointsPerRace),
+      value: showCombinedMode
+        ? toSafeNumber(entry.overall?.avgCombinedPointsPerRace)
+        : toSafeNumber(entry.overall?.avgPointsPerRace),
     }));
 
     const sorted = [...entries].sort((a, b) => b.value - a.value);
     return normalizeBars(sorted);
-  }, [compareMetricUsers]);
+  }, [compareMetricUsers, showCombinedMode]);
 
   const comparePodiumRateBars = useMemo(() => {
     if (compareMetricUsers.length === 0) {
@@ -487,6 +581,57 @@ export default function Stats() {
       isBase: entry.isBase,
       note: entry.note,
       value: toSafeNumber(entry.overall?.top3Rate),
+    }));
+
+    const sorted = [...entries].sort((a, b) => b.value - a.value);
+    return normalizeBars(sorted);
+  }, [compareMetricUsers]);
+
+  const comparePredictionPointsBars = useMemo(() => {
+    if (compareMetricUsers.length === 0) {
+      return [];
+    }
+
+    const entries = compareMetricUsers.map((entry) => ({
+      key: entry.key,
+      label: entry.label,
+      isBase: entry.isBase,
+      note: entry.note,
+      value: toSafeNumber(entry.overall?.predictionPoints),
+    }));
+
+    const sorted = [...entries].sort((a, b) => b.value - a.value);
+    return normalizeBars(sorted);
+  }, [compareMetricUsers]);
+
+  const comparePredictionAvgBars = useMemo(() => {
+    if (compareMetricUsers.length === 0) {
+      return [];
+    }
+
+    const entries = compareMetricUsers.map((entry) => ({
+      key: entry.key,
+      label: entry.label,
+      isBase: entry.isBase,
+      note: entry.note,
+      value: toSafeNumber(entry.overall?.avgPredictionPointsPerRound),
+    }));
+
+    const sorted = [...entries].sort((a, b) => b.value - a.value);
+    return normalizeBars(sorted);
+  }, [compareMetricUsers]);
+
+  const comparePredictionTop3Bars = useMemo(() => {
+    if (compareMetricUsers.length === 0) {
+      return [];
+    }
+
+    const entries = compareMetricUsers.map((entry) => ({
+      key: entry.key,
+      label: entry.label,
+      isBase: entry.isBase,
+      note: entry.note,
+      value: toSafeNumber(entry.overall?.predictionTop3Rate),
     }));
 
     const sorted = [...entries].sort((a, b) => b.value - a.value);
@@ -506,8 +651,14 @@ export default function Stats() {
       label: entry.label,
       isBase: entry.isBase,
       note: entry.note,
-      value: hasValue(entry.overall?.avgSeasonEndRank)
-        ? entry.overall.avgSeasonEndRank
+      value: hasValue(
+        showCombinedMode
+          ? entry.overall?.avgCombinedSeasonEndRank
+          : entry.overall?.avgSeasonEndRank,
+      )
+        ? showCombinedMode
+          ? entry.overall.avgCombinedSeasonEndRank
+          : entry.overall.avgSeasonEndRank
         : null,
     }));
 
@@ -528,7 +679,7 @@ export default function Stats() {
     });
 
     return normalizeBars(sorted, { lowerIsBetter: true });
-  }, [compareMetricUsers]);
+  }, [compareMetricUsers, showCombinedMode]);
 
   const toggleCompare = (compareId) => {
     setSelectedCompareIds((previous) => {
@@ -549,6 +700,9 @@ export default function Stats() {
         toSafeNumber(overall.participatedSeasonsCount)
       : 0;
   const top3RatePercent = clampPercent(toSafeNumber(overall.top3Rate) * 100);
+  const predictionTop3RatePercent = clampPercent(
+    toSafeNumber(overall.predictionTop3Rate) * 100,
+  );
   const seasonWinRatePercent = clampPercent(seasonWinRate * 100);
   const formatOverviewPlayer = (player) => {
     if (!player?.displayName) {
@@ -779,6 +933,27 @@ export default function Stats() {
                 ))}
               </select>
             </label>
+            <div
+              className="stats-mode-toggle"
+              role="group"
+              aria-label="Punkte-Darstellung"
+            >
+              <label className="stats-switch">
+                <input
+                  type="checkbox"
+                  checked={includePredictions}
+                  onChange={(event) =>
+                    setIncludePredictions(event.target.checked)
+                  }
+                />
+                <span className="stats-switch-label">
+                  Predictions einbeziehen
+                </span>
+                <span className="stats-switch-track" aria-hidden="true">
+                  <span className="stats-switch-thumb" />
+                </span>
+              </label>
+            </div>
           </div>
         </section>
 
@@ -827,11 +1002,17 @@ export default function Stats() {
 
       <section className="stats-panel stats-order-key">
         <h2>Persönliche Statistiken</h2>
+        <p className="stats-subline">
+          Modus:{" "}
+          <strong>
+            {showCombinedMode ? "Rennen + Predictions" : "Nur Rennen"}
+          </strong>
+        </p>
         <div className="stats-kpi-layout">
           <div className="stats-kpi-grid stats-kpi-grid-main stats-kpi-grid-metrics">
           <article className="stats-kpi">
-            <p>Gesamtpunkte</p>
-            <strong>{overall.totalPoints ?? 0}</strong>
+            <p>{showCombinedMode ? "Gesamtpunkte (inkl. Predictions)" : "Gesamtpunkte"}</p>
+            <strong>{displayedTotalPoints}</strong>
           </article>
           <article className="stats-kpi">
             <p>Rennen</p>
@@ -842,12 +1023,12 @@ export default function Stats() {
             <strong>{overall.podiumCount ?? 0}</strong>
           </article>
           <article className="stats-kpi">
-            <p>Ø Punkte / Rennen</p>
-            <strong>{formatNumber(overall.avgPointsPerRace, 2)}</strong>
+            <p>{showCombinedMode ? "Ø Gesamtpunkte / Rennen" : "Ø Punkte / Rennen"}</p>
+            <strong>{formatNumber(displayedAvgPoints, 2)}</strong>
           </article>
           <article className="stats-kpi">
-            <p>Ø Season-Endrang</p>
-            <strong>{formatNumber(overall.avgSeasonEndRank, 2)}</strong>
+            <p>{displayedRankTitle}</p>
+            <strong>{formatNumber(displayedAvgSeasonRank, 2)}</strong>
           </article>
           </div>
           <div className="stats-kpi-grid stats-kpi-grid-radials">
@@ -867,6 +1048,14 @@ export default function Stats() {
               overall.participatedSeasonsCount,
             )} Seasons`,
           })}
+          {renderRadialKpi({
+            title: "Prediction Top-3-Rate",
+            percent: predictionTop3RatePercent,
+            percentLabel: formatPercent(overall.predictionTop3Rate),
+            detailLabel: `${toSafeNumber(overall.predictionPodiumCount)} / ${toSafeNumber(
+              overall.predictionRoundCount,
+            )} Runden`,
+          })}
           </div>
         </div>
         <div className="stats-kpi-grid stats-kpi-grid-races">
@@ -878,6 +1067,14 @@ export default function Stats() {
             <p>Worst Race</p>
             <strong>{formatRaceLabel(overall.worstRace, true)}</strong>
           </article>
+          <article className="stats-kpi stats-kpi-detail">
+            <p>Best Prediction Round</p>
+            <strong>{formatRaceLabel(overall.bestPredictionRound, true)}</strong>
+          </article>
+          <article className="stats-kpi stats-kpi-detail">
+            <p>Worst Prediction Round</p>
+            <strong>{formatRaceLabel(overall.worstPredictionRound, true)}</strong>
+          </article>
         </div>
         <p className="stats-footnote">
           Abgeschlossene Seasons: {overall.completedSeasonsCount ?? 0} |
@@ -887,11 +1084,7 @@ export default function Stats() {
 
       <section className="stats-panel stats-order-personal">
         <h2>Persönliche Grafik</h2>
-        <div
-          className={`stats-chart-grid ${
-            seasonFilter === "all" ? "" : "stats-chart-grid-single"
-          }`}
-        >
+        <div className="stats-chart-grid">
           <article className="stats-chart-card">
             <h3>{ownBarsConfig.title}</h3>
             {ownBarsConfig.entries.length === 0 ? (
@@ -915,7 +1108,58 @@ export default function Stats() {
               </div>
             )}
           </article>
+          <article className="stats-chart-card">
+            <h3>{predictionBarsConfig.title}</h3>
+            {predictionBarsConfig.entries.length === 0 ? (
+              <p className="stats-inline-state">
+                {predictionBarsConfig.emptyMessage}
+              </p>
+            ) : (
+              <div className="stats-bar-list">
+                {predictionBarsConfig.entries.map((entry) => (
+                  <div key={entry.key} className="stats-bar-row">
+                    <span className="stats-bar-label">{entry.label}</span>
+                    <div className="stats-bar-track">
+                      <div
+                        className="stats-bar-fill is-prediction"
+                        style={{ width: `${entry.percent}%` }}
+                      />
+                    </div>
+                    <strong className="stats-bar-value">
+                      {entry.value == null ? "-" : entry.value}
+                    </strong>
+                  </div>
+                ))}
+              </div>
+            )}
+          </article>
           {seasonFilter === "all" ? renderRankLineChartCard(ownRankLineConfig) : null}
+        </div>
+      </section>
+
+      <section className="stats-panel stats-order-prediction-only">
+        <h2>Reine Prediction-Statistiken</h2>
+        <div className="stats-kpi-grid stats-kpi-grid-main stats-kpi-grid-metrics">
+          <article className="stats-kpi">
+            <p>Prediction-Runden</p>
+            <strong>{toSafeNumber(overall.predictionRoundCount)}</strong>
+          </article>
+          <article className="stats-kpi">
+            <p>Prediction-Punkte</p>
+            <strong>{toSafeNumber(overall.predictionPoints)}</strong>
+          </article>
+          <article className="stats-kpi">
+            <p>Ø Punkte / Runde</p>
+            <strong>{formatNumber(overall.avgPredictionPointsPerRound, 2)}</strong>
+          </article>
+          <article className="stats-kpi">
+            <p>Prediction-Podien</p>
+            <strong>{toSafeNumber(overall.predictionPodiumCount)}</strong>
+          </article>
+          <article className="stats-kpi">
+            <p>Prediction Top-3-Rate</p>
+            <strong>{formatPercent(overall.predictionTop3Rate)}</strong>
+          </article>
         </div>
       </section>
 
@@ -950,12 +1194,16 @@ export default function Stats() {
         </div>
         <div className="stats-chart-grid">
           {renderCompareMetricCard(
-            "Vergleich Gesamtpunkte",
+            showCombinedMode
+              ? "Vergleich Gesamtpunkte (inkl. Predictions)"
+              : "Vergleich Gesamtpunkte",
             compareTotalPointsBars,
             (value) => String(toSafeNumber(value)),
           )}
           {renderCompareMetricCard(
-            "Vergleich Ø Punkte pro Rennen",
+            showCombinedMode
+              ? "Vergleich Ø Gesamtpunkte pro Rennen"
+              : "Vergleich Ø Punkte pro Rennen",
             compareAvgPointsBars,
             (value) => formatNumber(value, 2),
           )}
@@ -965,9 +1213,26 @@ export default function Stats() {
             (value) => formatPercent(value),
           )}
           {renderCompareMetricCard(
-            "Vergleich Ø Season-Endrang",
+            showCombinedMode
+              ? "Vergleich Ø Season-Endrang (inkl. Predictions)"
+              : "Vergleich Ø Season-Endrang",
             compareAvgRankBars,
             (value) => formatNumber(value, 2),
+          )}
+          {renderCompareMetricCard(
+            "Vergleich Prediction-Punkte",
+            comparePredictionPointsBars,
+            (value) => String(toSafeNumber(value)),
+          )}
+          {renderCompareMetricCard(
+            "Vergleich Ø Prediction-Punkte / Runde",
+            comparePredictionAvgBars,
+            (value) => formatNumber(value, 2),
+          )}
+          {renderCompareMetricCard(
+            "Vergleich Prediction Top-3-Rate",
+            comparePredictionTop3Bars,
+            (value) => formatPercent(value),
           )}
         </div>
       </section>
@@ -988,7 +1253,9 @@ export default function Stats() {
                   <th>Season</th>
                   <th>Status</th>
                   <th>Rennen</th>
-                  <th>Punkte</th>
+                  <th>{showCombinedMode ? "Rennen" : "Punkte"}</th>
+                  {showCombinedMode ? <th>Predictions</th> : null}
+                  {showCombinedMode ? <th>Gesamt</th> : null}
                   <th>Podien</th>
                   <th>Top-3-Rate</th>
                   <th>Endrang</th>
@@ -1007,7 +1274,9 @@ export default function Stats() {
                             Nicht teilgenommen
                           </span>
                         </td>
-                        <td colSpan={7}>Nicht teilgenommen</td>
+                        <td colSpan={showCombinedMode ? 9 : 7}>
+                          Nicht teilgenommen
+                        </td>
                       </tr>
                     );
                   }
@@ -1020,9 +1289,15 @@ export default function Stats() {
                       </td>
                       <td>{season.raceCount}</td>
                       <td>{season.totalPoints}</td>
+                      {showCombinedMode ? <td>{season.predictionPoints}</td> : null}
+                      {showCombinedMode ? <td>{season.combinedPoints}</td> : null}
                       <td>{season.podiumCount}</td>
                       <td>{formatPercent(season.top3Rate)}</td>
-                      <td>{season.finalRank ?? "-"}</td>
+                      <td>
+                        {showCombinedMode
+                          ? season.finalCombinedRank ?? "-"
+                          : season.finalRank ?? "-"}
+                      </td>
                       <td>{formatRaceLabel(season.bestRace)}</td>
                       <td>{formatRaceLabel(season.worstRace)}</td>
                     </tr>
@@ -1055,8 +1330,12 @@ export default function Stats() {
                       <th>Rennen</th>
                       <th>Punkte</th>
                       <th>Kumuliert</th>
+                      {showCombinedMode ? <th>Predictions</th> : null}
+                      {showCombinedMode ? <th>Kumuliert Predictions</th> : null}
+                      {showCombinedMode ? <th>Gesamt</th> : null}
+                      {showCombinedMode ? <th>Kumuliert Gesamt</th> : null}
                       <th>Rang im Rennen</th>
-                      <th>Zwischenrang</th>
+                      <th>{showCombinedMode ? "Zwischenrang Gesamt" : "Zwischenrang"}</th>
                       <th>Podium</th>
                     </tr>
                   </thead>
@@ -1064,15 +1343,17 @@ export default function Stats() {
                     {asArray(detailSeason.races).map((race, index, races) => {
                       const previousRace =
                         index > 0 && Array.isArray(races) ? races[index - 1] : null;
+                      const currentRankValue = race?.raceRank;
+                      const previousRankValue = previousRace?.raceRank;
                       const hasCurrentRank =
-                        typeof race?.raceRank === "number" &&
-                        Number.isFinite(race.raceRank);
+                        typeof currentRankValue === "number" &&
+                        Number.isFinite(currentRankValue);
                       const hasPreviousRank =
-                        typeof previousRace?.raceRank === "number" &&
-                        Number.isFinite(previousRace.raceRank);
+                        typeof previousRankValue === "number" &&
+                        Number.isFinite(previousRankValue);
                       const rankDelta =
                         hasCurrentRank && hasPreviousRank
-                          ? previousRace.raceRank - race.raceRank
+                          ? previousRankValue - currentRankValue
                           : null;
 
                       return (
@@ -1080,9 +1361,17 @@ export default function Stats() {
                           <td>{race.raceName}</td>
                           <td>{race.points}</td>
                           <td>{race.cumulativePoints}</td>
+                          {showCombinedMode ? <td>{race.predictionPoints}</td> : null}
+                          {showCombinedMode ? (
+                            <td>{race.cumulativePredictionPoints}</td>
+                          ) : null}
+                          {showCombinedMode ? <td>{race.combinedPoints}</td> : null}
+                          {showCombinedMode ? (
+                            <td>{race.cumulativeCombinedPoints}</td>
+                          ) : null}
                           <td>
                             <span className="stats-race-rank-cell">
-                              <span>{race.raceRank}</span>
+                              <span>{currentRankValue}</span>
                               {rankDelta !== null ? (
                                 <span
                                   className={`stats-rank-delta ${
@@ -1098,7 +1387,11 @@ export default function Stats() {
                               ) : null}
                             </span>
                           </td>
-                          <td>{race.cumulativeRank}</td>
+                          <td>
+                            {showCombinedMode
+                              ? race.combinedRank ?? "-"
+                              : race.cumulativeRank ?? "-"}
+                          </td>
                           <td>{race.isPodium ? "Ja" : "Nein"}</td>
                         </tr>
                       );
