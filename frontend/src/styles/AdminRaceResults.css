@@ -145,71 +145,62 @@
   padding: 0.95rem 1rem;
 }
 
-.admin-race-results-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 0.75rem;
-}
-
-.admin-race-result-card {
+.admin-race-results-table-wrapper {
+  overflow-x: auto;
   border: 1px solid var(--brand-border);
-  border-left: 4px solid #3f3f3f;
   border-radius: 12px;
-  padding: 0.8rem;
-  background: linear-gradient(140deg, #181818 0%, #141414 100%);
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
+  background-color: #141414;
 }
 
-.admin-race-result-meta h3 {
-  margin: 0 0 0.35rem;
-  color: #ffffff;
-  font-size: 1rem;
+.admin-race-results-table {
+  width: 100%;
+  min-width: 700px;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
-.admin-race-result-username {
-  margin: 0 0 0.35rem;
-  color: #9e9e9e;
-  font-size: 0.8rem;
+.admin-race-results-table th,
+.admin-race-results-table td {
+  padding: 0.72rem 0.8rem;
+  border-bottom: 1px solid #2e2e2e;
+  text-align: left;
+  font-size: 0.93rem;
 }
 
-.admin-race-result-meta span {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.82rem;
-  color: #bcbcbc;
-  margin-right: 0.5rem;
+.admin-race-results-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: #222222;
+  color: var(--brand-red);
+  font-weight: 700;
 }
 
-.admin-race-result-meta span.is-muted {
+.admin-race-results-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.admin-race-results-table tbody tr:hover td {
+  background-color: #181818;
+}
+
+.admin-race-results-table td.is-muted {
   color: #8f8f8f;
 }
 
-.admin-race-result-input-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.admin-race-result-input-wrap span {
-  color: #dcdcdc;
-  font-size: 0.86rem;
-}
-
-.admin-race-result-input-wrap input {
+.admin-race-results-points-input {
   width: 100%;
+  min-width: 88px;
   box-sizing: border-box;
   border: 1px solid var(--brand-border);
   border-radius: 10px;
   background-color: #121212;
   color: var(--brand-text);
   font-size: 0.95rem;
-  padding: 0.58rem 0.75rem;
+  padding: 0.52rem 0.65rem;
 }
 
-.admin-race-result-input-wrap input:focus-visible {
+.admin-race-results-points-input:focus-visible {
   outline: 2px solid rgba(255, 30, 30, 0.7);
   outline-offset: 1px;
 }
@@ -278,6 +269,70 @@
   .admin-race-results-meta-item + .admin-race-results-meta-item::before {
     content: "";
     margin: 0;
+  }
+
+  .admin-race-results-table-wrapper {
+    overflow-x: visible;
+    border: 0;
+    background: transparent;
+  }
+
+  .admin-race-results-table {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .admin-race-results-table thead {
+    display: none;
+  }
+
+  .admin-race-results-table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .admin-race-results-table tr {
+    display: block;
+    border: 1px solid #2d2d2d;
+    border-radius: 12px;
+    padding: 0.75rem;
+    background-color: #171717;
+  }
+
+  .admin-race-results-table td {
+    border-bottom: 0;
+    background: transparent;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.55rem;
+    font-size: 0.9rem;
+  }
+
+  .admin-race-results-table td + td {
+    margin-top: 0.5rem;
+  }
+
+  .admin-race-results-table td::before {
+    content: attr(data-label);
+    color: #a8a8a8;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+  }
+
+  .admin-race-results-table td[data-label="Punkte"] {
+    display: block;
+  }
+
+  .admin-race-results-table td[data-label="Punkte"]::before {
+    display: block;
+    margin-bottom: 0.3rem;
+  }
+
+  .admin-race-results-points-input {
+    width: 100%;
   }
 
   .admin-race-results-button {

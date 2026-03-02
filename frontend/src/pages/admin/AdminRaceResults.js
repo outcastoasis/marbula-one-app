@@ -1,18 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faCalendarDays,
-  faFlagCheckered,
-  faSave,
-  faUsers,
-} from "@fortawesome/free-solid-svg-icons";
+import { faSave, faUsers } from "@fortawesome/free-solid-svg-icons";
 import API from "../../api";
 import { useToast } from "../../context/ToastContext";
 import "../../styles/AdminRaceResults.css";
 
 function formatDate(value) {
-  if (!value) return "—";
+  if (!value) return "-";
   return new Date(value).toLocaleDateString("de-CH");
 }
 
@@ -40,7 +35,9 @@ export default function AdminRaceResults() {
       setRace(raceData);
 
       const seasonId =
-        typeof raceData.season === "object" ? raceData.season?._id : raceData.season;
+        typeof raceData.season === "object"
+          ? raceData.season?._id
+          : raceData.season;
 
       const [seasonsRes, usersRes, teamsRes, assignmentsRes] = await Promise.all([
         API.get("/seasons"),
@@ -52,7 +49,9 @@ export default function AdminRaceResults() {
       const seasons = Array.isArray(seasonsRes.data) ? seasonsRes.data : [];
       const users = Array.isArray(usersRes.data) ? usersRes.data : [];
       const teams = Array.isArray(teamsRes.data) ? teamsRes.data : [];
-      const assignments = Array.isArray(assignmentsRes.data) ? assignmentsRes.data : [];
+      const assignments = Array.isArray(assignmentsRes.data)
+        ? assignmentsRes.data
+        : [];
 
       const foundSeason = seasons.find((entry) => entry._id === seasonId) || null;
       setSeason(foundSeason);
@@ -64,10 +63,7 @@ export default function AdminRaceResults() {
       const filteredParticipants = users
         .filter((user) => participantIds.includes(user._id))
         .sort((a, b) =>
-          (a.realname || a.username).localeCompare(
-            b.realname || b.username,
-            "de-CH",
-          ),
+          (a.realname || a.username).localeCompare(b.realname || b.username, "de-CH"),
         );
 
       setParticipants(filteredParticipants);
@@ -190,7 +186,7 @@ export default function AdminRaceResults() {
               )}
             </>
           ) : (
-            "Lade Renndaten…"
+            "Lade Renndaten..."
           )}
         </p>
       </header>
@@ -200,48 +196,55 @@ export default function AdminRaceResults() {
           <h2>Punkte erfassen</h2>
           <span className="admin-race-results-count">
             <FontAwesomeIcon icon={faUsers} />
-            {participants.length} {participants.length === 1 ? "Teilnehmer" : "Teilnehmer"}
+            {participants.length} Teilnehmer
           </span>
         </div>
 
         {isLoading ? (
-          <p className="admin-race-results-state">Lade Daten…</p>
+          <p className="admin-race-results-state">Lade Daten...</p>
         ) : participantsWithPoints.length === 0 ? (
           <p className="admin-race-results-state">
             Für diese Season sind keine Teilnehmer hinterlegt.
           </p>
         ) : (
-          <div className="admin-race-results-list">
-            {participantsWithPoints.map((user) => (
-              <article key={user._id} className="admin-race-result-card">
-                <div className="admin-race-result-meta">
-                  <h3>{user.displayName}</h3>
-                  {user.realname && user.username && (
-                    <p className="admin-race-result-username">@{user.username}</p>
-                  )}
-                  <span className={user.teamName ? "" : "is-muted"}>
-                    <FontAwesomeIcon icon={faFlagCheckered} />
-                    {user.teamName || "Kein Team gewählt"}
-                  </span>
-                  {season?.eventDate && (
-                    <span>
-                      <FontAwesomeIcon icon={faCalendarDays} />
-                      {formatDate(season.eventDate)}
-                    </span>
-                  )}
-                </div>
-
-                <label className="admin-race-result-input-wrap">
-                  <span>Punkte</span>
-                  <input
-                    type="number"
-                    value={user.points}
-                    onChange={(event) => handleChange(user._id, event.target.value)}
-                    min="0"
-                  />
-                </label>
-              </article>
-            ))}
+          <div className="admin-race-results-table-wrapper">
+            <table className="admin-race-results-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Benutzername</th>
+                  <th>Team</th>
+                  <th>Punkte</th>
+                </tr>
+              </thead>
+              <tbody>
+                {participantsWithPoints.map((user) => (
+                  <tr key={user._id}>
+                    <td data-label="Name">{user.displayName}</td>
+                    <td data-label="Benutzername">
+                      {user.username ? `@${user.username}` : "-"}
+                    </td>
+                    <td
+                      data-label="Team"
+                      className={user.teamName ? "" : "is-muted"}
+                    >
+                      {user.teamName || "Kein Team gewählt"}
+                    </td>
+                    <td data-label="Punkte">
+                      <input
+                        className="admin-race-results-points-input"
+                        type="number"
+                        value={user.points}
+                        onChange={(event) =>
+                          handleChange(user._id, event.target.value)
+                        }
+                        min="0"
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
 
@@ -253,7 +256,7 @@ export default function AdminRaceResults() {
             disabled={isSaving || participants.length === 0}
           >
             <FontAwesomeIcon icon={faSave} />
-            {isSaving ? "Speichern…" : "Ergebnisse speichern"}
+            {isSaving ? "Speichern..." : "Ergebnisse speichern"}
           </button>
         </div>
       </section>

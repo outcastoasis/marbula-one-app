@@ -452,6 +452,33 @@ export default function Predictions() {
     loadSeasonAssignments(selectedRoundSeasonId);
   }, [loadSeasonAssignments, selectedRoundSeasonId]);
 
+  const duplicatePickKeys = useMemo(() => {
+    const valuesByKey = {
+      p1: entryForm.p1,
+      p2: entryForm.p2,
+      p3: entryForm.p3,
+      lastPlace: entryForm.lastPlace,
+    };
+
+    const keysByTeamId = new Map();
+    Object.entries(valuesByKey).forEach(([key, value]) => {
+      const teamId = String(value || "").trim();
+      if (!teamId) return;
+      if (!keysByTeamId.has(teamId)) {
+        keysByTeamId.set(teamId, []);
+      }
+      keysByTeamId.get(teamId).push(key);
+    });
+
+    const duplicateKeys = new Set();
+    keysByTeamId.forEach((keys) => {
+      if (keys.length < 2) return;
+      keys.forEach((key) => duplicateKeys.add(key));
+    });
+
+    return duplicateKeys;
+  }, [entryForm.lastPlace, entryForm.p1, entryForm.p2, entryForm.p3]);
+
   const validateEntry = () => {
     const values = [entryForm.p1, entryForm.p2, entryForm.p3, entryForm.lastPlace];
     if (values.some((value) => !value)) {
@@ -645,11 +672,16 @@ export default function Predictions() {
               </div>
 
               <div className="predictions-picks-grid">
-                <label className="predictions-field">
+                <label
+                  className={`predictions-field ${
+                    duplicatePickKeys.has("p1") ? "is-invalid" : ""
+                  }`}
+                >
                   <span>1. Platz</span>
                   <select
                     disabled={!canEditEntry}
                     value={entryForm.p1}
+                    aria-invalid={duplicatePickKeys.has("p1")}
                     onChange={(event) =>
                       setEntryForm((prev) => ({ ...prev, p1: event.target.value }))
                     }
@@ -663,11 +695,16 @@ export default function Predictions() {
                   </select>
                 </label>
 
-                <label className="predictions-field">
+                <label
+                  className={`predictions-field ${
+                    duplicatePickKeys.has("p2") ? "is-invalid" : ""
+                  }`}
+                >
                   <span>2. Platz</span>
                   <select
                     disabled={!canEditEntry}
                     value={entryForm.p2}
+                    aria-invalid={duplicatePickKeys.has("p2")}
                     onChange={(event) =>
                       setEntryForm((prev) => ({ ...prev, p2: event.target.value }))
                     }
@@ -681,11 +718,16 @@ export default function Predictions() {
                   </select>
                 </label>
 
-                <label className="predictions-field">
+                <label
+                  className={`predictions-field ${
+                    duplicatePickKeys.has("p3") ? "is-invalid" : ""
+                  }`}
+                >
                   <span>3. Platz</span>
                   <select
                     disabled={!canEditEntry}
                     value={entryForm.p3}
+                    aria-invalid={duplicatePickKeys.has("p3")}
                     onChange={(event) =>
                       setEntryForm((prev) => ({ ...prev, p3: event.target.value }))
                     }
@@ -699,11 +741,16 @@ export default function Predictions() {
                   </select>
                 </label>
 
-                <label className="predictions-field">
+                <label
+                  className={`predictions-field ${
+                    duplicatePickKeys.has("lastPlace") ? "is-invalid" : ""
+                  }`}
+                >
                   <span>Letzter Platz</span>
                   <select
                     disabled={!canEditEntry}
                     value={entryForm.lastPlace}
+                    aria-invalid={duplicatePickKeys.has("lastPlace")}
                     onChange={(event) =>
                       setEntryForm((prev) => ({ ...prev, lastPlace: event.target.value }))
                     }
@@ -718,6 +765,11 @@ export default function Predictions() {
                 </label>
 
               </div>
+              {duplicatePickKeys.size > 0 ? (
+                <p className="predictions-inline-note predictions-inline-note-error">
+                  Ein Team wurde mehrfach ausgewählt. Bitte korrigieren.
+                </p>
+              ) : null}
 
               <div className="predictions-actions">
                 <button

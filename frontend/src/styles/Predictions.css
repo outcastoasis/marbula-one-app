@@ -112,12 +112,29 @@
   padding: 0.56rem 0.7rem;
 }
 
+.predictions-field select option {
+  background-color: #121212;
+  color: #fff;
+}
+
 .predictions-field select:focus-visible,
 .predictions-field input:focus-visible,
 .predictions-round-item:focus-visible,
 .predictions-button:focus-visible {
   outline: 2px solid #ff1e1e;
   outline-offset: 2px;
+}
+
+.predictions-field.is-invalid span {
+  color: #ffb5b5;
+}
+
+.predictions-field.is-invalid select,
+.predictions-field.is-invalid input {
+  border-color: rgba(255, 82, 82, 0.92);
+  background-color: #1f1010;
+  color: #fff;
+  box-shadow: 0 0 0 1px rgba(255, 82, 82, 0.38);
 }
 
 .predictions-grid {
@@ -278,6 +295,11 @@
 .predictions-inline-note {
   color: #cfcfcf;
   font-size: 0.82rem;
+}
+
+.predictions-inline-note-error {
+  margin-top: 0.7rem;
+  color: #ffb5b5;
 }
 
 .predictions-toggle-button {
