@@ -2,24 +2,63 @@ import { useContext, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import API from "../api";
-import "../styles/Login.css"; // ← CSS importieren
+import "../styles/Login.css";
+
+function getLoginErrorState(error) {
+  const fallbackMessage =
+    "Login ist derzeit nicht möglich. Bitte versuche es später erneut.";
+  const apiMessage = error.response?.data?.message || "";
+  const code = error.response?.data?.code;
+
+  switch (code) {
+    case "VALIDATION_USERNAME_REQUIRED":
+    case "AUTH_USERNAME_NOT_FOUND":
+      return { username: apiMessage || "Benutzername wurde nicht gefunden." };
+    case "VALIDATION_PASSWORD_REQUIRED":
+    case "AUTH_PASSWORD_INCORRECT":
+      return { password: apiMessage || "Passwort ist ungültig." };
+    case "AUTH_LOGIN_FAILED":
+      return { form: apiMessage || fallbackMessage };
+    default:
+      return { form: apiMessage || error.message || fallbackMessage };
+  }
+}
 
 export default function Login() {
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [username, setUsername] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState({
+    form: "",
+    username: "",
+    password: "",
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const clearError = (field) => {
+    setErrors((prev) => ({ ...prev, form: "", [field]: "" }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setErrors({ form: "", username: "", password: "" });
+
     try {
-      const res = await API.post("/auth/login", { username, password });
+      setIsSubmitting(true);
+
+      const res = await API.post("/auth/login", {
+        username: username.trim(),
+        password,
+      });
+
       localStorage.setItem("token", res.data.token);
       login(res.data.user);
       navigate("/");
-    } catch (err) {
-      setError("Ungültige Anmeldedaten");
+    } catch (error) {
+      setErrors((prev) => ({ ...prev, ...getLoginErrorState(error) }));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -35,30 +74,56 @@ export default function Login() {
       <div className="login-box">
         <h2>Login</h2>
 
-        {error && <div className="login-error">{error}</div>}
+        {errors.form ? <div className="login-error">{errors.form}</div> : null}
 
-        <form onSubmit={handleSubmit} className="login-form">
+        <form onSubmit={handleSubmit} className="login-form" noValidate>
           <div className="form-group">
-            <label>Benutzername</label>
+            <label htmlFor="login-username">Benutzername</label>
             <input
+              id="login-username"
               type="text"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={(event) => {
+                setUsername(event.target.value);
+                clearError("username");
+              }}
               required
               autoFocus
+              autoComplete="username"
+              aria-invalid={errors.username ? "true" : "false"}
+              aria-describedby={errors.username ? "login-username-error" : undefined}
+              className={errors.username ? "input-error" : ""}
             />
+            {errors.username ? (
+              <div id="login-username-error" className="field-error">
+                {errors.username}
+              </div>
+            ) : null}
           </div>
           <div className="form-group">
-            <label>Passwort</label>
+            <label htmlFor="login-password">Passwort</label>
             <input
+              id="login-password"
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(event) => {
+                setPassword(event.target.value);
+                clearError("password");
+              }}
               required
+              autoComplete="current-password"
+              aria-invalid={errors.password ? "true" : "false"}
+              aria-describedby={errors.password ? "login-password-error" : undefined}
+              className={errors.password ? "input-error" : ""}
             />
+            {errors.password ? (
+              <div id="login-password-error" className="field-error">
+                {errors.password}
+              </div>
+            ) : null}
           </div>
-          <button type="submit" className="login-button">
-            Einloggen
+          <button type="submit" className="login-button" disabled={isSubmitting}>
+            {isSubmitting ? "Einloggen..." : "Einloggen"}
           </button>
         </form>
 

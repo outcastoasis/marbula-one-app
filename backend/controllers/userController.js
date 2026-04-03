@@ -5,6 +5,14 @@ import UserSeasonTeam from "../models/UserSeasonTeam.js";
 import Race from "../models/Race.js";
 import Season from "../models/Season.js";
 import { runWithOptionalTransaction } from "../utils/transaction.js";
+import {
+  buildErrorResponse,
+  normalizeRealname,
+  normalizeUsername,
+  validatePassword,
+  validateRealname,
+  validateUsername,
+} from "../utils/authValidation.js";
 
 const applySession = (query, session) =>
   session ? query.session(session) : query;
@@ -108,21 +116,27 @@ export const getCurrentUser = async (req, res) => {
 
 // POST /users
 export const createUser = async (req, res) => {
-  const username =
-    typeof req.body.username === "string" ? req.body.username.trim() : "";
-  const realname =
-    typeof req.body.realname === "string" ? req.body.realname.trim() : "";
+  const username = normalizeUsername(req.body.username);
+  const realname = normalizeRealname(req.body.realname);
   const password = typeof req.body.password === "string" ? req.body.password : "";
 
-  if (!username || !realname || !password) {
-    return res.status(400).json({
-      message: "Bitte Benutzername, Name und Passwort angeben.",
-    });
+  const validationError =
+    validateUsername(username) ||
+    validateRealname(realname) ||
+    validatePassword(password);
+  if (validationError) {
+    return res
+      .status(validationError.status)
+      .json(buildErrorResponse(validationError));
   }
 
   const userExists = await User.findOne({ username });
   if (userExists) {
-    return res.status(409).json({ message: "Benutzername existiert bereits." });
+    return res.status(409).json({
+      message: "Benutzername existiert bereits.",
+      code: "AUTH_USERNAME_TAKEN",
+      field: "username",
+    });
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -158,11 +172,15 @@ export const updateUserPassword = async (req, res) => {
     return res.status(400).json({ message: "Ungültige Benutzer-ID" });
   }
 
-  if (typeof req.body.password !== "string" || req.body.password.trim().length === 0) {
-    return res.status(400).json({ message: "Passwort darf nicht leer sein." });
+  const password = typeof req.body.password === "string" ? req.body.password : "";
+  const validationError = validatePassword(password);
+  if (validationError) {
+    return res
+      .status(validationError.status)
+      .json(buildErrorResponse(validationError));
   }
 
-  const hashed = await bcrypt.hash(req.body.password, 10);
+  const hashed = await bcrypt.hash(password, 10);
   const updated = await User.findByIdAndUpdate(id, { password: hashed });
   if (!updated) {
     return res.status(404).json({ message: "Benutzer nicht gefunden" });
@@ -198,10 +216,12 @@ export const updateUserRealname = async (req, res) => {
     return res.status(400).json({ message: "Ungültige Benutzer-ID" });
   }
 
-  const realname =
-    typeof req.body.realname === "string" ? req.body.realname.trim() : "";
-  if (!realname) {
-    return res.status(400).json({ message: "Name darf nicht leer sein." });
+  const realname = normalizeRealname(req.body.realname);
+  const validationError = validateRealname(realname);
+  if (validationError) {
+    return res
+      .status(validationError.status)
+      .json(buildErrorResponse(validationError));
   }
 
   const updated = await User.findByIdAndUpdate(

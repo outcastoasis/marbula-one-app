@@ -85,6 +85,17 @@
   box-shadow: 0 0 0 2px rgba(255, 30, 30, 0.3);
 }
 
+.form-group .input-error {
+  border-color: #ff6b6b;
+}
+
+.field-error {
+  margin-top: 0.45rem;
+  color: #ff8d8d;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
 .login-button {
   background-color: var(--brand-red);
   color: white;
@@ -98,6 +109,11 @@
 
 .login-button:hover {
   background-color: #e60000;
+}
+
+.login-button:disabled {
+  opacity: 0.72;
+  cursor: wait;
 }
 
 .login-footer {
