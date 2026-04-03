@@ -25,7 +25,7 @@ export default function Home() {
   const [assignments, setAssignments] = useState([]);
   const [cumulativeData, setCumulativeData] = useState([]);
   const [combinedStandings, setCombinedStandings] = useState(null);
-  const [includePredictions, setIncludePredictions] = useState(true);
+  const [includePredictions, setIncludePredictions] = useState(false);
   const [activePoint, setActivePoint] = useState(null);
 
   useEffect(() => {

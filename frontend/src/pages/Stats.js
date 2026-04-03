@@ -191,7 +191,7 @@ function AnimatedVisibility({
 export default function Stats() {
   const { user } = useContext(AuthContext);
   const [seasonFilter, setSeasonFilter] = useState("all");
-  const [includePredictions, setIncludePredictions] = useState(true);
+  const [includePredictions, setIncludePredictions] = useState(false);
   const [completedSeasons, setCompletedSeasons] = useState([]);
   const [compareCandidatesAll, setCompareCandidatesAll] = useState([]);
   const [compareCandidatesBySeason, setCompareCandidatesBySeason] = useState(
