@@ -32,6 +32,8 @@ export default function AdminSeasons() {
   const [eventDate, setEventDate] = useState("");
   const [participants, setParticipants] = useState([]);
   const [teams, setTeams] = useState([]);
+  const [userSearchQuery, setUserSearchQuery] = useState("");
+  const [teamSearchQuery, setTeamSearchQuery] = useState("");
   const [users, setUsers] = useState([]);
   const [allTeams, setAllTeams] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -54,6 +56,43 @@ export default function AdminSeasons() {
       ),
     [users],
   );
+
+  const sortedTeams = useMemo(
+    () =>
+      [...allTeams].sort((a, b) =>
+        String(a?.name || "").localeCompare(String(b?.name || ""), "de-CH", {
+          sensitivity: "base",
+          numeric: true,
+        }),
+      ),
+    [allTeams],
+  );
+
+  const filteredUsers = useMemo(() => {
+    const normalizedQuery = userSearchQuery.trim().toLocaleLowerCase("de-CH");
+    if (!normalizedQuery) {
+      return sortedUsers;
+    }
+
+    return sortedUsers.filter((user) =>
+      [user?.username, user?.realname].some((value) =>
+        String(value || "").toLocaleLowerCase("de-CH").includes(normalizedQuery),
+      ),
+    );
+  }, [sortedUsers, userSearchQuery]);
+
+  const filteredTeams = useMemo(() => {
+    const normalizedQuery = teamSearchQuery.trim().toLocaleLowerCase("de-CH");
+    if (!normalizedQuery) {
+      return sortedTeams;
+    }
+
+    return sortedTeams.filter((team) =>
+      String(team?.name || "")
+        .toLocaleLowerCase("de-CH")
+        .includes(normalizedQuery),
+    );
+  }, [sortedTeams, teamSearchQuery]);
 
   const fetchData = useCallback(
     async ({ showErrorToast = true } = {}) => {
@@ -92,12 +131,40 @@ export default function AdminSeasons() {
     );
   };
 
-  const toggleAll = (allItems, selectedItems, setState) => {
-    if (selectedItems.length === allItems.length) {
-      setState([]);
-    } else {
-      setState(allItems.map((item) => item._id));
+  const toggleMany = (items, selectedItems, setState) => {
+    const itemIds = items.map((item) => item?._id).filter(Boolean);
+    if (itemIds.length === 0) {
+      return;
     }
+
+    const areAllSelected = itemIds.every((itemId) => selectedItems.includes(itemId));
+
+    setState((prev) =>
+      areAllSelected
+        ? prev.filter((itemId) => !itemIds.includes(itemId))
+        : [...new Set([...prev, ...itemIds])],
+    );
+  };
+
+  const selectedVisibleUsersCount = filteredUsers.filter((user) =>
+    participants.includes(user._id),
+  ).length;
+  const selectedVisibleTeamsCount = filteredTeams.filter((team) =>
+    teams.includes(team._id),
+  ).length;
+  const isFilteringUsers = userSearchQuery.trim().length > 0;
+  const isFilteringTeams = teamSearchQuery.trim().length > 0;
+
+  const getBulkToggleLabel = (isFiltering, visibleCount, selectedVisibleCount) => {
+    if (visibleCount === 0) {
+      return isFiltering ? "Keine Treffer" : "Keine Einträge";
+    }
+
+    if (selectedVisibleCount === visibleCount) {
+      return isFiltering ? "Sichtbare abwählen" : "Alle abwählen";
+    }
+
+    return isFiltering ? "Sichtbare auswählen" : "Alle auswählen";
   };
 
   const addSeason = async () => {
@@ -118,6 +185,8 @@ export default function AdminSeasons() {
       setEventDate("");
       setParticipants([]);
       setTeams([]);
+      setUserSearchQuery("");
+      setTeamSearchQuery("");
 
       const refreshed = await fetchData({ showErrorToast: false });
       if (!refreshed) {
@@ -332,24 +401,45 @@ export default function AdminSeasons() {
               <h3>
                 <FontAwesomeIcon icon={faUsers} /> Teilnehmende Benutzer
               </h3>
-              <button
-                type="button"
-                className="admin-seasons-toggle"
-                onClick={() =>
-                  toggleAll(sortedUsers, participants, setParticipants)
-                }
-              >
-                {participants.length === sortedUsers.length
-                  ? "Alle abwählen"
-                  : "Alle auswählen"}
-              </button>
+              <div className="admin-seasons-select-actions">
+                <span className="admin-seasons-selection-summary">
+                  {participants.length} von {sortedUsers.length} ausgewählt
+                </span>
+                <button
+                  type="button"
+                  className="admin-seasons-toggle"
+                  onClick={() =>
+                    toggleMany(filteredUsers, participants, setParticipants)
+                  }
+                  disabled={filteredUsers.length === 0}
+                >
+                  {getBulkToggleLabel(
+                    isFilteringUsers,
+                    filteredUsers.length,
+                    selectedVisibleUsersCount,
+                  )}
+                </button>
+              </div>
             </div>
+
+            <input
+              type="search"
+              className="admin-seasons-search-input"
+              placeholder="Benutzer suchen..."
+              aria-label="Benutzer suchen"
+              value={userSearchQuery}
+              onChange={(event) => setUserSearchQuery(event.target.value)}
+            />
 
             {sortedUsers.length === 0 ? (
               <p className="admin-seasons-empty">Keine Benutzer verfügbar.</p>
+            ) : filteredUsers.length === 0 ? (
+              <p className="admin-seasons-empty">
+                Keine Benutzer für "{userSearchQuery.trim()}" gefunden.
+              </p>
             ) : (
               <div className="admin-seasons-checkbox-list">
-                {sortedUsers.map((user) => {
+                {filteredUsers.map((user) => {
                   const isSelected = participants.includes(user._id);
                   return (
                     <label key={user._id} className="admin-seasons-checkbox">
@@ -358,7 +448,12 @@ export default function AdminSeasons() {
                         checked={isSelected}
                         onChange={() => toggleSelection(user._id, setParticipants)}
                       />
-                      <span>{user.username}</span>
+                      <span>
+                        {user.username}
+                        {user.realname && user.realname !== user.username
+                          ? ` (${user.realname})`
+                          : ""}
+                      </span>
                     </label>
                   );
                 })}
@@ -371,20 +466,43 @@ export default function AdminSeasons() {
               <h3>
                 <FontAwesomeIcon icon={faFlagCheckered} /> Teilnehmende Teams
               </h3>
-              <button
-                type="button"
-                className="admin-seasons-toggle"
-                onClick={() => toggleAll(allTeams, teams, setTeams)}
-              >
-                {teams.length === allTeams.length ? "Alle abwählen" : "Alle auswählen"}
-              </button>
+              <div className="admin-seasons-select-actions">
+                <span className="admin-seasons-selection-summary">
+                  {teams.length} von {sortedTeams.length} ausgewählt
+                </span>
+                <button
+                  type="button"
+                  className="admin-seasons-toggle"
+                  onClick={() => toggleMany(filteredTeams, teams, setTeams)}
+                  disabled={filteredTeams.length === 0}
+                >
+                  {getBulkToggleLabel(
+                    isFilteringTeams,
+                    filteredTeams.length,
+                    selectedVisibleTeamsCount,
+                  )}
+                </button>
+              </div>
             </div>
 
-            {allTeams.length === 0 ? (
+            <input
+              type="search"
+              className="admin-seasons-search-input"
+              placeholder="Teams suchen..."
+              aria-label="Teams suchen"
+              value={teamSearchQuery}
+              onChange={(event) => setTeamSearchQuery(event.target.value)}
+            />
+
+            {sortedTeams.length === 0 ? (
               <p className="admin-seasons-empty">Keine Teams verfügbar.</p>
+            ) : filteredTeams.length === 0 ? (
+              <p className="admin-seasons-empty">
+                Keine Teams für "{teamSearchQuery.trim()}" gefunden.
+              </p>
             ) : (
               <div className="admin-seasons-checkbox-list">
-                {allTeams.map((team) => {
+                {filteredTeams.map((team) => {
                   const isSelected = teams.includes(team._id);
                   return (
                     <label key={team._id} className="admin-seasons-checkbox">

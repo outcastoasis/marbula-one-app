@@ -166,6 +166,14 @@
   margin-bottom: 0.6rem;
 }
 
+.admin-seasons-select-actions {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
 .admin-seasons-select-head h3 {
   margin: 0;
   color: #f2f2f2;
@@ -192,6 +200,33 @@
 .admin-seasons-toggle:hover {
   border-color: rgba(255, 30, 30, 0.45);
   color: #ffffff;
+}
+
+.admin-seasons-toggle:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.admin-seasons-selection-summary {
+  color: #bdbdbd;
+  font-size: 0.78rem;
+}
+
+.admin-seasons-search-input {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 0.65rem;
+  border: 1px solid var(--brand-border);
+  border-radius: 10px;
+  background-color: #121212;
+  color: var(--brand-text);
+  font-size: 0.9rem;
+  padding: 0.58rem 0.75rem;
+}
+
+.admin-seasons-search-input:focus-visible {
+  outline: 2px solid rgba(255, 30, 30, 0.7);
+  outline-offset: 1px;
 }
 
 .admin-seasons-checkbox-list {
